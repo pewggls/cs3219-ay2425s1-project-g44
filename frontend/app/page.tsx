@@ -36,6 +36,7 @@ export default function Home() {
         <div className="flex items-center gap-2">
           {/* <CodeIcon className="w-6 h-6 text-purple-600" /> */}
           <Link href="#" className="text-2xl font-bold font-branding text-brand-700" prefetch={false}>PeerPrep</Link>
+          {process.env.NODE_ENV == "development" && (<Badge variant="dev" className="ml-2">DEV</Badge>)}
         </div>
         <div className="flex items-center gap-4">
           <nav className="flex items-center gap-4 font-branding">
@@ -82,7 +83,7 @@ export default function Home() {
                 className={"font-sans"}
               />
             </div>
-            <Button variant="outline">SELECT ALL</Button>
+            <Button variant="outline" className="uppercase">Select All</Button>
           </div>
           
         </div>

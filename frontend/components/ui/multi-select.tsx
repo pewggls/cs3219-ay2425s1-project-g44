@@ -314,7 +314,7 @@ export const MultiSelect = React.forwardRef<
                             <div className="flex items-center justify-between w-full mx-auto">
                                 <div className="flex items-center justify-between">
                                     {SelectIcon && (
-                                        <SelectIcon className="h-4 w-4 m-2 text-black" />
+                                        <SelectIcon className="h-4 w-4 m-2 text-icon" />
                                     )}
                                     <span className="text-sm text-muted-foreground mx-3">
                                         {placeholder}
