@@ -8,7 +8,7 @@ const config: Config = {
 		"./app/**/*.{js,ts,jsx,tsx,mdx}",
 	],
 	theme: {
-	extend: {
+		extend: {
 			colors: {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
@@ -49,13 +49,43 @@ const config: Config = {
 					'3': 'hsl(var(--chart-3))',
 					'4': 'hsl(var(--chart-4))',
 					'5': 'hsl(var(--chart-5))'
-				}
 				},
-				borderRadius: {
+				brand: {
+					50: '#F9F5FF',
+					100: '#F4EBFF',
+					200: '#E9D7FE',
+					300: '#D6BBFB',
+					400: '#B692F6',
+					500: '#9E77ED',
+					600: '#7F56D9',
+					700: '#6941C6',
+					800: '#53389E'
+				},
+				icon: 'var(--icon)',
+				diff: {
+					'hard': {
+						text: 'var(--diff-hard-text)',
+						bg: 'var(--diff-hard-bg)'
+					},
+					'medium': {
+						text: 'var(--diff-medium-text)',
+						bg: 'var(--diff-medium-bg)'
+					},
+					'easy': {
+						text: 'var(--diff-easy-text)',
+						bg: 'var(--diff-easy-bg)'
+					}
+				},
+				topic: {
+					text: 'var(--topic-text)',
+					bg: 'var(--topic-bg)',
+				}
+			},
+			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
-				},
+			},
 			fontFamily: {
 				branding: ['var(--font-branding)'],
 				sans: ['var(--font-matter)'],
