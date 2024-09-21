@@ -1,28 +1,112 @@
 "use client"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+import { Badge, BadgeProps } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { Flag, MessageSquareText } from "lucide-react";
 import Link from "next/link";
 import React, { useState } from "react";
 
-const difficultyList = [
-  { value: "easy", label: "Easy", className: "bg-diff-easy-bg text-diff-easy-text" },
-  { value: "medium", label: "Medium", className: "bg-diff-medium-bg text-diff-medium-text" },
-  { value: "hard", label: "Hard", className: "bg-diff-hard-bg text-diff-hard-text" },
+const difficultyList: Array<{ value: string; label: string; badgeVariant: BadgeProps["variant"] }> = [
+  { value: "easy", label: "Easy", badgeVariant: "diffEasy" },
+  { value: "medium", label: "Medium", badgeVariant: "diffMedium" },
+  { value: "hard", label: "Hard", badgeVariant: "diffHard" },
 ];
 
-const topicList = [
-  { value: "algorithms", label: "Algorithms", className: "bg-topic-bg text-topic-text" },
-  { value: "arrays", label: "Arrays", className: "bg-topic-bg text-topic-text" },
-  { value: "bitmanipulation", label: "Bit Manipulation", className: "bg-topic-bg text-topic-text" },
-  { value: "brainteaser", label: "Brain Teaser", className: "bg-topic-bg text-topic-text" },
-  { value: "databases", label: "Databases", className: "bg-topic-bg text-topic-text" },
-  { value: "datastructures", label: "Data Structures", className: "bg-topic-bg text-topic-text" },
-  { value: "recursion", label: "Recursion", className: "bg-topic-bg text-topic-text" },
-  { value: "strings", label: "Strings", className: "bg-topic-bg text-topic-text" },
+const topicList: Array<{ value: string; label: string; badgeVariant: BadgeProps["variant"] }> = [
+  { value: "algorithms", label: "Algorithms", badgeVariant: "topic" },
+  { value: "arrays", label: "Arrays", badgeVariant: "topic" },
+  { value: "bitmanipulation", label: "Bit Manipulation", badgeVariant: "topic" },
+  { value: "brainteaser", label: "Brain Teaser", badgeVariant: "topic" },
+  { value: "databases", label: "Databases", badgeVariant: "topic" },
+  { value: "datastructures", label: "Data Structures", badgeVariant: "topic" },
+  { value: "recursion", label: "Recursion", badgeVariant: "topic" },
+  { value: "strings", label: "Strings", badgeVariant: "topic" },
+];
+
+const questionList = [
+  {
+    id: 1,
+    title: "Question 1",
+    difficulty: difficultyList.find(diff => diff.value === "easy")?.label,
+    topics: [topicList.find(topic => topic.value === "algorithms")?.label],
+    summary: "Short summary of question 1",
+    selected: false,
+  },
+  {
+    id: 2,
+    title: "Question 2 with a long title which might take 2 lines or more",
+    difficulty: difficultyList.find(diff => diff.value === "hard")?.label,
+    topics: [topicList.find(topic => topic.value === "arrays")?.label, topicList.find(topic => topic.value === "algorithms")?.label],
+    summary: "Short summary of question 2",
+    selected: true,
+  },
+  {
+    id: 3,
+    title: "Question 3",
+    difficulty: difficultyList.find(diff => diff.value === "medium")?.label,
+    topics: [topicList.find(topic => topic.value === "brainteaser")?.label],
+    summary: "Slightly longer but still short summary of question 3",
+    selected: true,
+  },
+  {
+    id: 4,
+    title: "Question 4",
+    difficulty: difficultyList.find(diff => diff.value === "easy")?.label,
+    topics: [topicList.find(topic => topic.value === "datastructures")?.label],
+    summary: "Short summary of question 4",
+    selected: false,
+  },
+  {
+    id: 5,
+    title: "Question 5",
+    difficulty: difficultyList.find(diff => diff.value === "hard")?.label,
+    topics: [topicList.find(topic => topic.value === "databases")?.label],
+    summary: "Short summary of question 5",
+    selected: false,
+  },
+  {
+    id: 6,
+    title: "Question 6",
+    difficulty: difficultyList.find(diff => diff.value === "easy")?.label,
+    topics: [topicList.find(topic => topic.value === "strings")?.label, topicList.find(topic => topic.value === "algorithms")?.label],
+    summary: "Short summary of question 6",
+    selected: false,
+  },
+  {
+    id: 7,
+    title: "Question 7",
+    difficulty: difficultyList.find(diff => diff.value === "medium")?.label,
+    topics: [topicList.find(topic => topic.value === "arrays")?.label, topicList.find(topic => topic.value === "datastructures")?.label],
+    summary: "Short summary of question 7",
+    selected: true,
+  },
+  {
+    id: 8,
+    title: "Question 8",
+    difficulty: difficultyList.find(diff => diff.value === "hard")?.label,
+    topics: [topicList.find(topic => topic.value === "algorithms")?.label],
+    summary: "Short summary of question 8",
+    selected: false,
+  },
+  {
+    id: 9,
+    title: "Question 9",
+    difficulty: difficultyList.find(diff => diff.value === "easy")?.label,
+    topics: [topicList.find(topic => topic.value === "strings")?.label, topicList.find(topic => topic.value === "recursion")?.label],
+    summary: "Short summary of question 9",
+    selected: false,
+  },
+  {
+    id: 10,
+    title: "Question 10",
+    difficulty: difficultyList.find(diff => diff.value === "medium")?.label,
+    topics: [topicList.find(topic => topic.value === "arrays")?.label],
+    summary: "Short summary of question 10",
+    selected: true,
+  },
 ];
 
 export default function Home() {
@@ -85,7 +169,29 @@ export default function Home() {
             </div>
             <Button variant="outline" className="uppercase">Select All</Button>
           </div>
-          
+          <div className="space-y-4 overflow-auto h-[75vh]">
+            {questionList.map((question) => (
+              <div key={question.id} className="relative">
+                <Card className="flex items-start p-4 w-full cursor-pointer">
+                  <div className="flex-1">
+                    <h3 className="text-xl font-serif font-semibold">{question.title}</h3>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Badge variant={`diff${question.difficulty}` as BadgeProps["variant"]}>{question.difficulty}</Badge>
+                      {question.topics.map((topic, index) => (
+                        <Badge key={index} variant="topic">
+                          {topic}
+                        </Badge>
+                      ))}
+                    </div>
+                    <p className="mt-2 text-sm text-muted-foreground">{question.summary}</p>
+                  </div>
+                  <Button variant={question.selected ? "default" : "outline"} className="ml-4">
+                    {question.selected ? "Selected" : "Select"}
+                  </Button>
+                </Card>
+              </div>
+            ))}
+          </div>
         </div>
         <div className="w-full md:w-1/2 p-4 border rounded-md">
           <h3 className="text-xl font-serif font-semibold">Question 2 with a long title which might take 2 lines or more</h3>

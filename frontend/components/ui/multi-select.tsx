@@ -16,7 +16,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Badge, BadgeProps } from "@/components/ui/badge";
 import {
     Popover,
     PopoverContent,
@@ -75,6 +75,8 @@ interface MultiSelectProps
         icon?: React.ComponentType<{ className?: string }>;
         /** Optional classes to add to the option badge */
         className?: string;
+        /** Optional variant to apply to the option badge */
+        badgeVariant?: BadgeProps["variant"];
     }[];
 
     /**
@@ -253,6 +255,7 @@ export const MultiSelect = React.forwardRef<
                                         const IconComponent = option?.icon;
                                         return (
                                             <Badge
+                                                variant={option?.badgeVariant || "default"}
                                                 key={value}
                                                 className={cn(
                                                     isAnimating ? "animate-bounce" : "",
