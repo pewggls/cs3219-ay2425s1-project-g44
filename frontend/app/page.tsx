@@ -126,6 +126,21 @@ export default function Home() {
   const [filtersHeight, setFiltersHeight] = useState(0);
   const [selectedViewQuestion, setSelectedViewQuestion] = useState(questionList[0]);
 
+  const filteredQuestions = questionList.filter((question) => {
+    // convert the selectedTopics (which are values) into their corresponding labels from topicList
+    const selectedTopicLabels = selectedTopics.map(
+      (topicValue) => topicList.find((topic) => topic.value === topicValue)?.label
+    );
+
+    const matchesDifficulty =
+      selectedDifficuties.length === 0 ||  (question.difficulty && selectedDifficuties.includes(question.difficulty));
+
+    const matchesTopics =
+      selectedTopicLabels.length === 0 || selectedTopicLabels.some((topic) => question.topics.includes(topic));
+      
+    return matchesDifficulty && matchesTopics;
+  });
+
   useEffect(() => {
     const filtersElement = document.getElementById('filters');
     if (filtersElement) {
@@ -195,7 +210,7 @@ export default function Home() {
             <ScrollArea className="h-[80vh]" barOffset={filtersHeight + 24} type="hover">
               <div className="space-y-1 overflow-auto mr-2">
                 <div className="hidden tablet:block mb-6" style={{ height: `${filtersHeight}px` }}></div>
-                {questionList.map((question) => (
+                {filteredQuestions.map((question) => (
                   <div id="qns" key={question.id} className="relative mr-2">
                     <Card 
                       className="flex items-start border-none shadow-none p-4 w-full cursor-pointer hover:bg-gray-100 transition ease-in-out duration-150"
