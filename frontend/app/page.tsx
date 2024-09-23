@@ -42,7 +42,7 @@ const topicList: Array<{
     label: "Bit Manipulation",
     badgeVariant: "topic",
   },
-  { value: "brainteaser", label: "Brain Teaser", badgeVariant: "topic" },
+  { value: "brainteaser", label: "Brainteaser", badgeVariant: "topic" },
   { value: "databases", label: "Databases", badgeVariant: "topic" },
   { value: "datastructures", label: "Data Structures", badgeVariant: "topic" },
   { value: "recursion", label: "Recursion", badgeVariant: "topic" },
@@ -59,7 +59,8 @@ export default function Home() {
   const [filtersHeight, setFiltersHeight] = useState(0);
   const [questionList, setQuestionList] = useState<Question[]>([]);
   const [selectedViewQuestion, setSelectedViewQuestion] = useState<Question | null>(null);
-  console.log("here");
+  const [isSelectAll, setIsSelectAll] = useState(false); 
+
   // Fetch questions from the backend API
   useEffect(() => {
     async function fetchQuestions() {
@@ -112,6 +113,41 @@ export default function Home() {
 
     return matchesDifficulty && matchesTopics;
   });
+
+  // Function to handle "Select All" button click
+  const handleSelectAll = () => {
+    const newIsSelectAll = !isSelectAll;
+    setIsSelectAll(newIsSelectAll);
+
+    // Toggle selection of all questions
+    const updatedQuestions = questionList.map((question) => ({
+      ...question,
+      selected: newIsSelectAll, // Select or unselect all questions
+    }));
+    setQuestionList(updatedQuestions);
+  };
+
+  // Function to handle individual question selection
+  const handleSelectQuestion = (id: number) => {
+    const updatedQuestions = questionList.map((question) =>
+        question.id === id
+          ? { ...question, selected: !question.selected }
+          : question
+      );
+    setQuestionList(updatedQuestions);
+  };
+
+  useEffect(() => {
+    const allSelected = questionList.length > 0 && questionList.every(q => q.selected);
+    const noneSelected = questionList.length > 0 && questionList.every(q => !q.selected);
+
+    if (allSelected) {
+      setIsSelectAll(true);
+    } else if (noneSelected) {
+      setIsSelectAll(false);
+    }
+    console.log("trigger use effect", "is all selected: ", allSelected, "is all not selected: ",noneSelected)
+  }, [questionList]);
 
   return (
     // <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
@@ -185,8 +221,8 @@ export default function Home() {
                   className={"font-sans"}
                 />
               </div>
-              <Button variant="outline" className="uppercase rounded-3xl">
-                Select All
+              <Button variant="outline" className="uppercase rounded-3xl" onClick={handleSelectAll}>
+                {isSelectAll ? "Deselect All" : "Select All"}
               </Button>
             </div>
 
@@ -228,9 +264,9 @@ export default function Home() {
                           {question.summary}
                         </p>
                       </div>
-                      <Button
+                      <Button 
                         variant={question.selected ? "default" : "outline"}
-                        className="ml-4"
+                        className="ml-4" onClick={() => handleSelectQuestion(question.id)}
                       >
                         {question.selected ? "Selected" : "Select"}
                       </Button>
