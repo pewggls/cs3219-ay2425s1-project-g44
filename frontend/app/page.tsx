@@ -15,7 +15,7 @@ type Question = {
   title: string;
   difficulty: string | undefined;
   topics: (string | undefined)[];
-  summary: (string | null);
+  summary: string | null;
   description: string;
   selected: boolean;
 };
@@ -58,27 +58,32 @@ export default function Home() {
   );
   const [filtersHeight, setFiltersHeight] = useState(0);
   const [questionList, setQuestionList] = useState<Question[]>([]);
-  const [selectedViewQuestion, setSelectedViewQuestion] = useState<Question | null>(null);
-  const [isSelectAll, setIsSelectAll] = useState(false); 
+  const [selectedViewQuestion, setSelectedViewQuestion] =
+    useState<Question | null>(null);
+  const [isSelectAll, setIsSelectAll] = useState(false);
 
   // Fetch questions from the backend API
   useEffect(() => {
     async function fetchQuestions() {
       try {
-        const response = await fetch("http://localhost:5000/questions", { cache: "no-store"  });
+        const response = await fetch("http://localhost:5000/questions", {
+          cache: "no-store",
+        });
         const data = await response.json();
 
         // Map backend data to match the frontend Question type
         const mappedQuestions: Question[] = data.questions.map((q: any) => ({
           id: q.id,
           title: q.title,
-          difficulty: difficultyList.find(diff => diff.value === q.complexity.toLowerCase())?.value,
+          difficulty: difficultyList.find(
+            (diff) => diff.value === q.complexity.toLowerCase()
+          )?.value,
           topics: q.category,
           summary: q.summary,
           description: q.description,
           selected: false, // Set selected to false initially
         }));
-        
+
         setQuestionList(mappedQuestions); // Set the fetched data to state
         setSelectedViewQuestion(mappedQuestions[0]); // Default to the first question if available
       } catch (error) {
@@ -99,7 +104,8 @@ export default function Home() {
   // Handle filtered questions based on user-selected difficulties and topics
   const filteredQuestions = questionList.filter((question) => {
     const selectedTopicLabels = selectedTopics.map(
-      (topicValue) => topicList.find((topic) => topic.value === topicValue)?.label
+      (topicValue) =>
+        topicList.find((topic) => topic.value === topicValue)?.label
     );
 
     const matchesDifficulty =
@@ -120,33 +126,45 @@ export default function Home() {
     setIsSelectAll(newIsSelectAll);
 
     // Toggle selection of all questions
-    const updatedQuestions = questionList.map((question) => ({
-      ...question,
-      selected: newIsSelectAll, // Select or unselect all questions
-    }));
+    const updatedQuestions = questionList.map((question) =>
+      filteredQuestions.map((f_qns) => f_qns.id).includes(question.id)
+        ? {
+            ...question,
+            selected: newIsSelectAll, // Select or unselect all questions
+          }
+        : question
+    );
     setQuestionList(updatedQuestions);
   };
 
   // Function to handle individual question selection
   const handleSelectQuestion = (id: number) => {
     const updatedQuestions = questionList.map((question) =>
-        question.id === id
-          ? { ...question, selected: !question.selected }
-          : question
-      );
+      question.id === id
+        ? { ...question, selected: !question.selected }
+        : question
+    );
     setQuestionList(updatedQuestions);
   };
 
   useEffect(() => {
-    const allSelected = questionList.length > 0 && questionList.every(q => q.selected);
-    const noneSelected = questionList.length > 0 && questionList.every(q => !q.selected);
+    const allSelected =
+      questionList.length > 0 && questionList.every((q) => q.selected);
+    const noneSelected =
+      questionList.length > 0 && questionList.every((q) => !q.selected);
 
     if (allSelected) {
       setIsSelectAll(true);
     } else if (noneSelected) {
       setIsSelectAll(false);
     }
-    console.log("trigger use effect", "is all selected: ", allSelected, "is all not selected: ",noneSelected)
+    console.log(
+      "trigger use effect",
+      "is all selected: ",
+      allSelected,
+      "is all not selected: ",
+      noneSelected
+    );
   }, [questionList]);
 
   return (
@@ -221,7 +239,11 @@ export default function Home() {
                   className={"font-sans"}
                 />
               </div>
-              <Button variant="outline" className="uppercase rounded-3xl" onClick={handleSelectAll}>
+              <Button
+                variant="outline"
+                className="uppercase rounded-3xl"
+                onClick={handleSelectAll}
+              >
                 {isSelectAll ? "Deselect All" : "Select All"}
               </Button>
             </div>
@@ -264,9 +286,10 @@ export default function Home() {
                           {question.summary}
                         </p>
                       </div>
-                      <Button 
+                      <Button
                         variant={question.selected ? "default" : "outline"}
-                        className="ml-4" onClick={() => handleSelectQuestion(question.id)}
+                        className="ml-4"
+                        onClick={() => handleSelectQuestion(question.id)}
                       >
                         {question.selected ? "Selected" : "Select"}
                       </Button>
@@ -278,38 +301,40 @@ export default function Home() {
           </div>
         </div>
         <div className="hidden desktop:block desktop:w-1/2 p-4 border rounded-md">
-          {selectedViewQuestion &&
-          <>
-          <h3 className="text-xl font-serif font-semibold">
-            {selectedViewQuestion.title}
-          </h3>
-          <div className="flex items-center gap-10 mt-2">
-            <div className="flex items-center gap-2">
-              <Flag className="h-4 w-4 text-icon" />
-              <Badge
-                variant={
-                  selectedViewQuestion.difficulty as BadgeProps["variant"]
-                }
-              >
-                {selectedViewQuestion.difficulty}
-              </Badge>
-            </div>
-            <div className="flex items-center gap-2">
-              <MessageSquareText className="h-4 w-4 text-icon" />
-              {selectedViewQuestion.topics.map((topic) => (
-                <Badge
-                  key={topic}
-                  variant="topic"
-                  className="uppercase text-topic-text bg-topic-bg"
-                >
-                  {topic}
-                </Badge>
-              ))}
-            </div>
-          </div>
-          <p className="mt-8 text-sm text-foreground">
-            {selectedViewQuestion.description}
-          </p></>}
+          {selectedViewQuestion && (
+            <>
+              <h3 className="text-xl font-serif font-semibold">
+                {selectedViewQuestion.title}
+              </h3>
+              <div className="flex items-center gap-10 mt-2">
+                <div className="flex items-center gap-2">
+                  <Flag className="h-4 w-4 text-icon" />
+                  <Badge
+                    variant={
+                      selectedViewQuestion.difficulty as BadgeProps["variant"]
+                    }
+                  >
+                    {selectedViewQuestion.difficulty}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-2">
+                  <MessageSquareText className="h-4 w-4 text-icon" />
+                  {selectedViewQuestion.topics.map((topic) => (
+                    <Badge
+                      key={topic}
+                      variant="topic"
+                      className="uppercase text-topic-text bg-topic-bg"
+                    >
+                      {topic}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+              <p className="mt-8 text-sm text-foreground">
+                {selectedViewQuestion.description}
+              </p>
+            </>
+          )}
         </div>
       </main>
       <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
