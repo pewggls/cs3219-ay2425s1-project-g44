@@ -8,7 +8,7 @@ import { MultiSelect } from "@/components/ui/multi-select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Flag, MessageSquareText } from "lucide-react";
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 type Question = {
   id: number;
@@ -57,12 +57,13 @@ export default function Home() {
     topicList.map((topic) => topic.value)
   );
   const [filtersHeight, setFiltersHeight] = useState(0);
-  const [questionList, setQuestionList] = useState<Question[]>([]);
+  const [questionList, setQuestionList] = useState<Question[]>([]); // Complete list of questions
   const [selectedViewQuestion, setSelectedViewQuestion] =
     useState<Question | null>(null);
   const [isSelectAll, setIsSelectAll] = useState(false);
+  const [reset, setReset] = useState(false);
 
-  // Fetch questions from the backend API
+  // Fetch questions from backend API
   useEffect(() => {
     async function fetchQuestions() {
       try {
@@ -85,7 +86,6 @@ export default function Home() {
         }));
 
         setQuestionList(mappedQuestions); // Set the fetched data to state
-        setSelectedViewQuestion(mappedQuestions[0]); // Default to the first question if available
       } catch (error) {
         console.error("Error fetching questions:", error);
       }
@@ -119,6 +119,13 @@ export default function Home() {
 
     return matchesDifficulty && matchesTopics;
   });
+
+  // Function to reset filters
+  const resetFilters = () => {
+    setSelectedDifficuties(difficultyList.map((diff) => diff.value));
+    setSelectedTopics(topicList.map((topic) => topic.value));
+    setReset(true);
+  };
 
   // Function to handle "Select All" button click
   const handleSelectAll = () => {
@@ -158,14 +165,16 @@ export default function Home() {
     } else if (noneSelected) {
       setIsSelectAll(false);
     }
-    console.log(
-      "trigger use effect",
-      "is all selected: ",
-      allSelected,
-      "is all not selected: ",
-      noneSelected
-    );
   }, [questionList]);
+
+  useEffect(() => {
+    filteredQuestions.length == 0 ? setSelectedViewQuestion(null) : null;
+  }, [filteredQuestions]);
+
+
+  useEffect(() => {
+    console.log("Selected difficulties:", selectedDifficuties);
+  }, [selectedDifficuties]); // This effect runs every time selectedDifficulties change 
 
   return (
     // <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
@@ -215,6 +224,7 @@ export default function Home() {
               id="filters"
               className="absolute top-0 left-0 right-0 hidden tablet:flex gap-2 desktop:ml-8 desktop:mr-10 desktop:mt-2 p-2 desktop:rounded-3xl bg-opacity-90 backdrop-blur desktop:drop-shadow-xl bg-white z-10"
             >
+              
               <div className="flex grow flex-col gap-2 2xl:flex-row">
                 <MultiSelect
                   options={difficultyList}
@@ -226,6 +236,8 @@ export default function Home() {
                   maxCount={3}
                   selectIcon={Flag}
                   className={"font-sans"}
+                  reset={reset}
+                  onResetComplete={setReset}
                 />
                 <MultiSelect
                   options={topicList}
@@ -237,15 +249,19 @@ export default function Home() {
                   maxCount={1}
                   selectIcon={MessageSquareText}
                   className={"font-sans"}
+                  reset={reset}
+                  onResetComplete={setReset}
                 />
               </div>
-              <Button
-                variant="outline"
-                className="uppercase rounded-3xl"
-                onClick={handleSelectAll}
-              >
-                {isSelectAll ? "Deselect All" : "Select All"}
-              </Button>
+              {filteredQuestions.length > 0 && (
+                <Button
+                  variant="outline"
+                  className="uppercase rounded-3xl"
+                  onClick={handleSelectAll}
+                >
+                  {isSelectAll ? "Deselect All" : "Select All"}
+                </Button>
+              )}
             </div>
 
             <ScrollArea
@@ -258,50 +274,64 @@ export default function Home() {
                   className="hidden tablet:block mb-6"
                   style={{ height: `${filtersHeight}px` }}
                 ></div>
-                {filteredQuestions.map((question) => (
-                  <div id="qns" key={question.id} className="relative mr-2">
-                    <Card
-                      className="flex items-start border-none shadow-none p-4 w-full cursor-pointer hover:bg-gray-100 transition ease-in-out duration-150"
-                      onClick={() => setSelectedViewQuestion(question)}
-                    >
-                      <div className="flex-1">
-                        <h3 className="text-xl font-serif font-semibold">
-                          {question.title}
-                        </h3>
-                        <div className="flex items-center gap-2 mt-2">
-                          <Badge
-                            variant={
-                              `${question.difficulty}` as BadgeProps["variant"]
-                            }
-                          >
-                            {question.difficulty}
-                          </Badge>
-                          {question.topics.map((topic, index) => (
-                            <Badge key={index} variant="topic">
-                              {topic}
-                            </Badge>
-                          ))}
-                        </div>
-                        <p className="mt-2 text-sm text-muted-foreground">
-                          {question.summary}
-                        </p>
-                      </div>
-                      <Button
-                        variant={question.selected ? "default" : "outline"}
-                        className="ml-4"
-                        onClick={() => handleSelectQuestion(question.id)}
-                      >
-                        {question.selected ? "Selected" : "Select"}
-                      </Button>
-                    </Card>
+                {filteredQuestions.length == 0 ? (
+                  <div className="empty-state flex flex-col items-center justify-center text-center">
+                    <img
+                      src="/images/NoResult.png"
+                      alt="No questions found"
+                      className="w-48 max-w-xs h-auto mx-auto mt-10 mb-4"
+                    />
+                    <p className="text-2xl mb-8">No Questions Found</p>
+                    <Button onClick={resetFilters}>Reset Filters</Button>
                   </div>
-                ))}
+                ) : (
+                  filteredQuestions.map((question) => (
+                    <div id="qns" key={question.id} className="relative mr-2">
+                      <Card
+                        className="flex items-start border-none shadow-none p-4 w-full cursor-pointer hover:bg-gray-100 transition ease-in-out duration-150"
+                        onClick={() => setSelectedViewQuestion(question)}
+                      >
+                        <div className="flex-1">
+                          <h3 className="text-xl font-serif font-semibold">
+                            {question.title}
+                          </h3>
+                          <div className="flex items-center gap-2 mt-2">
+                            <Badge
+                              variant={
+                                `${question.difficulty}` as BadgeProps["variant"]
+                              }
+                            >
+                              {question.difficulty}
+                            </Badge>
+                            {question.topics.map((topic, index) => (
+                              <Badge key={index} variant="topic">
+                                {topic}
+                              </Badge>
+                            ))}
+                          </div>
+                          <p className="mt-2 text-sm text-muted-foreground">
+                            {question.summary}
+                          </p>
+                        </div>
+                        <Button
+                          variant={question.selected ? "default" : "outline"}
+                          className="ml-4"
+                          onClick={() => handleSelectQuestion(question.id)}
+                        >
+                          {question.selected ? "Selected" : "Select"}
+                        </Button>
+                      </Card>
+                    </div>
+                  ))
+                )}
               </div>
             </ScrollArea>
           </div>
         </div>
         <div className="hidden desktop:block desktop:w-1/2 p-4 border rounded-md">
-          {selectedViewQuestion && (
+          {!selectedViewQuestion ? (
+            <p>No question is selected.</p>
+          ) : (
             <>
               <h3 className="text-xl font-serif font-semibold">
                 {selectedViewQuestion.title}

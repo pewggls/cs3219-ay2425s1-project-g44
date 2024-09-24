@@ -134,10 +134,22 @@ interface MultiSelectProps
      * If true, the multi-select component will be searchable.
      */
     search?: boolean;
+
+    /**
+     * If true, the multi-select component will be reset to default value.
+     */
+    reset?: boolean;
+
+    /**
+     * Callback function triggered after reset selected value to default value
+     */
+    onResetComplete?: (reset: boolean) => void;
 }
 
+type MultiSelectRef = HTMLButtonElement & { reset: () => void }
+
 export const MultiSelect = React.forwardRef<
-    HTMLButtonElement,
+    MultiSelectRef,
     MultiSelectProps
 >(
     (
@@ -154,6 +166,8 @@ export const MultiSelect = React.forwardRef<
             className,
             selectIcon: SelectIcon,
             search,
+            reset = false,
+            onResetComplete  = (reset) => {},
             ...props
         },
         ref
@@ -181,6 +195,11 @@ export const MultiSelect = React.forwardRef<
                 window.removeEventListener('resize', checkOverflow);
             };
         }, [selectedValues]);
+
+        React.useEffect(() => {
+            setSelectedValues(defaultValue);
+            onResetComplete(false);
+        }, [reset]);
 
         const handleInputKeyDown = (
             event: React.KeyboardEvent<HTMLInputElement>
