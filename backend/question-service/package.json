@@ -1,0 +1,17 @@
+{
+  "name": "question-service",
+  "version": "1.0.0",
+  "description": "Backend microservice that handles all requests for questions and connects to the database.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.7"
+  }
+}
