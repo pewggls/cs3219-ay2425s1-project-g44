@@ -2,6 +2,14 @@
 # CS3219 Project (PeerPrep) - AY2425S1
 ## Group: G44
 
+
+### API Endpoints
+The question microservice exposes the following API endpoints:
+- ```questions/all``` - Returns all the questions available on the database.
+- ```questions/byId/[Question ID]``` - Returns a single question by ID number.
+- ```questions/maxQuestionId``` - Returns the highest question ID currently being stored in the database. (Can be used for adding new Questions).
+- ```filter/q/categories=Arrays,Bit%20Manipulation&complexities=Easy,Medium``` - Returns all questions that have Arrays AND/OR Bit Manipulation tags and are either Easy OR Medium.
+
 ### Running PeerPrep
 In the root directory, run
 ```sh
