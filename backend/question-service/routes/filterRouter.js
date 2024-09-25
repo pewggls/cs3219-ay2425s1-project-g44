@@ -1,8 +1,8 @@
 const filterController = require("../controllers/filterController");
 
 const express = require("express");
-const router = express.Router();
+const filterRouter = express.Router();
 
-router.get("/filter", filterController.filterBy);
+filterRouter.get("/q", filterController.filterBy);
 
-module.exports = router;
+module.exports = filterRouter;
