@@ -12,6 +12,7 @@ app.get("/", (req, res) => {
 
 db.connectDB();
 db.populateDB();
+
 const PORT = process.env.PORT || 2000
 
 app.listen(PORT, () => {
