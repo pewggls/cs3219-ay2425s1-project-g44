@@ -5,13 +5,8 @@ exports.getAllQuestions = async (req, res) => {
 };
 
 exports.getQuestionById = async (req, res) => {
-    const questionIdSchema = z.number().int().positive();
-    parsedId = questionIdSchema.safeParse(Number(req.params.questionId));
-    if (!parsedId.success) {
-        res.status(400).send(`Invalid Question ID ${req.params.questionId}`)
-        return
-    } 
-    res.send(`SENT QUESTION NUMBER ${parsedId.data}`)
+    const parsedId = Number(req.params.questionId)
+    res.send(`SENT QUESTION NUMBER ${parsedId}`)
 };
 
 exports.dummyCallbackFunction = async (req, res) => {
