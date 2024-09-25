@@ -2,9 +2,11 @@ const express = require("express")
 
 const app = express()
 const questionRouter = require("./routes/questionRouter")
+const filterRouter = require("./routes/filterRouter");
 const db = require("./config/db");
 
 app.use("/questions", questionRouter);
+app.use("/filter", filterRouter);
 
 app.get("/", (req, res) => {
     res.send("Hello World")
