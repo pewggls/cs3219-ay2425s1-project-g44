@@ -1,0 +1,214 @@
+[
+        {
+            "id": 1,
+            "title": "Reverse a String",
+            "description": "Write a function that reverses a string. The input string is given as an array of characters s. You must do this by modifying the input array in-place with O(1) extra memory.",
+            "category": [
+                "Strings",
+                "Algorithms"
+            ],
+            "complexity": "Easy",
+            "link": "https://leetcode.com/problems/reverse-string/"
+        },
+        {
+            "id": 2,
+            "title": "Linked List Cycle Detection",
+            "description": "Implement a function to detect if a linked list contains a cycle.",
+            "category": [
+                "Data Structures",
+                "Algorithms"
+            ],
+            "complexity": "Easy",
+            "link": "https://leetcode.com/problems/linked-list-cycle/"
+        },
+        {
+            "id": 3,
+            "title": "Roman to Integer",
+            "description": "Given a roman numeral, convert it to an integer.",
+            "category": [
+                "Algorithms"
+            ],
+            "complexity": "Easy",
+            "link": "https://leetcode.com/problems/roman-to-integer/"
+        },
+        {
+            "id": 4,
+            "title": "Add Binary",
+            "description": "Given two binary strings a and b, return their sum as a binary string.",
+            "category": [
+                "Bit Manipulation",
+                "Algorithms"
+            ],
+            "complexity": "Easy",
+            "link": "https://leetcode.com/problems/add-binary/"
+        },
+        {
+            "id": 5,
+            "title": "Fibonacci Number",
+            "description": "The Fibonacci numbers form a sequence, called the Fibonacci sequence, such that each number is the sum of the two preceding ones. Given n, calculate F(n).",
+            "category": [
+                "Recursion",
+                "Algorithms"
+            ],
+            "complexity": "Easy",
+            "link": "https://leetcode.com/problems/fibonacci-number/"
+        },
+        {
+            "id": 6,
+            "title": "Implement Stack using Queues",
+            "description": "Implement a last-in-first-out (LIFO) stack using only two queues. The implemented stack should support all the functions of a normal stack (push, top, pop, and empty).",
+            "category": [
+                "Data Structures"
+            ],
+            "complexity": "Easy",
+            "link": "https://leetcode.com/problems/implement-stack-using-queues/"
+        },
+        {
+            "id": 7,
+            "title": "Combine Two Tables",
+            "description": "Write a solution to report the first name, last name, city, and state of each person in the Person table. If the address of a personId is not present in the Address table, report null instead.",
+            "category": [
+                "Databases"
+            ],
+            "complexity": "Easy",
+            "link": "https://leetcode.com/problems/combine-two-tables/"
+        },
+        {
+            "id": 8,
+            "title": "Repeated DNA Sequences",
+            "description": "Given a string s that represents a DNA sequence, return all the 10-letter-long sequences (substrings) that occur more than once in a DNA molecule.",
+            "category": [
+                "Algorithms",
+                "Bit Manipulation"
+            ],
+            "complexity": "Medium",
+            "link": "https://leetcode.com/problems/repeated-dna-sequences/"
+        },
+        {
+            "id": 9,
+            "title": "Course Schedule",
+            "description": "Return true if you can finish all courses. Otherwise, return false.",
+            "category": [
+                "Data Structures",
+                "Algorithms"
+            ],
+            "complexity": "Medium",
+            "link": "https://leetcode.com/problems/course-schedule/"
+        },
+        {
+            "id": 10,
+            "title": "LRU Cache Design",
+            "description": "Design and implement an LRU (Least Recently Used) cache.",
+            "category": [
+                "Data Structures"
+            ],
+            "complexity": "Medium",
+            "link": "https://leetcode.com/problems/lru-cache/"
+        },
+        {
+            "id": 11,
+            "title": "Longest Common Subsequence",
+            "description": "Given two strings, return the length of their longest common subsequence.",
+            "category": [
+                "Strings",
+                "Algorithms"
+            ],
+            "complexity": "Medium",
+            "link": "https://leetcode.com/problems/longest-common-subsequence/"
+        },
+        {
+            "id": 12,
+            "title": "Rotate Image",
+            "description": "Given an n x n 2D matrix representing an image, rotate the image by 90 degrees clockwise.",
+            "category": [
+                "Arrays",
+                "Algorithms"
+            ],
+            "complexity": "Medium",
+            "link": "https://leetcode.com/problems/rotate-image/"
+        },
+        {
+            "id": 13,
+            "title": "Airplane Seat Assignment Probability",
+            "description": "Return the probability that the nth person gets their own seat.",
+            "category": [
+                "Brainteaser"
+            ],
+            "complexity": "Medium",
+            "link": "https://leetcode.com/problems/airplane-seat-assignment-probability/"
+        },
+        {
+            "id": 14,
+            "title": "Validate Binary Search Tree",
+            "description": "Given the root of a binary tree, determine if it is a valid binary search tree (BST).",
+            "category": [
+                "Data Structures",
+                "Algorithms"
+            ],
+            "complexity": "Medium",
+            "link": "https://leetcode.com/problems/validate-binary-search-tree/"
+        },
+        {
+            "id": 15,
+            "title": "Sliding Window Maximum",
+            "description": "Return the max sliding window for an array of integers.",
+            "category": [
+                "Arrays",
+                "Algorithms"
+            ],
+            "complexity": "Hard",
+            "link": "https://leetcode.com/problems/sliding-window-maximum/"
+        },
+        {
+            "id": 16,
+            "title": "N-Queen Problem",
+            "description": "Given an integer n, return all distinct solutions to the n-queens puzzle.",
+            "category": [
+                "Algorithms"
+            ],
+            "complexity": "Hard",
+            "link": "https://leetcode.com/problems/n-queens/"
+        },
+        {
+            "id": 17,
+            "title": "Serialize and Deserialize a Binary Tree",
+            "description": "Design an algorithm to serialize and deserialize a binary tree.",
+            "category": [
+                "Data Structures",
+                "Algorithms"
+            ],
+            "complexity": "Hard",
+            "link": "https://leetcode.com/problems/serialize-and-deserialize-binary-tree/"
+        },
+        {
+            "id": 18,
+            "title": "Wildcard Matching",
+            "description": "Implement wildcard pattern matching with support for '?' and '*'.",
+            "category": [
+                "Strings",
+                "Algorithms"
+            ],
+            "complexity": "Hard",
+            "link": "https://leetcode.com/problems/wildcard-matching/"
+        },
+        {
+            "id": 19,
+            "title": "Chalkboard XOR Game",
+            "description": "Alice and Bob take turns erasing exactly one number from the chalkboard. Return true if and only if Alice wins the game, assuming both players play optimally.",
+            "category": [
+                "Brainteaser"
+            ],
+            "complexity": "Hard",
+            "link": "https://leetcode.com/problems/chalkboard-xor-game/"
+        },
+        {
+            "id": 20,
+            "title": "Trips and Users",
+            "description": "Write a solution to find the cancellation rate of requests with unbanned users each day.",
+            "category": [
+                "Databases"
+            ],
+            "complexity": "Hard",
+            "link": "https://leetcode.com/problems/trips-and-users/"
+        }
+    ]
