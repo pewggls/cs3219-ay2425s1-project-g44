@@ -62,23 +62,23 @@ const config: Config = {
 					800: '#53389E'
 				},
 				icon: 'var(--icon)',
-				diff: {
+				complexity: {
 					'hard': {
-						text: 'var(--diff-hard-text)',
-						bg: 'var(--diff-hard-bg)'
+						text: 'var(--complexity-hard-text)',
+						bg: 'var(--complexity-hard-bg)'
 					},
 					'medium': {
-						text: 'var(--diff-medium-text)',
-						bg: 'var(--diff-medium-bg)'
+						text: 'var(--complexity-medium-text)',
+						bg: 'var(--complexity-medium-bg)'
 					},
 					'easy': {
-						text: 'var(--diff-easy-text)',
-						bg: 'var(--diff-easy-bg)'
+						text: 'var(--complexity-easy-text)',
+						bg: 'var(--complexity-easy-bg)'
 					}
 				},
-				topic: {
-					text: 'var(--topic-text)',
-					bg: 'var(--topic-bg)',
+				category: {
+					text: 'var(--category-text)',
+					bg: 'var(--category-bg)',
 				}
 			},
 			borderRadius: {
