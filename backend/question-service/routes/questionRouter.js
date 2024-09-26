@@ -16,4 +16,7 @@ questionRouter.get("/byId/:questionId", questionController.getQuestionById);
 
 questionRouter.get("/dummy", questionController.dummyCallbackFunction);
 
+questionRouter.use("/add", express.json())
+questionRouter.post("/add", questionController.addQuestion);
+
 module.exports = questionRouter

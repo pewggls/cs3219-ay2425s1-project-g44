@@ -32,3 +32,30 @@ exports.getMaxQuestionId = async (req, res) => {
 exports.dummyCallbackFunction = async (req, res) => {
     res.send("SENT A DUMMY RESPONSE");
 };
+
+exports.addQuestion = async (req, res) => {
+    const { id, title, description, category, complexity, link } = req.body;
+
+    var newId = id
+    if (!id) {
+        newId = await Question.findOne().sort({ id: -1}).exec().id;
+    }
+
+    if (!title || !description || !category || !complexity || !link) {
+        return res.status(400).json({ message: 'Please enter required fields.' })
+    }
+
+    try {
+        const question = await Question.create({
+            newId, 
+            title,
+            description,
+            category,
+            complexity,
+            link 
+        })
+        res.send(`Question ID ${newId} added.`)
+      } catch (error) {
+        res.status(400).send(error)
+      }
+}
