@@ -34,27 +34,26 @@ exports.dummyCallbackFunction = async (req, res) => {
 };
 
 exports.addQuestion = async (req, res) => {
-    const { id, title, description, category, complexity, link } = req.body;
-
-    var newId = id
-    if (!id) {
-        newId = await Question.findOne().sort({ id: -1}).exec().id;
-    }
+    const data = req.body;
+    const { title, description, category, complexity, link } = data;
 
     if (!title || !description || !category || !complexity || !link) {
         return res.status(400).json({ message: 'Please enter required fields.' })
     }
 
     try {
+        const maxId = await Question.findOne().sort({ id: -1}).exec()
+        const id = maxId ? maxId.id + 1 : 0
+
         const question = await Question.create({
-            newId, 
+            id, 
             title,
             description,
             category,
             complexity,
             link 
         })
-        res.send(`Question ID ${newId} added.`)
+        res.send(`Question ID ${id} added.`)
       } catch (error) {
         res.status(400).send(error)
       }
@@ -62,12 +61,22 @@ exports.addQuestion = async (req, res) => {
 
 exports.deleteQuestion = async (req, res) => {
     try {
-      const question = await Question.findById(req.params.id)
-      
-      await question.deleteOne()
+        const parsedId = Number(req.params.questionId)
+        const queryResult = await Question.findOne({ id: parsedId })
+
+        await queryResult.deleteOne()
+
+        await Question.updateMany(
+            { id: { $gt: parsedId } },
+            { $inc: { id: -1 } },
+            {
+              upsert: false,
+
+            }
+        )
         
-      res.status(200).json({ message: 'Question removed' })
-    } catch (error) {
-      res.status(404).json({ message: 'Question not found' })
-    }
+        res.status(200).json({ message: 'Question removed' })
+        } catch (error) {
+          res.status(404).json({ message: 'Question not found' })
+        }
   }
