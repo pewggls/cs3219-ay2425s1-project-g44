@@ -59,3 +59,15 @@ exports.addQuestion = async (req, res) => {
         res.status(400).send(error)
       }
 }
+
+exports.deleteQuestion = async (req, res) => {
+    try {
+      const question = await Question.findById(req.params.id)
+      
+      await question.deleteOne()
+        
+      res.status(200).json({ message: 'Question removed' })
+    } catch (error) {
+      res.status(404).json({ message: 'Question not found' })
+    }
+  }
