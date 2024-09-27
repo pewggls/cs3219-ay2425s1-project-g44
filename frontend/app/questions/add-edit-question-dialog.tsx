@@ -1,4 +1,5 @@
 import { forwardRef, useRef, useState } from "react";
+import { z } from "zod";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -42,6 +43,8 @@ function AddEditQuestionDialog(
     title: false,
     description: false,
     complexity: false,
+    categories: false,
+    link: false,
   });
 
   // User input value
@@ -50,24 +53,36 @@ function AddEditQuestionDialog(
     title: row?.title || "",
     summary: row?.summary || "",
     description: row?.description || "",
-    complexity: row?.complexity || "easy",
+    complexity: row?.complexity
+      ? capitalizeFirstLetter(row?.complexity)
+      : "Easy",
     categories: row?.categories || [],
     link: row?.link || "",
   });
 
   const handleInputChange = (field: string, value: string | string[]) => {
     setNewQuestion((prevState) => ({
-      ...prevState, 
+      ...prevState,
       [field]: value, // Dynamically update the field that changed based on the input name
     }));
   };
 
+  function capitalizeFirstLetter(word: String) {
+    if (!word) return word; // Check if the word is empty or undefined
+    return word.charAt(0).toUpperCase() + word.slice(1);
+  }
+
   const validateFields = () => {
+    const urlSchema = z
+      .string()
+      .url("Invalid URL format")
+      .nonempty("URL is required");
     const newErrors = {
       title: !newQuestion.title, // Check if title is empty
       description: !newQuestion.description, // Check if description is empty
       complexity: !newQuestion.complexity, // Check if complexity is empty
       categories: !(newQuestion.categories?.length || 0), // Check if categories are empty
+      link: urlSchema.safeParse(newQuestion.link).success === false, // Check if url is valid
     };
     setErrors(newErrors);
     // Return true if all required fields are valid
@@ -79,22 +94,44 @@ function AddEditQuestionDialog(
     // validate required fields
     if (validateFields()) {
       try {
-        const response = await fetch(`${apiUrl}/questions/new`, {
+        const response = await fetch(`${apiUrl}/questions/add`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(newQuestion),
+          body: JSON.stringify({
+            title: newQuestion.title,
+            description: newQuestion.description,
+            category: newQuestion.categories,
+            complexity: newQuestion.complexity,
+            link: newQuestion.link,
+          }),
         });
 
         if (!response.ok) {
-          throw new Error("Failed to insert question into backend");
+          const errorResponse = await response.json(); // Get the error details from the response
+          const errorMessages = errorResponse.errors ? errorResponse.errors.join(", ") : "An unexpected error occurred.";
+          alert(`Error: ${errorMessages}`);
+          return;
         }
+        const responseText = await response.text();
 
-        const createdQuestion = await response.json();
+        // Use a regular expression to extract the ID from the response text
+        const idMatch = responseText.match(/Question ID (\d+) added/);
+        const questionId = idMatch ? parseInt(idMatch[1], 10) : null; // Extract and parse the ID
 
-        if (setData) {
-          setData((prev: Question[]) => [...prev, createdQuestion]); // Update the list
+        if (questionId !== null) {
+          const createdQuestion = {
+            ...newQuestion, // Spread the existing question properties
+            id: questionId, // Assign the new ID
+          };
+
+          // Update the question list
+          if (setData) {
+            setData((prev: Question[]) => [...prev, createdQuestion]);
+          }
+        } else {
+          throw new Error(`Unexpected response format: ${responseText}`);
         }
 
         // Close the dialog after succesful creation
@@ -110,16 +147,13 @@ function AddEditQuestionDialog(
 
   async function updateQuestion() {
     try {
-      const response = await fetch(
-        `${apiUrl}/questions/update/:${row?.id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(newQuestion),
-        }
-      );
+      const response = await fetch(`${apiUrl}/questions/update/:${row?.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newQuestion),
+      });
 
       if (!response.ok) {
         throw new Error("Failed to update the question to backend");
@@ -128,7 +162,13 @@ function AddEditQuestionDialog(
       if (setData && row) {
         setData((prev: Question[]) =>
           prev.map((q) =>
-            q.id === row.id ? { ...newQuestion, id: row.id } : q
+            q.id === row.id
+              ? {
+                  ...newQuestion,
+                  id: row.id,
+                  categories: newQuestion.categories,
+                }
+              : q
           )
         ); // Update the list
       }
@@ -136,9 +176,7 @@ function AddEditQuestionDialog(
       // Close the dialog after succesful creation
       handleClose();
     } catch (error) {
-      alert(
-        "An error occurred while editing the question. Please try again."
-      );
+      alert("An error occurred while editing the question. Please try again.");
       console.error("Error updating question:", error);
     }
   }
@@ -223,7 +261,7 @@ function AddEditQuestionDialog(
               onValueChange={(value) => {
                 if (value) {
                   setComplexityValue(value);
-                  handleInputChange("complexity", value);
+                  handleInputChange("complexity", capitalizeFirstLetter(value));
                 }
               }}
               className="bg-brand-50 p-1 rounded-lg"
@@ -243,45 +281,52 @@ function AddEditQuestionDialog(
               </div>
             )}
           </div>
-          <div className="flex flex-row w-full items-center gap-4">
-            <div className="">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger className="cursor-default">
-                    <Label htmlFor="categories" className="cursor-help">
-                      Categories
-                    </Label>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <div className="max-w-[175px] flex-wrap">
-                      Question topic(s), choose at least one option
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+          <div className="flex flex-col w-full items-start gap-2">
+            <div className="flex flex-row w-full items-center gap-4">
+              <div className="">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger className="cursor-default">
+                      <Label htmlFor="categories" className="cursor-help">
+                        Categories
+                      </Label>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <div className="max-w-[175px] flex-wrap">
+                        Question topic(s), choose at least one option
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <ToggleGroup
+                type="multiple"
+                variant="categories"
+                size="xs"
+                defaultValue={row?.categories}
+                onValueChange={(value) => {
+                  if (value) {
+                    handleInputChange("categories", value);
+                  }
+                }}
+                className="bg-brand-50 p-1 rounded-lg flex-wrap justify-start"
+              >
+                {categories.map((category) => (
+                  <ToggleGroupItem
+                    key={category.value}
+                    value={category.value}
+                    className="flex-shrink-0"
+                  >
+                    {category.label}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
             </div>
-            <ToggleGroup
-              type="multiple"
-              variant="categories"
-              size="xs"
-              defaultValue={row?.categories}
-              onValueChange={(value) => {
-                if (value) {
-                  handleInputChange("categories", value);
-                }
-              }}
-              className="bg-brand-50 p-1 rounded-lg flex-wrap justify-start"
-            >
-              {categories.map((category) => (
-                <ToggleGroupItem
-                  key={category.value}
-                  value={category.value}
-                  className="flex-shrink-0"
-                >
-                  {category.label}
-                </ToggleGroupItem>
-              ))}
-            </ToggleGroup>
+            {errors.categories && (
+              <div className="text-red-500 text-sm">
+                Please select at least one complexity.
+              </div>
+            )}
           </div>
           <div className="grid w-full items-center gap-1.5">
             <Label htmlFor="link" className="">
@@ -293,6 +338,11 @@ function AddEditQuestionDialog(
               placeholder="Link to original question"
               onChange={(e) => handleInputChange("link", e.target.value)}
             />
+            {errors.link && (
+              <div className="text-red-500 text-sm">
+                Please enter a valid URL.
+              </div>
+            )}
           </div>
         </div>
         <DialogFooter className="flex">

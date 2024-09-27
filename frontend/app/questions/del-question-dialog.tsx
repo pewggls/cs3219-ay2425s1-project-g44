@@ -20,23 +20,35 @@ function DelQuestionDialog(props: DelQuestionDialogProps, ref: React.Ref<HTMLDiv
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
   async function deleteQuestion(id: number) {
     try {
-        const response = await fetch(`${apiUrl}/questions/delete/:${id}`, {
+        const response = await fetch(`${apiUrl}/questions/delete/${id}`, {
             method: 'DELETE',
         });
 
         if (!response.ok) {
-            throw new Error('Failed to delete the question from backend');
+          alert(`An error occurred while deleting the question ${id}. Please try again.`)
+          console.error(`Error deleting question: ${id}`);
+          return;
         }
 
+        // Update the question list internally
         if (setData) {
-          setData((prev: Question[]) => prev.filter((q) => q.id != id)); // Update the list
-        }
+          setData((prevQuestions) => {
+              // Filter out the deleted question
+              const filteredQuestions = prevQuestions.filter((q) => q.id !== id);
+
+              // Update the IDs of the remaining questions
+              return filteredQuestions.map((q, index) => ({
+                  ...q,
+                  id: index + 1 // Reassign ID based on the new order
+              }));
+          });
+      }
 
         // Close the dialog after succesful deletion
         handleClose();
     } catch (error) {
-        alert("An error occurred while creating the question. Please try again.")
-        console.error("Error deleting question:", error);
+        alert(`An error occurred while fetching the updated question list.`)
+        console.error(`Error while fetching question`);
     }
 }
 

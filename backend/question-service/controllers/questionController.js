@@ -71,7 +71,6 @@ exports.deleteQuestion = async (req, res) => {
             { $inc: { id: -1 } },
             {
               upsert: false,
-
             }
         )
         res.status(200).json({ message: `Question ID ${parsedId} deleted.` })

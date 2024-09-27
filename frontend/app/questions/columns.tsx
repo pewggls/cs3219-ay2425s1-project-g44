@@ -5,7 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { ColumnDef } from "@tanstack/react-table"
 import { DataTableColumnHeader } from "./data-table-column-header"
 import { DataTableRowActions } from "./data-table-row-actions"
-import { SetStateAction } from "react"
+import { Dispatch, SetStateAction } from "react"
 
 export type Question = {
     id: number,

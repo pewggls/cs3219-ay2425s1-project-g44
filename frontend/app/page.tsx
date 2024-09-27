@@ -28,7 +28,7 @@ const categoryList: Array<{
             label: "Bit Manipulation",
             badgeVariant: "category",
         },
-        { value: "brainteaser", label: "Brain Teaser", badgeVariant: "category" },
+        { value: "brainteaser", label: "Brainteaser", badgeVariant: "category" },
         { value: "databases", label: "Databases", badgeVariant: "category" },
         { value: "datastructures", label: "Data Structures", badgeVariant: "category" },
         { value: "recursion", label: "Recursion", badgeVariant: "category" },
@@ -48,7 +48,6 @@ export default function Home() {
                     throw new Error("Network response was not ok");
                 }
                 const data = await response.json();
-                console.log("data", data)
 
                 // Map backend data to match the frontend Question type
                 const mappedQuestions: Question[] = data.map((q: any) => ({
@@ -63,7 +62,7 @@ export default function Home() {
                     link: q.link,
                     selected: false, // Set selected to false initially
                 }));
-
+                console.log("question list: ", mappedQuestions)
                 setQuestionList(mappedQuestions); // Set the fetched data to state
             } catch (error) {
                 console.error("Error fetching questions from server:", error);
