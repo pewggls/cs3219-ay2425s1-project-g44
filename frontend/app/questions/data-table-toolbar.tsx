@@ -18,7 +18,7 @@ interface DataTableToolbarProps<TData> {
     setData?: React.Dispatch<React.SetStateAction<TData[]>>
 }
 
-export function DataTableToolbar<TData extends Question[] | undefined>({
+export function DataTableToolbar<TData>({
     table, data, setData
 }: DataTableToolbarProps<TData>) {
     const isFiltered = table.getState().columnFilters.length > 0
@@ -73,7 +73,7 @@ export function DataTableToolbar<TData extends Question[] | undefined>({
                 <Plus className="mr-2 h-4 w-4" />
                 <span className="font-semibold uppercase">Add</span>
             </Button>
-            <AddEditQuestionDialog ref={triggerAddRef} row={null} data={data} setData={setData} handleClose={handleClose}/>
+            <AddEditQuestionDialog ref={triggerAddRef} row={null} setData={setData} handleClose={handleClose}/>
         </div>
     )
 }

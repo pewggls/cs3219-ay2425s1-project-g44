@@ -136,7 +136,7 @@ export default function Home() {
 
             <main className="mx-auto p-12">
                 <div className="mb-12"><span className="font-serif font-light text-4xl text-primary tracking-tight">Question Repository</span></div>
-                <DataTable columns={columns} data={questionList} setData={setQuestionList}/>
+                <DataTable columns={columns(setQuestionList)} data={questionList} setData={setQuestionList}/>
             </main>
         </div>
     )

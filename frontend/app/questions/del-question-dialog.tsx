@@ -10,11 +10,37 @@ import { categories, complexities } from './data';
 
 interface DelQuestionDialogProps {
   row: Question
+  setData?: React.Dispatch<React.SetStateAction<Question[]>>;
+  handleClose: () => void;
 }
 
 function DelQuestionDialog(props: DelQuestionDialogProps, ref: React.Ref<HTMLDivElement>) {
-  const { row } = props;
-  
+  const { row, setData, handleClose } = props;
+
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  async function deleteQuestion(id: number) {
+    try {
+        const response = await fetch(`${apiUrl}/questions/delete/:${id}`, {
+            method: 'DELETE',
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to delete the question from backend');
+        }
+
+        if (setData) {
+          setData((prev: Question[]) => prev.filter((q) => q.id != id)); // Update the list
+        }
+
+        // Close the dialog after succesful deletion
+        handleClose();
+    } catch (error) {
+        alert("An error occurred while creating the question. Please try again.")
+        console.error("Error deleting question:", error);
+    }
+}
+
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -97,7 +123,7 @@ function DelQuestionDialog(props: DelQuestionDialogProps, ref: React.Ref<HTMLDiv
           </div>
         </div>
         <DialogFooter className="flex items-end">
-          <Button type="submit" variant="destructive" className="rounded-lg">Delete question</Button>
+          <Button type="submit" variant="destructive" className="rounded-lg" onClick={() => deleteQuestion(row.id)}>Delete question</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

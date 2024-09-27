@@ -5,9 +5,10 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { ColumnDef } from "@tanstack/react-table"
 import { DataTableColumnHeader } from "./data-table-column-header"
 import { DataTableRowActions } from "./data-table-row-actions"
+import { Dispatch, SetStateAction } from "react"
 
 export type Question = {
-    id?: number,
+    id: number,
     title: string,
     summary: string,
     description: string,
@@ -16,7 +17,8 @@ export type Question = {
     link: string
 }
 
-export const columns: ColumnDef<Question>[] = [
+export const columns: (param: Dispatch<SetStateAction<Question[]>>) => ColumnDef<Question>[] = (setData) => {
+    return [
     {
         id: "select",
         header: ({ table }) => (
@@ -108,6 +110,7 @@ export const columns: ColumnDef<Question>[] = [
     },
     {
         id: "actions",
-        cell: ({ row }) => <DataTableRowActions row={row} />,
+        cell: ({ row }) => <DataTableRowActions row={row} setData={setData}/>,
     }
 ]
+}

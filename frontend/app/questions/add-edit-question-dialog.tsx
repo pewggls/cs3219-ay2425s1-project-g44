@@ -24,7 +24,6 @@ import {
 
 interface AddEditQuestionDialogProps {
   row: Question | null;
-  data?: Question[];
   setData?: React.Dispatch<React.SetStateAction<Question[]>>;
   handleClose: () => void;
 }
@@ -33,7 +32,7 @@ function AddEditQuestionDialog(
   props: AddEditQuestionDialogProps,
   ref: React.Ref<HTMLDivElement>
 ) {
-  const { row, data, setData, handleClose } = props;
+  const { row, setData, handleClose } = props;
   const [complexityValue, setComplexityValue] = useState(
     row?.complexity || "easy"
   );
@@ -43,7 +42,6 @@ function AddEditQuestionDialog(
     title: false,
     description: false,
     complexity: false,
-    categories: false,
   });
 
   // User input value
@@ -90,7 +88,7 @@ function AddEditQuestionDialog(
         });
 
         if (!response.ok) {
-          throw new Error("Failed to insert data into the backend");
+          throw new Error("Failed to insert question into backend");
         }
 
         const createdQuestion = await response.json();
@@ -98,7 +96,8 @@ function AddEditQuestionDialog(
         if (setData) {
           setData((prev: Question[]) => [...prev, createdQuestion]); // Update the list
         }
-        // Close the dialog after creation
+
+        // Close the dialog after succesful creation
         handleClose();
       } catch (error) {
         alert("An error occurred while creating the question. Please try again.")
@@ -201,7 +200,7 @@ function AddEditQuestionDialog(
                 </ToggleGroupItem>
               ))}
             </ToggleGroup>
-            {errors.categories && (
+            {errors.complexity && (
               <div className="text-red-500 text-sm">
                 Please select at least one complexity.
               </div>
