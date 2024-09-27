@@ -1,10 +1,12 @@
 const express = require("express")
+const cors = require("cors")
 
 const app = express()
 const questionRouter = require("./routes/questionRouter")
 const filterRouter = require("./routes/filterRouter");
 const db = require("./config/db");
 
+app.use(cors());
 app.use("/questions", questionRouter);
 app.use("/filter", filterRouter);
 
