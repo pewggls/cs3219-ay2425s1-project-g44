@@ -30,11 +30,13 @@ import { DataTableToolbar } from "./data-table-toolbar"
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
+  setData?: React.Dispatch<React.SetStateAction<TData[]>>;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  setData,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = useState({})
   const [sorting, setSorting] = useState<SortingState>([])
@@ -65,7 +67,7 @@ export function DataTable<TData, TValue>({
   return (
     <div className="font-sans text-black">
       <div className="pb-4">
-        <DataTableToolbar table={table} />
+        <DataTableToolbar table={table} data={data} setData={setData} />
       </div>
 
       <div className="rounded-md border">

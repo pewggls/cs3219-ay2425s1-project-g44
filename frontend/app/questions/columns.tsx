@@ -7,7 +7,7 @@ import { DataTableColumnHeader } from "./data-table-column-header"
 import { DataTableRowActions } from "./data-table-row-actions"
 
 export type Question = {
-    id: number,
+    id?: number,
     title: string,
     summary: string,
     description: string,

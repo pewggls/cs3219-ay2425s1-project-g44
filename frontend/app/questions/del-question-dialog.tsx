@@ -20,7 +20,7 @@ function DelQuestionDialog(props: DelQuestionDialogProps, ref: React.Ref<HTMLDiv
       <DialogTrigger asChild>
         <div className='hidden' ref={ref} />
       </DialogTrigger>
-      <DialogContent className="laptop:max-w-[75vw] bg-white text-black font-sans rounded-2xl">
+      <DialogContent className="laptop:max-w-[75vw] bg-white text-black font-sans rounded-2xl" onPointerDownOutside={(e) => e.preventDefault()} onInteractOutside={(e) => e.preventDefault()}>
         <DialogHeader className="items-start">
           <DialogTitle className="font-serif font-normal text-3xl">Delete question {row.id}</DialogTitle>
           <DialogDescription className="font-bold">This action cannot be undone!</DialogDescription>

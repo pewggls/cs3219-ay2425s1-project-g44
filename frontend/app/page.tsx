@@ -41,22 +41,23 @@ export default function Home() {
     useEffect(() => {
         async function fetchQuestions() {
             try {
-                const response = await fetch("http://localhost:5000/questions", {
+                const response = await fetch("http://localhost:2000/questions/all", {
                     cache: "no-store",
                 });
                 if (!response.ok) {
                     throw new Error("Network response was not ok");
                 }
                 const data = await response.json();
+                console.log("data", data)
 
                 // Map backend data to match the frontend Question type
-                const mappedQuestions: Question[] = data.questions.map((q: any) => ({
+                const mappedQuestions: Question[] = data.map((q: any) => ({
                     id: q.id,
                     title: q.title,
                     complexity: complexityList.find(
                         (complexity) => complexity.value === q.complexity.toLowerCase()
                     )?.value,
-                    categories: q.categories.sort((a: string, b: string) => a.localeCompare(b)),
+                    categories: q.category.sort((a: string, b: string) => a.localeCompare(b)),
                     summary: q.summary,
                     description: q.description,
                     link: q.link,
@@ -68,30 +69,30 @@ export default function Home() {
                 console.error("Error fetching questions from server:", error);
 
                 // remove this once api is ready
-                try {
-                    const response = await fetch("/data/question.json", {  // place in /public/data/question.json
-                        cache: "no-store",
-                    });
-                    const data = await response.json();
+                // try {
+                //     const response = await fetch("/data/question.json", {  // place in /public/data/question.json
+                //         cache: "no-store",
+                //     });
+                //     const data = await response.json();
 
-                    // Map backend data to match the frontend Question type
-                    const mappedQuestions: Question[] = data.questions.map((q: any) => ({
-                        id: q.id,
-                        title: q.title,
-                        complexity: complexityList.find(
-                            (complexity) => complexity.value === q.complexity.toLowerCase()
-                        )?.value,
-                        categories: q.categories.sort((a: string, b: string) => a.localeCompare(b)),
-                        summary: q.summary,
-                        description: q.description,
-                        link: q.link,
-                        selected: false, // Set selected to false initially
-                    }));
+                //     // Map backend data to match the frontend Question type
+                //     const mappedQuestions: Question[] = data.questions.map((q: any) => ({
+                //         id: q.id,
+                //         title: q.title,
+                //         complexity: complexityList.find(
+                //             (complexity) => complexity.value === q.complexity.toLowerCase()
+                //         )?.value,
+                //         categories: q.categories.sort((a: string, b: string) => a.localeCompare(b)),
+                //         summary: q.summary,
+                //         description: q.description,
+                //         link: q.link,
+                //         selected: false, // Set selected to false initially
+                //     }));
 
-                    setQuestionList(mappedQuestions); // Set the fetched data to state
-                } catch (error) {
-                    console.error("Error fetching questions from local file:", error);
-                }
+                //     setQuestionList(mappedQuestions); // Set the fetched data to state
+                // } catch (error) {
+                //     console.error("Error fetching questions from local file:", error);
+                // }
             }
         }
 
@@ -135,7 +136,7 @@ export default function Home() {
 
             <main className="mx-auto p-12">
                 <div className="mb-12"><span className="font-serif font-light text-4xl text-primary tracking-tight">Question Repository</span></div>
-                <DataTable columns={columns} data={questionList} />
+                <DataTable columns={columns} data={questionList} setData={setQuestionList}/>
             </main>
         </div>
     )
