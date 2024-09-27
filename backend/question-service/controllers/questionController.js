@@ -32,3 +32,50 @@ exports.getMaxQuestionId = async (req, res) => {
 exports.dummyCallbackFunction = async (req, res) => {
     res.send("SENT A DUMMY RESPONSE");
 };
+
+exports.addQuestion = async (req, res) => {
+    const data = req.body;
+    const { title, description, category, complexity, link } = data;
+    try {
+        const maxId = await Question.findOne().sort({ id: -1}).exec()
+        const id = maxId ? maxId.id + 1 : 0
+        const question = await Question.create({
+            id, 
+            title,
+            description,
+            category,
+            complexity,
+            link 
+        })
+        res.send(`Question ID ${id} added.`)
+      } catch (error) {
+        if (error.name === "ValidationError") {
+            const messages = Object.values(error.errors).map(err => err.message)
+            return res.status(400).json({
+              status: "Error",
+              message: "Invalid question",
+              errors: messages
+            });
+        }
+        res.status(400).json({ message: error.message || "Error occured, failed to add question." })
+      }
+}
+
+exports.deleteQuestion = async (req, res) => {
+    const parsedId = Number(req.params.questionId)
+    try {
+        const queryResult = await Question.findOne({ id: parsedId })
+        await queryResult.deleteOne()
+        await Question.updateMany(
+            { id: { $gt: parsedId } },
+            { $inc: { id: -1 } },
+            {
+              upsert: false,
+
+            }
+        )
+        res.status(200).json({ message: `Question ID ${parsedId} deleted.` })
+        } catch (error) {
+            res.status(404).json({ message: `Question ID ${parsedId} not found.` })
+        }
+  }
