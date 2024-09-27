@@ -1,11 +1,9 @@
-{
-    "questions": [
+[
         {
             "id": 1,
             "title": "Reverse a String",
-            "summary": "Write a function that reverses a string",
             "description": "Write a function that reverses a string. The input string is given as an array of characters s. You must do this by modifying the input array in-place with O(1) extra memory.",
-            "categories": [
+            "category": [
                 "Strings",
                 "Algorithms"
             ],
@@ -15,9 +13,8 @@
         {
             "id": 2,
             "title": "Linked List Cycle Detection",
-            "summary": "Implement a function to detect if a linked list contains a cycle",
             "description": "Implement a function to detect if a linked list contains a cycle.",
-            "categories": [
+            "category": [
                 "Data Structures",
                 "Algorithms"
             ],
@@ -27,9 +24,8 @@
         {
             "id": 3,
             "title": "Roman to Integer",
-            "summary": "Convert a roman numeral to an integer",
             "description": "Given a roman numeral, convert it to an integer.",
-            "categories": [
+            "category": [
                 "Algorithms"
             ],
             "complexity": "Easy",
@@ -38,9 +34,8 @@
         {
             "id": 4,
             "title": "Add Binary",
-            "summary": "Add two binary strings",
             "description": "Given two binary strings a and b, return their sum as a binary string.",
-            "categories": [
+            "category": [
                 "Bit Manipulation",
                 "Algorithms"
             ],
@@ -50,9 +45,8 @@
         {
             "id": 5,
             "title": "Fibonacci Number",
-            "summary": "Calculate the Fibonacci number",
             "description": "The Fibonacci numbers form a sequence, called the Fibonacci sequence, such that each number is the sum of the two preceding ones. Given n, calculate F(n).",
-            "categories": [
+            "category": [
                 "Recursion",
                 "Algorithms"
             ],
@@ -62,9 +56,8 @@
         {
             "id": 6,
             "title": "Implement Stack using Queues",
-            "summary": "Implement a LIFO stack using 2 queues",
             "description": "Implement a last-in-first-out (LIFO) stack using only two queues. The implemented stack should support all the functions of a normal stack (push, top, pop, and empty).",
-            "categories": [
+            "category": [
                 "Data Structures"
             ],
             "complexity": "Easy",
@@ -73,9 +66,8 @@
         {
             "id": 7,
             "title": "Combine Two Tables",
-            "summary": "Report the first name, last name, city, and state of each person",
             "description": "Write a solution to report the first name, last name, city, and state of each person in the Person table. If the address of a personId is not present in the Address table, report null instead.",
-            "categories": [
+            "category": [
                 "Databases"
             ],
             "complexity": "Easy",
@@ -84,9 +76,8 @@
         {
             "id": 8,
             "title": "Repeated DNA Sequences",
-            "summary": "Find all 10-letter-long sequences that occur more than once",
             "description": "Given a string s that represents a DNA sequence, return all the 10-letter-long sequences (substrings) that occur more than once in a DNA molecule.",
-            "categories": [
+            "category": [
                 "Algorithms",
                 "Bit Manipulation"
             ],
@@ -96,9 +87,8 @@
         {
             "id": 9,
             "title": "Course Schedule",
-            "summary": "Return true if you can finish all courses",
             "description": "Return true if you can finish all courses. Otherwise, return false.",
-            "categories": [
+            "category": [
                 "Data Structures",
                 "Algorithms"
             ],
@@ -108,9 +98,8 @@
         {
             "id": 10,
             "title": "LRU Cache Design",
-            "summary": "Design and implement an LRU cache",
             "description": "Design and implement an LRU (Least Recently Used) cache.",
-            "categories": [
+            "category": [
                 "Data Structures"
             ],
             "complexity": "Medium",
@@ -119,9 +108,8 @@
         {
             "id": 11,
             "title": "Longest Common Subsequence",
-            "summary": "Return the length of the longest common subsequence",
             "description": "Given two strings, return the length of their longest common subsequence.",
-            "categories": [
+            "category": [
                 "Strings",
                 "Algorithms"
             ],
@@ -131,9 +119,8 @@
         {
             "id": 12,
             "title": "Rotate Image",
-            "summary": "Rotate an n x n 2D matrix by 90 degrees",
             "description": "Given an n x n 2D matrix representing an image, rotate the image by 90 degrees clockwise.",
-            "categories": [
+            "category": [
                 "Arrays",
                 "Algorithms"
             ],
@@ -143,10 +130,9 @@
         {
             "id": 13,
             "title": "Airplane Seat Assignment Probability",
-            "summary": "Return the probability that the nth person gets their own seat",
             "description": "Return the probability that the nth person gets their own seat.",
-            "categories": [
-                "Brain Teaser"
+            "category": [
+                "Brainteaser"
             ],
             "complexity": "Medium",
             "link": "https://leetcode.com/problems/airplane-seat-assignment-probability/"
@@ -154,9 +140,8 @@
         {
             "id": 14,
             "title": "Validate Binary Search Tree",
-            "summary": "Determine if a binary tree is a valid binary search tree",
             "description": "Given the root of a binary tree, determine if it is a valid binary search tree (BST).",
-            "categories": [
+            "category": [
                 "Data Structures",
                 "Algorithms"
             ],
@@ -166,9 +151,8 @@
         {
             "id": 15,
             "title": "Sliding Window Maximum",
-            "summary": "Return the max sliding window for an array of integers",
             "description": "Return the max sliding window for an array of integers.",
-            "categories": [
+            "category": [
                 "Arrays",
                 "Algorithms"
             ],
@@ -178,9 +162,8 @@
         {
             "id": 16,
             "title": "N-Queen Problem",
-            "summary": "Return all distinct solutions to the n-queens puzzle",
             "description": "Given an integer n, return all distinct solutions to the n-queens puzzle.",
-            "categories": [
+            "category": [
                 "Algorithms"
             ],
             "complexity": "Hard",
@@ -189,9 +172,8 @@
         {
             "id": 17,
             "title": "Serialize and Deserialize a Binary Tree",
-            "summary": "Design an algorithm to serialize and deserialize a binary tree",
             "description": "Design an algorithm to serialize and deserialize a binary tree.",
-            "categories": [
+            "category": [
                 "Data Structures",
                 "Algorithms"
             ],
@@ -201,9 +183,8 @@
         {
             "id": 18,
             "title": "Wildcard Matching",
-            "summary": "Implement wildcard pattern matching with support for '?' and '*'",
             "description": "Implement wildcard pattern matching with support for '?' and '*'.",
-            "categories": [
+            "category": [
                 "Strings",
                 "Algorithms"
             ],
@@ -213,10 +194,9 @@
         {
             "id": 19,
             "title": "Chalkboard XOR Game",
-            "summary": "Alice and Bob take turns erasing exactly one number from the chalkboard",
             "description": "Alice and Bob take turns erasing exactly one number from the chalkboard. Return true if and only if Alice wins the game, assuming both players play optimally.",
-            "categories": [
-                "Brain Teaser"
+            "category": [
+                "Brainteaser"
             ],
             "complexity": "Hard",
             "link": "https://leetcode.com/problems/chalkboard-xor-game/"
@@ -224,13 +204,11 @@
         {
             "id": 20,
             "title": "Trips and Users",
-            "summary": "Find the cancellation rate of requests with unbanned users each day",
             "description": "Write a solution to find the cancellation rate of requests with unbanned users each day.",
-            "categories": [
+            "category": [
                 "Databases"
             ],
             "complexity": "Hard",
             "link": "https://leetcode.com/problems/trips-and-users/"
         }
     ]
-}
