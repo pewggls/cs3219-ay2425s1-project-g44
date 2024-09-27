@@ -57,7 +57,7 @@ function AddEditQuestionDialog(
 
   const handleInputChange = (field: string, value: string | string[]) => {
     setNewQuestion((prevState) => ({
-      ...prevState, // Spread the previous state to retain other values
+      ...prevState, 
       [field]: value, // Dynamically update the field that changed based on the input name
     }));
   };
@@ -100,9 +100,46 @@ function AddEditQuestionDialog(
         // Close the dialog after succesful creation
         handleClose();
       } catch (error) {
-        alert("An error occurred while creating the question. Please try again.")
+        alert(
+          "An error occurred while creating the question. Please try again."
+        );
         console.error("Error creating question:", error);
       }
+    }
+  }
+
+  async function updateQuestion() {
+    try {
+      const response = await fetch(
+        `${apiUrl}/questions/update/:${row?.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(newQuestion),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to update the question to backend");
+      }
+
+      if (setData && row) {
+        setData((prev: Question[]) =>
+          prev.map((q) =>
+            q.id === row.id ? { ...newQuestion, id: row.id } : q
+          )
+        ); // Update the list
+      }
+
+      // Close the dialog after succesful creation
+      handleClose();
+    } catch (error) {
+      alert(
+        "An error occurred while editing the question. Please try again."
+      );
+      console.error("Error updating question:", error);
     }
   }
 
@@ -262,7 +299,7 @@ function AddEditQuestionDialog(
           <Button
             type="submit"
             className="rounded-lg bg-brand-700 hover:bg-brand-600"
-            onClick={() => createQuestion()}
+            onClick={row ? updateQuestion : createQuestion}
           >
             {row ? "Save changes" : "Done"}
           </Button>
