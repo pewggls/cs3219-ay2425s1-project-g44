@@ -11,6 +11,8 @@ The question microservice exposes the following API endpoints:
 - ```filter/q/categories=Arrays,Bit%20Manipulation&complexities=Easy,Medium``` - Returns all questions that have Arrays AND/OR Bit Manipulation tags and are either Easy OR Medium.
 - ```questions/add``` - Adds a new question to the database.
 - ```questions/delete/[Question ID]``` - Deletes a question from the database by ID number.
+- ```questions/update/[Question ID]``` - Updates a question from the database by ID number.
+- ```questions/patch/[Question ID]``` - Patches a question from the database by ID number.
 
 ### Running PeerPrep
 In the root directory, run
