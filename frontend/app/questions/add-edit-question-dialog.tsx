@@ -1,4 +1,10 @@
-import { forwardRef, useRef, useState } from "react";
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
 import { z } from "zod";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,13 +33,15 @@ interface AddEditQuestionDialogProps {
   row: Question | null;
   setData?: React.Dispatch<React.SetStateAction<Question[]>>;
   handleClose: () => void;
+  reset: boolean;
+  setRest: () => void;
 }
 
 function AddEditQuestionDialog(
   props: AddEditQuestionDialogProps,
   ref: React.Ref<HTMLDivElement>
 ) {
-  const { row, setData, handleClose } = props;
+  const { row, setData, handleClose, reset, setReset } = props;
   const [complexityValue, setComplexityValue] = useState(
     row?.complexity || "easy"
   );
@@ -47,6 +55,24 @@ function AddEditQuestionDialog(
     link: false,
   });
 
+  const resetError = () => {
+    const newErrors = {
+      title: false,
+      description: false,
+      complexity: false,
+      categories: false,
+      link: false,
+    };
+    setErrors(newErrors);
+  };
+
+  useEffect(() => {
+    if (reset) {
+      resetError();
+      setReset(false);
+    }
+  }, [reset]);
+  
   // User input value
   const [newQuestion, setNewQuestion] = useState({
     id: row?.id || undefined,
@@ -85,6 +111,7 @@ function AddEditQuestionDialog(
       link: urlSchema.safeParse(newQuestion.link).success === false, // Check if url is valid
     };
     setErrors(newErrors);
+    // console.log("new error: ", newErrors);
     // Return true if all required fields are valid
     return !Object.values(newErrors).includes(true);
   };
@@ -94,12 +121,15 @@ function AddEditQuestionDialog(
     // validate required fields
     if (validateFields()) {
       try {
-        const response = await fetch(`${apiUrl}/questions/add`, {
-          method: "POST",
+        const endpoint = row?.id ? `update/${row?.id}` : "add";
+        const method = row?.id ? "PUT" : "POST";
+        const response = await fetch(`${apiUrl}/questions/${endpoint}`, {
+          method: method,
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
+            ...(row?.id ? { id: row.id } : {}),
             title: newQuestion.title,
             description: newQuestion.description,
             category: newQuestion.categories,
@@ -109,18 +139,27 @@ function AddEditQuestionDialog(
         });
 
         if (!response.ok) {
-          const errorResponse = await response.json(); // Get the error details from the response
-          const errorMessages = errorResponse.errors ? errorResponse.errors.join(", ") : "An unexpected error occurred.";
-          alert(`Error: ${errorMessages}`);
-          return;
+          if (row?.id) {
+            const errorResponse = await response.json(); // Get the error details from the response
+            const errorMessages = errorResponse.errors
+              ? errorResponse.errors.join(", ")
+              : "An unexpected error occurred.";
+            alert(`Error: ${errorMessages}`);
+            return;
+          } else {
+            throw new Error("Failed to update the question to backend");
+          }
         }
         const responseText = await response.text();
 
-        // Use a regular expression to extract the ID from the response text
-        const idMatch = responseText.match(/Question ID (\d+) added/);
-        const questionId = idMatch ? parseInt(idMatch[1], 10) : null; // Extract and parse the ID
+        let questionId = row?.id;
+        if (!row?.id) {
+          // Use a regular expression to extract the ID from the response text
+          const idMatch = responseText.match(/Question ID (\d+) added/);
+          questionId = idMatch ? parseInt(idMatch[1], 10) : undefined; // Extract and parse the ID
+        }
 
-        if (questionId !== null) {
+        if (questionId !== undefined) {
           const createdQuestion = {
             ...newQuestion, // Spread the existing question properties
             id: questionId, // Assign the new ID
@@ -128,7 +167,14 @@ function AddEditQuestionDialog(
 
           // Update the question list
           if (setData) {
-            setData((prev: Question[]) => [...prev, createdQuestion]);
+            if (!row?.id) {
+              setData((prev: Question[]) => [...prev, createdQuestion]); // insert new question
+            } else {
+              setData(
+                (prev: Question[]) =>
+                  prev.map((q) => (q.id === row.id ? createdQuestion : q)) // update new question
+              );
+            }
           }
         } else {
           throw new Error(`Unexpected response format: ${responseText}`);
@@ -138,48 +184,57 @@ function AddEditQuestionDialog(
         handleClose();
       } catch (error) {
         alert(
-          "An error occurred while creating the question. Please try again."
+          `An error occurred while ${row?.id ? "updating" : "creating"} ${
+            row?.id ? row?.id : ""
+          } the question. Please try again.`
         );
-        console.error("Error creating question:", error);
+        console.error(
+          `Error ${row?.id ? "updating" : "creating"} question:`,
+          error
+        );
       }
     }
   }
 
-  async function updateQuestion() {
-    try {
-      const response = await fetch(`${apiUrl}/questions/update/:${row?.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newQuestion),
-      });
+  // async function updateQuestion() {
+  //   if (validateFields()) {
+  //     try {
+  //       const updatedQuestion = {
+  //         id: row?.id,
+  //         title: newQuestion.title,
+  //         description: newQuestion.description,
+  //         category: newQuestion.categories,
+  //         complexity: newQuestion.complexity,
+  //         link: newQuestion.link,
+  //       };
 
-      if (!response.ok) {
-        throw new Error("Failed to update the question to backend");
-      }
+  //       const response = await fetch(`${apiUrl}/questions/update/${row?.id}`, {
+  //         method: "PUT",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //         body: JSON.stringify(updatedQuestion),
+  //       });
+  //       if (!response.ok) {
+  //         throw new Error("Failed to update the question to backend");
+  //       }
 
-      if (setData && row) {
-        setData((prev: Question[]) =>
-          prev.map((q) =>
-            q.id === row.id
-              ? {
-                  ...newQuestion,
-                  id: row.id,
-                  categories: newQuestion.categories,
-                }
-              : q
-          )
-        ); // Update the list
-      }
+  //       if (setData) {
+  //         setData((prev: Question[]) =>
+  //           prev.map((q) => (q.id === row.id ? updatedQuestion : q))
+  //         );
+  //       }
 
-      // Close the dialog after succesful creation
-      handleClose();
-    } catch (error) {
-      alert("An error occurred while editing the question. Please try again.");
-      console.error("Error updating question:", error);
-    }
-  }
+  //       // Close the dialog after succesful creation
+  //       handleClose();
+  //     } catch (error) {
+  //       alert(
+  //         `An error occurred while editing the question ${row?.id}. Please try again.`
+  //       );
+  //       console.error("Error updating question:", error);
+  //     }
+  //   }
+  // }
 
   return (
     <Dialog>
@@ -349,7 +404,8 @@ function AddEditQuestionDialog(
           <Button
             type="submit"
             className="rounded-lg bg-brand-700 hover:bg-brand-600"
-            onClick={row ? updateQuestion : createQuestion}
+            // onClick={row ? updateQuestion : createQuestion}
+            onClick={createQuestion}
           >
             {row ? "Save changes" : "Done"}
           </Button>

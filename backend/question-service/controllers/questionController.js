@@ -61,6 +61,8 @@ exports.addQuestion = async (req, res) => {
     }
 }
 
+// const queryResult = Question.findOne({ title: 'bsdsv'}).then(res => res.deleteOne())
+
 exports.deleteQuestion = async (req, res) => {
     const parsedId = Number(req.params.questionId)
     try {
@@ -93,7 +95,6 @@ exports.updateQuestion = async (req, res) => {
             req.body,
             { new: true, runValidators: true }
         );
-
         res.status(200).json(updatedQuestion);
     } catch (error) {
         res.status(500).json({ message: "Error updating question", error: error.message });

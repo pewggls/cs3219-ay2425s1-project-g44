@@ -83,6 +83,21 @@ export const columns: (param: Dispatch<SetStateAction<Question[]>>) => ColumnDef
                 ))}
             </div>
         ),
+        // cell: ({ row }) => {
+        //     return (
+        //         <div className="w-[140px]">
+        //             {Array.isArray(row.original.categories) && row.original.categories.length > 0 ? (
+        //                 row.original.categories.map((category, index) => (
+        //                     <Badge key={index} variant="category" className="mr-1 my-0.5">
+        //                         {category}
+        //                     </Badge>
+        //                 ))
+        //             ) : (
+        //                 <span>No categories available</span> // Optional message if no categories
+        //             )}
+        //         </div>
+        //     );
+        // },
         filterFn: (row, id, selectedCategories) => {
             const rowCategories = row.getValue(id);
             console.log(selectedCategories);
