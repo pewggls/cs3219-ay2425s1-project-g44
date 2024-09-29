@@ -4,11 +4,13 @@
   "description": "Backend microservice that handles all requests for questions and connects to the database.",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "test": "jest"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^4.21.0",
     "mongoose": "^8.6.3",
     "zod": "^3.23.8"
