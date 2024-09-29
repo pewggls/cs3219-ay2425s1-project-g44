@@ -141,17 +141,9 @@ function AddEditQuestionDialog(
         if (!response.ok) {
           if (!row?.id) {
             const errorResponse = await response.json(); // Get the error details from the response
-            let errorMessages: string; // Construct user-friendly error messages
-
-            if (errorResponse.message && errorResponse.message.includes("duplicate key error")) {
-              const duplicateTitle = errorResponse.message.match(/dup key: { title: "(.*?)" }/);
-              const title = duplicateTitle ? duplicateTitle[1] : "this question";
-              errorMessages = `Question "${title}" already exists.`;
-            } else {
-                errorMessages = errorResponse.errors 
+            const errorMessages = errorResponse.errors 
                     ? errorResponse.errors.join(", ") 
                     : errorResponse.message || "An unexpected error occurred.";
-            }
 
             alert(`Error: ${errorMessages}`);
             return;
