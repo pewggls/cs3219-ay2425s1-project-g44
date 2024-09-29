@@ -6,6 +6,9 @@ import { ColumnDef } from "@tanstack/react-table"
 import { DataTableColumnHeader } from "./data-table-column-header"
 import { DataTableRowActions } from "./data-table-row-actions"
 import { Dispatch, SetStateAction } from "react"
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
+import { AlignLeft } from "lucide-react"
+
 
 export type Question = {
     id: number,
@@ -46,29 +49,44 @@ export const columns: (param: Dispatch<SetStateAction<Question[]>>) => ColumnDef
     {
         accessorKey: 'id',
         header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="ID" />
+            <DataTableColumnHeader column={column} title="ID" className="max-w-[40px]" />
         ),
-        cell: ({ row }) => <div className="w-[40px]">{row.getValue("id")}</div>,
+        cell: ({ row }) => <div>{row.getValue("id")}</div>,
     },
     {
         accessorKey: 'title',
         header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Title" />
+            <DataTableColumnHeader column={column} title="Title" className="min-w-[10vw] w-[25vw]" />
         ),
         cell: ({ row }) => {
             return (
-                <div className="flex space-x-2">
-                    <span className="font-medium">
-                    {row.getValue("title")}
-                    </span>
-                </div>
+                <HoverCard>
+                    <HoverCardTrigger>
+                        <div className="flex space-x-2">
+                            <span className="font-medium cursor-help">
+                            {row.getValue("title")}
+                            </span>
+                        </div>
+                    </HoverCardTrigger>
+                    <HoverCardContent className="rounded-xl">
+                        <div className="flex flex-col">
+                            <div className="flex items-center font-semibold mb-2">
+                                <AlignLeft className="h-4 w-4 mr-2" />
+                                <span>Description</span>
+                            </div>
+                            <div>
+                                <p>{row.original.description}</p>
+                            </div>
+                        </div>
+                    </HoverCardContent>
+                </HoverCard>
             )
         },
     },
-    {
-        accessorKey: 'summary',
-        header: 'Summary',
-    },
+    // {
+    //     accessorKey: 'summary',
+    //     header: 'Summary',
+    // },
     {
         accessorKey: 'categories',
         header: ({ column }) => (
@@ -113,7 +131,7 @@ export const columns: (param: Dispatch<SetStateAction<Question[]>>) => ColumnDef
         ),
         cell: ({ row }) => (
             <div className="w-[40px]">
-                <Badge variant={row.original.complexity as BadgeProps["variant"]}>
+                <Badge variant={row.original.complexity.toLowerCase() as BadgeProps["variant"]}>
                     {row.original.complexity}
                 </Badge>
             </div>
@@ -126,6 +144,7 @@ export const columns: (param: Dispatch<SetStateAction<Question[]>>) => ColumnDef
     {
         id: "actions",
         cell: ({ row }) => <DataTableRowActions row={row} setData={setData}/>,
+        enableResizing: false,
     }
 ]
 }
