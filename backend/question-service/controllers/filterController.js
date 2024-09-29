@@ -26,8 +26,9 @@ exports.filterBy = async (req, res) => {
 
 
     const queryResult = await Question.find(query).exec();
-    if (!queryResult) {
+    if (!queryResult || queryResult.length === 0) {
         res.send("No matching questions found!")
+        return;
     }
 
     res.json(queryResult);
