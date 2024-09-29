@@ -2,7 +2,7 @@ export const categories = [
     { value: "Algorithms", label: "Algorithms" },
     { value: "Arrays", label: "Arrays" },
     { value: "Bit Manipulation", label: "Bit Manipulation" },
-    { value: "Brain Teaser", label: "Brain Teaser" },
+    { value: "Brainteaser", label: "Brainteaser" },
     { value: "Databases", label: "Databases" },
     { value: "Data Structures", label: "Data Structures" },
     { value: "Recursion", label: "Recursion" },

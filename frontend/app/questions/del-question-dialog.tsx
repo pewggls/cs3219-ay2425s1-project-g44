@@ -10,17 +10,55 @@ import { categories, complexities } from './data';
 
 interface DelQuestionDialogProps {
   row: Question
+  setData?: React.Dispatch<React.SetStateAction<Question[]>>;
+  handleClose: () => void;
 }
 
 function DelQuestionDialog(props: DelQuestionDialogProps, ref: React.Ref<HTMLDivElement>) {
-  const { row } = props;
-  
+  const { row, setData, handleClose } = props;
+
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  async function deleteQuestion(id: number) {
+    try {
+        const response = await fetch(`${apiUrl}/questions/delete/${id}`, {
+            method: 'DELETE',
+        });
+
+        if (!response.ok) {
+          alert(`An error occurred while deleting the question ${id}. Please try again.`)
+          console.error(`Error deleting question: ${id}`);
+          return;
+        }
+
+        // Update the question list internally
+        if (setData) {
+          setData((prevQuestions) => {
+              // Filter out the deleted question
+              const filteredQuestions = prevQuestions.filter((q) => q.id !== id);
+
+              // Update the IDs of the remaining questions
+              return filteredQuestions.map((q, index) => ({
+                  ...q,
+                  id: index + 1 // Reassign ID based on the new order
+              }));
+          });
+      }
+
+        // Close the dialog after succesful deletion
+        handleClose();
+    } catch (error) {
+        alert(`An error occurred while fetching the updated question list.`)
+        console.error(`Error while fetching question`);
+    }
+}
+
+
   return (
     <Dialog>
       <DialogTrigger asChild>
         <div className='hidden' ref={ref} />
       </DialogTrigger>
-      <DialogContent className="laptop:max-w-[75vw] bg-white text-black font-sans rounded-2xl">
+      <DialogContent className="laptop:max-w-[75vw] bg-white text-black font-sans rounded-2xl" onPointerDownOutside={(e) => e.preventDefault()} onInteractOutside={(e) => e.preventDefault()}>
         <DialogHeader className="items-start">
           <DialogTitle className="font-serif font-normal text-3xl">Delete question {row.id}</DialogTitle>
           <DialogDescription className="font-bold">This action cannot be undone!</DialogDescription>
@@ -97,7 +135,7 @@ function DelQuestionDialog(props: DelQuestionDialogProps, ref: React.Ref<HTMLDiv
           </div>
         </div>
         <DialogFooter className="flex items-end">
-          <Button type="submit" variant="destructive" className="rounded-lg">Delete question</Button>
+          <Button type="submit" variant="destructive" className="rounded-lg" onClick={() => deleteQuestion(row.id)}>Delete question</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
