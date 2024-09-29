@@ -177,6 +177,8 @@ function AddEditQuestionDialog(
               );
             }
           }
+
+          window.location.reload()
         } else {
           throw new Error(`Unexpected response format: ${responseText}`);
         }

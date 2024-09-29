@@ -70,6 +70,7 @@ exports.addQuestion = async (req, res) => {
             return res.status(200).json({
                 errorCode: "DUPLICATE_TITLE",
                 msg: "This title already exists."
+
             });
         }
         res.status(400).json({ message: error.message || "Error occured, failed to add question." })
