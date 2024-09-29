@@ -37,14 +37,14 @@ exports.addQuestion = async (req, res) => {
     const data = req.body;
     const { title, description, category, complexity, link } = data;
     try {
-        const existingQuestion = await Question.findOne({ title: { $regex: new RegExp(`^${title}$`, "i") } }).exec();
-        if (existingQuestion) {
-            return res.status(400).json({
-                status: "Error",
-                message: "Duplicate question",
-                errors: ["A question with this title already exists."]
-            });
-        }
+        // const existingQuestion = await Question.findOne({ title: { $regex: new RegExp(`^${title}$`, "i") } }).exec();
+        // if (existingQuestion) {
+        //     return res.status(400).json({
+        //         status: "Error",
+        //         message: "Duplicate question",
+        //         errors: ["A question with this title already exists."]
+        //     });
+        // }
         const maxId = await Question.findOne().sort({ id: -1 }).exec()
         const id = maxId ? maxId.id + 1 : 1
         const question = new Question({
@@ -64,6 +64,12 @@ exports.addQuestion = async (req, res) => {
                 status: "Error",
                 message: "Invalid question",
                 errors: messages
+            });
+        }
+        if (error.code == 11000) {
+            return res.status(200).json({
+                errorCode: "DUPLICATE_TITLE",
+                msg: "This title already exists."
             });
         }
         res.status(400).json({ message: error.message || "Error occured, failed to add question." })
@@ -106,6 +112,12 @@ exports.updateQuestion = async (req, res) => {
         );
         res.status(200).json(updatedQuestion);
     } catch (error) {
+        if (error.code == 11000) {
+            return res.status(200).json({
+                errorCode: "DUPLICATE_TITLE",
+                msg: "This title already exists."
+            });
+        }
         res.status(500).json({ message: "Error updating question", error: error.message });
     }
 };
