@@ -28,6 +28,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { escape } from "querystring";
 
 interface AddEditQuestionDialogProps {
   row: Question | null;
@@ -144,13 +145,15 @@ function AddEditQuestionDialog(
             const errorResponse = await response.json(); // Get the error details from the response
             const errorCode = errorResponse.errorCode;
             if (errorCode == "DUPLICATE_TITLE") {
+              console.log("error")
               alert(`Error: Question "${newQuestion.title}" already exists`);  
-            }
-            const errorMessages = errorResponse.errors 
-                    ? errorResponse.errors.join(", ") 
-                    : errorResponse.message || "An unexpected error occurred.";
+            } else {
+              const errorMessages = errorResponse.errors 
+                      ? errorResponse.errors.join(", ") 
+                      : errorResponse.message || "An unexpected error occurred.";
 
-            alert(`Error: ${errorMessages}`);
+              alert(`Error: ${errorMessages}`);
+            }
             return;
         }
         const responseText = await response.text();
