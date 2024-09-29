@@ -15,9 +15,12 @@ The question microservice exposes the following API endpoints:
 - ```questions/patch/[Question ID]``` - Patches a question from the database by ID number.
 
 ### Running PeerPrep
-In the root directory, run
+In the root directory, ```backend/question-service```, and ```frontend``` folders, run
 ```sh
 npm install
+```
+Then, in the project root, run
+```sh
 npm run start
 ```
 and access PeerPrep at [localhost:3000](http://localhost:3000)
