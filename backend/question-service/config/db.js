@@ -4,8 +4,8 @@ const Question = require("../models/question");
 
 exports.connectDB = async () => {
   try {
-    const conn = await mongoose.connect("mongodb+srv://oscorp4:hello123@cluster0.gshqw1i.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0");
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
+    
+const conn = await mongoose.connect("mongodb://oscorp4:hello123@ac-fajb3yu-shard-00-00.gshqw1i.mongodb.net:27017,ac-fajb3yu-shard-00-01.gshqw1i.mongodb.net:27017,ac-fajb3yu-shard-00-02.gshqw1i.mongodb.net:27017/?ssl=true&replicaSet=atlas-8j9agw-shard-0&authSource=admin&retryWrites=true&w=majority&appName=Cluster0");    console.log(`MongoDB Connected: ${conn.connection.host}`);
   } catch (err) {
     console.error(`Error: ${err.message}`);
     process.exit(1);
