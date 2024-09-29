@@ -34,7 +34,7 @@ interface AddEditQuestionDialogProps {
   setData?: React.Dispatch<React.SetStateAction<Question[]>>;
   handleClose: () => void;
   reset: boolean;
-  setRest: () => void;
+  setReset: (reset: boolean) => void;
 }
 
 function AddEditQuestionDialog(
@@ -93,7 +93,7 @@ function AddEditQuestionDialog(
     }));
   };
 
-  function capitalizeFirstLetter(word: String) {
+  function capitalizeFirstLetter(word: string) {
     if (!word) return word; // Check if the word is empty or undefined
     return word.charAt(0).toUpperCase() + word.slice(1);
   }
