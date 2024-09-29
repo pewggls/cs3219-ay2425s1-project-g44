@@ -139,12 +139,17 @@ function AddEditQuestionDialog(
         });
 
         if (!response.ok) {
-          const errorResponse = await response.json(); // Get the error details from the response
-          const errorMessages = errorResponse.message
-            ? errorResponse.message
-            : "An unexpected error occurred.";
-          alert(`Error: ${errorMessages}`);
-          return;
+          if (!row?.id) {
+            const errorResponse = await response.json(); // Get the error details from the response
+            const errorMessages = errorResponse.errors 
+                    ? errorResponse.errors.join(", ") 
+                    : errorResponse.message || "An unexpected error occurred.";
+
+            alert(`Error: ${errorMessages}`);
+            return;
+          } else {
+            throw new Error("Failed to update the question to backend");
+          }
         }
         const responseText = await response.text();
 
