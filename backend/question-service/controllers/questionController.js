@@ -47,14 +47,15 @@ exports.addQuestion = async (req, res) => {
         }
         const maxId = await Question.findOne().sort({ id: -1 }).exec()
         const id = maxId ? maxId.id + 1 : 1
-        const question = await Question.create({
+        const question = new Question({
             id,
             title,
             description,
             category,
             complexity,
             link
-        })
+        });
+        await question.save();
         res.send(`Question ID ${id} added.`)
     } catch (error) {
         if (error.name === "ValidationError") {
