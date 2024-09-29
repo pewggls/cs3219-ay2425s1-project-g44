@@ -139,16 +139,12 @@ function AddEditQuestionDialog(
         });
 
         if (!response.ok) {
-          if (row?.id) {
-            const errorResponse = await response.json(); // Get the error details from the response
-            const errorMessages = errorResponse.errors
-              ? errorResponse.errors.join(", ")
-              : "An unexpected error occurred.";
-            alert(`Error: ${errorMessages}`);
-            return;
-          } else {
-            throw new Error("Failed to update the question to backend");
-          }
+          const errorResponse = await response.json(); // Get the error details from the response
+          const errorMessages = errorResponse.message
+            ? errorResponse.message
+            : "An unexpected error occurred.";
+          alert(`Error: ${errorMessages}`);
+          return;
         }
         const responseText = await response.text();
 
@@ -264,7 +260,7 @@ function AddEditQuestionDialog(
               onChange={(e) => handleInputChange("title", e.target.value)}
             />
             {errors.title && (
-              <div className="text-red-500">Title is required</div>
+              <div className="text-red-500 text-sm">Title is required</div>
             )}
           </div>
           <div className="grid w-full items-center gap-1.5">
@@ -290,7 +286,7 @@ function AddEditQuestionDialog(
               onChange={(e) => handleInputChange("description", e.target.value)}
             />
             {errors.description && (
-              <div className="text-red-500">Description is required</div>
+              <div className="text-red-500 text-sm">Description is required</div>
             )}
           </div>
           <div className="flex flex-row w-full items-center gap-4">
