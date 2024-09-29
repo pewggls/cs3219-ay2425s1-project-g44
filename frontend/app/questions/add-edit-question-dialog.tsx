@@ -139,7 +139,8 @@ function AddEditQuestionDialog(
         });
 
         if (!response.ok) {
-          if (!row?.id) {
+            console.log("error response from backend: ", response)
+
             const errorResponse = await response.json(); // Get the error details from the response
             const errorMessages = errorResponse.errors 
                     ? errorResponse.errors.join(", ") 
@@ -147,9 +148,6 @@ function AddEditQuestionDialog(
 
             alert(`Error: ${errorMessages}`);
             return;
-          } else {
-            throw new Error("Failed to update the question to backend");
-          }
         }
         const responseText = await response.text();
 
@@ -185,9 +183,7 @@ function AddEditQuestionDialog(
         handleClose();
       } catch (error) {
         alert(
-          `An error occurred while ${row?.id ? "updating" : "creating"} ${
-            row?.id ? row?.id : ""
-          } the question. Please try again.`
+          `An error occurred while ${row?.id ? "updating" : "creating"} the question. Please try again.`
         );
         console.error(
           `Error ${row?.id ? "updating" : "creating"} question:`,
