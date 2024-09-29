@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const z = require("zod");
 const urlSchema = z.string().url();
 
-const questionSchema = mongoose.Schema({
+let questionSchema = mongoose.Schema({
     id: {
         type: Number,
         unique: true
@@ -10,7 +10,8 @@ const questionSchema = mongoose.Schema({
     title: {
         type: String,
         required: [true, "Title is required"],
-        unique: [true, "Question Title must be unique."]
+        unique: [true, "Question Title must be unique."],
+        trim: true
     },
     description: {
         type: String,
@@ -48,6 +49,7 @@ const questionSchema = mongoose.Schema({
     }
 });
 
+questionSchema.index({title: 1}, {unique: true, collation: {locale: 'en', strength: 2}});
 const questionModel = mongoose.model("Question", questionSchema);
 
 module.exports = questionModel;

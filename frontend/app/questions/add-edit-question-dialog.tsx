@@ -175,6 +175,8 @@ function AddEditQuestionDialog(
               );
             }
           }
+
+          window.location.reload()
         } else {
           throw new Error(`Unexpected response format: ${responseText}`);
         }
@@ -377,7 +379,7 @@ function AddEditQuestionDialog(
             </div>
             {errors.categories && (
               <div className="text-red-500 text-sm">
-                Please select at least one complexity.
+                Please select at least one category.
               </div>
             )}
           </div>
