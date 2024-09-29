@@ -23,20 +23,23 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { DataTablePagination } from "./data-table-pagination"
 import { DataTableToolbar } from "./data-table-toolbar"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
   setData?: React.Dispatch<React.SetStateAction<TData[]>>;
+  loading: boolean
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
   setData,
+  loading,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = useState({})
   const [sorting, setSorting] = useState<SortingState>([])
@@ -44,9 +47,26 @@ export function DataTable<TData, TValue>({
     []
   )
 
+  const tableData = useMemo(
+    () => (loading ? Array(1).fill({}) : data),
+    [loading, data]
+  )
+  const tableColumns = useMemo(
+    () =>
+      loading
+        ? columns.map((column) => ({
+            ...column,
+            cell: () => (
+              <Skeleton className="h-4 w-[60%]" />
+            )
+          }))
+        : columns,
+    [loading, columns]
+  );
+
   const table = useReactTable({
-    data,
-    columns,
+    data: tableData,
+    columns: tableColumns,
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
     onColumnFiltersChange: setColumnFilters,

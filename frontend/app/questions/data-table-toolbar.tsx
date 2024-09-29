@@ -110,13 +110,13 @@ export function DataTableToolbar<TData>({
                                 Delete selected
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="laptop:max-w-[30vw] p-8 bg-white text-black font-sans rounded-2xl">
+                        <DialogContent className="p-8 bg-white text-black font-sans rounded-2xl">
                             <DialogHeader className="items-start">
                                 <DialogTitle className="font-serif font-normal text-3xl">Delete {table.getFilteredSelectedRowModel().rows.length} questions?</DialogTitle>
                                 <DialogDescription className="pt-1 font-bold">This action cannot be undone!</DialogDescription>
                             </DialogHeader>
                             <DialogFooter className="flex items-end">
-                                <Button variant="destructive" onClick={() => deleteQuestions()}>Confirm</Button>
+                                <Button variant="destructive" className="rounded-lg" onClick={() => deleteQuestions()}>Confirm</Button>
                             </DialogFooter>
                         </DialogContent>
                     </Dialog>
