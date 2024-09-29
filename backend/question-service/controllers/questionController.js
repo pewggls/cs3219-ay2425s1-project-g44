@@ -46,7 +46,7 @@ exports.addQuestion = async (req, res) => {
             });
         }
         const maxId = await Question.findOne().sort({ id: -1 }).exec()
-        const id = maxId ? maxId.id + 1 : 0
+        const id = maxId ? maxId.id + 1 : 1
         const question = await Question.create({
             id,
             title,
