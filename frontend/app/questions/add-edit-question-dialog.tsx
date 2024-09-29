@@ -34,7 +34,7 @@ interface AddEditQuestionDialogProps {
   setData?: React.Dispatch<React.SetStateAction<Question[]>>;
   handleClose: () => void;
   reset: boolean;
-  setRest: () => void;
+  setReset: (reset: boolean) => void;
 }
 
 function AddEditQuestionDialog(
@@ -77,7 +77,7 @@ function AddEditQuestionDialog(
   const [newQuestion, setNewQuestion] = useState({
     id: row?.id || undefined,
     title: row?.title || "",
-    summary: row?.summary || "",
+    // summary: row?.summary || "",
     description: row?.description || "",
     complexity: row?.complexity
       ? capitalizeFirstLetter(row?.complexity)
@@ -93,7 +93,7 @@ function AddEditQuestionDialog(
     }));
   };
 
-  function capitalizeFirstLetter(word: String) {
+  function capitalizeFirstLetter(word: string) {
     if (!word) return word; // Check if the word is empty or undefined
     return word.charAt(0).toUpperCase() + word.slice(1);
   }
@@ -139,16 +139,12 @@ function AddEditQuestionDialog(
         });
 
         if (!response.ok) {
-          if (row?.id) {
-            const errorResponse = await response.json(); // Get the error details from the response
-            const errorMessages = errorResponse.errors
-              ? errorResponse.errors.join(", ")
-              : "An unexpected error occurred.";
-            alert(`Error: ${errorMessages}`);
-            return;
-          } else {
-            throw new Error("Failed to update the question to backend");
-          }
+          const errorResponse = await response.json(); // Get the error details from the response
+          const errorMessages = errorResponse.message
+            ? errorResponse.message
+            : "An unexpected error occurred.";
+          alert(`Error: ${errorMessages}`);
+          return;
         }
         const responseText = await response.text();
 
@@ -245,7 +241,8 @@ function AddEditQuestionDialog(
         className="laptop:max-w-[75vw] bg-white text-black font-sans rounded-2xl"
         onPointerDownOutside={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}
-      >
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      > {/* we disallow onPointerDownOutside onInteractOutside onEscapeKeyDown since user has prob made changes in inputs */}
         <DialogHeader className="items-start">
           <DialogTitle className="font-serif font-normal tracking-tight text-3xl">
             {row?.id ? `Edit question ${row.id}` : "Add new question"}
@@ -264,10 +261,10 @@ function AddEditQuestionDialog(
               onChange={(e) => handleInputChange("title", e.target.value)}
             />
             {errors.title && (
-              <div className="text-red-500">Title is required</div>
+              <div className="text-red-500 text-sm">Title is required</div>
             )}
           </div>
-          <div className="grid w-full items-center gap-1.5">
+          {/* <div className="grid w-full items-center gap-1.5">
             <Label htmlFor="summary" className="">
               Summary
             </Label>
@@ -277,7 +274,7 @@ function AddEditQuestionDialog(
               placeholder="One-line summary"
               onChange={(e) => handleInputChange("summary", e.target.value)}
             />
-          </div>
+          </div> */}
           <div className="grid w-full items-center gap-1.5">
             <Label htmlFor="description" className="">
               Description
@@ -290,7 +287,7 @@ function AddEditQuestionDialog(
               onChange={(e) => handleInputChange("description", e.target.value)}
             />
             {errors.description && (
-              <div className="text-red-500">Description is required</div>
+              <div className="text-red-500 text-sm">Description is required</div>
             )}
           </div>
           <div className="flex flex-row w-full items-center gap-4">

@@ -37,7 +37,8 @@ const categoryList: Array<{
 
 export default function Home() {
     const [questionList, setQuestionList] = useState<Question[]>([]); // Complete list of questions
-
+    const [loading, setLoading] = useState(true);
+    
     useEffect(() => {
         async function fetchQuestions() {
             try {
@@ -50,7 +51,7 @@ export default function Home() {
                 const data = await response.json();
 
                 // Map backend data to match the frontend Question type
-                const mappedQuestions: Question[] = data.map((q: any) => ({
+                const mappedQuestions: Question[] = data.map((q: {id: number, title: string, complexity: string, category: string[], summary: string, description: string, link: string,selected: boolean}) => ({
                     id: q.id,
                     title: q.title,
                     complexity: complexityList.find(
@@ -64,34 +65,9 @@ export default function Home() {
                 }));
                 console.log("question list: ", mappedQuestions)
                 setQuestionList(mappedQuestions); // Set the fetched data to state
+                setLoading(false);
             } catch (error) {
                 console.error("Error fetching questions from server:", error);
-
-                // remove this once api is ready
-                // try {
-                //     const response = await fetch("/data/question.json", {  // place in /public/data/question.json
-                //         cache: "no-store",
-                //     });
-                //     const data = await response.json();
-
-                //     // Map backend data to match the frontend Question type
-                //     const mappedQuestions: Question[] = data.questions.map((q: any) => ({
-                //         id: q.id,
-                //         title: q.title,
-                //         complexity: complexityList.find(
-                //             (complexity) => complexity.value === q.complexity.toLowerCase()
-                //         )?.value,
-                //         categories: q.categories.sort((a: string, b: string) => a.localeCompare(b)),
-                //         summary: q.summary,
-                //         description: q.description,
-                //         link: q.link,
-                //         selected: false, // Set selected to false initially
-                //     }));
-
-                //     setQuestionList(mappedQuestions); // Set the fetched data to state
-                // } catch (error) {
-                //     console.error("Error fetching questions from local file:", error);
-                // }
             }
         }
 
@@ -135,7 +111,7 @@ export default function Home() {
 
             <main className="mx-auto p-12">
                 <div className="mb-12"><span className="font-serif font-light text-4xl text-primary tracking-tight">Question Repository</span></div>
-                <DataTable columns={columns(setQuestionList)} data={questionList} setData={setQuestionList}/>
+                <DataTable columns={columns(setQuestionList)} data={questionList} setData={setQuestionList} loading={loading}/>
             </main>
         </div>
     )

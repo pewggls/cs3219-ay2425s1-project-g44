@@ -58,7 +58,7 @@ function DelQuestionDialog(props: DelQuestionDialogProps, ref: React.Ref<HTMLDiv
       <DialogTrigger asChild>
         <div className='hidden' ref={ref} />
       </DialogTrigger>
-      <DialogContent className="laptop:max-w-[75vw] bg-white text-black font-sans rounded-2xl" onPointerDownOutside={(e) => e.preventDefault()} onInteractOutside={(e) => e.preventDefault()}>
+      <DialogContent className="laptop:max-w-[75vw] bg-white text-black font-sans rounded-2xl" > {/* we allow onPointerDownOutside onInteractOutside onEscapeKeyDown since the user can just open another delete dialog */}
         <DialogHeader className="items-start">
           <DialogTitle className="font-serif font-normal text-3xl">Delete question {row.id}</DialogTitle>
           <DialogDescription className="font-bold">This action cannot be undone!</DialogDescription>
@@ -74,7 +74,7 @@ function DelQuestionDialog(props: DelQuestionDialogProps, ref: React.Ref<HTMLDiv
               disabled
             />
           </div>
-          <div className="grid w-full items-center gap-1.5">
+          {/* <div className="grid w-full items-center gap-1.5">
             <Label htmlFor="summary" className="">
               Summary
             </Label>
@@ -83,7 +83,7 @@ function DelQuestionDialog(props: DelQuestionDialogProps, ref: React.Ref<HTMLDiv
               defaultValue={row.summary}
               disabled
             />
-          </div>
+          </div> */}
           <div className="grid w-full items-center gap-1.5">
             <Label htmlFor="description" className="">
               Description
@@ -132,6 +132,17 @@ function DelQuestionDialog(props: DelQuestionDialogProps, ref: React.Ref<HTMLDiv
               </ToggleGroupItem>
               ))}
             </ToggleGroup>
+          </div>
+          <div className="grid w-full items-center gap-1.5">
+            <Label htmlFor="link" className="">
+              Link
+            </Label>
+            <Input
+              id="link"
+              defaultValue={row?.link ?? ""}
+              placeholder="Link to original question"
+              disabled
+            />
           </div>
         </div>
         <DialogFooter className="flex items-end">

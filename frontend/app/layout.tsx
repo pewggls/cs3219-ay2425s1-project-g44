@@ -24,7 +24,7 @@ const recklessNeueFont = localFont({
 
 export const metadata: Metadata = {
   title: "PeerPrep",
-  description: "so preppy",
+  description: "Prep for your next interview with your Peers",
 };
 
 export default function RootLayout({
