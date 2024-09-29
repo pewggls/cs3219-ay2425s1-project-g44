@@ -50,7 +50,7 @@ export default function Home() {
                 const data = await response.json();
 
                 // Map backend data to match the frontend Question type
-                const mappedQuestions: Question[] = data.map((q: any) => ({
+                const mappedQuestions: Question[] = data.map((q: {id: number, title: string, complexity: string, category: string[], summary: string, description: string, link: string,selected: boolean}) => ({
                     id: q.id,
                     title: q.title,
                     complexity: complexityList.find(
