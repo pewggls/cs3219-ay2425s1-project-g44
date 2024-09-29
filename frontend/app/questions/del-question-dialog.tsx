@@ -133,6 +133,17 @@ function DelQuestionDialog(props: DelQuestionDialogProps, ref: React.Ref<HTMLDiv
               ))}
             </ToggleGroup>
           </div>
+          <div className="grid w-full items-center gap-1.5">
+            <Label htmlFor="link" className="">
+              Link
+            </Label>
+            <Input
+              id="link"
+              defaultValue={row?.link ?? ""}
+              placeholder="Link to original question"
+              disabled
+            />
+          </div>
         </div>
         <DialogFooter className="flex items-end">
           <Button type="submit" variant="destructive" className="rounded-lg" onClick={() => deleteQuestion(row.id)}>Delete question</Button>
