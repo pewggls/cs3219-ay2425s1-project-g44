@@ -37,6 +37,14 @@ exports.addQuestion = async (req, res) => {
     const data = req.body;
     const { title, description, category, complexity, link } = data;
     try {
+        const existingQuestion = await Question.findOne({ title: { $regex: new RegExp(`^${title}$`, "i") } }).exec();
+        if (existingQuestion) {
+            return res.status(400).json({
+                status: "Error",
+                message: "Duplicate question",
+                errors: ["A question with this title already exists."]
+            });
+        }
         const maxId = await Question.findOne().sort({ id: -1 }).exec()
         const id = maxId ? maxId.id + 1 : 1
         const question = new Question({

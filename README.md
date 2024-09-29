@@ -15,21 +15,15 @@ The question microservice exposes the following API endpoints:
 - ```questions/patch/[Question ID]``` - Patches a question from the database by ID number.
 
 ### Running PeerPrep
-In the root directory, run
+In the root directory, ```backend/question-service```, and ```frontend``` folders, run
 ```sh
-docker compose up -d
+npm install
 ```
-and access PeerPrep at [localhost:3000](localhost:3000)
-
-### Developing PeerPrep
-If you are developing PeerPrep, you can use `docker-compose.dev.yml` to enable [Next.js Fast Refresh](https://nextjs.org/docs/architecture/fast-refresh):
+Then, in the project root, run
 ```sh
-docker compose -f docker-compose.dev.yml up --watch --build
+npm run start
 ```
-Due to how Docker Compose handles multiple Compose files, if you wish to run the prod version after running the dev version, you need to specify the Compose file:
-```sh
-docker compose -f docker-compose.yml up --build
-```
+and access PeerPrep at [localhost:3000](http://localhost:3000)
 
 ### Note: 
 - You can choose to develop individual microservices within separate folders within this repository **OR** use individual repositories (all public) for each microservice. 
