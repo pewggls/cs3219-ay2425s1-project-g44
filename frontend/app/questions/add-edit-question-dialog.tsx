@@ -77,7 +77,7 @@ function AddEditQuestionDialog(
   const [newQuestion, setNewQuestion] = useState({
     id: row?.id || undefined,
     title: row?.title || "",
-    summary: row?.summary || "",
+    // summary: row?.summary || "",
     description: row?.description || "",
     complexity: row?.complexity
       ? capitalizeFirstLetter(row?.complexity)
@@ -241,7 +241,8 @@ function AddEditQuestionDialog(
         className="laptop:max-w-[75vw] bg-white text-black font-sans rounded-2xl"
         onPointerDownOutside={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}
-      >
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      > {/* we disallow onPointerDownOutside onInteractOutside onEscapeKeyDown since user has prob made changes in inputs */}
         <DialogHeader className="items-start">
           <DialogTitle className="font-serif font-normal tracking-tight text-3xl">
             {row?.id ? `Edit question ${row.id}` : "Add new question"}
@@ -263,7 +264,7 @@ function AddEditQuestionDialog(
               <div className="text-red-500 text-sm">Title is required</div>
             )}
           </div>
-          <div className="grid w-full items-center gap-1.5">
+          {/* <div className="grid w-full items-center gap-1.5">
             <Label htmlFor="summary" className="">
               Summary
             </Label>
@@ -273,7 +274,7 @@ function AddEditQuestionDialog(
               placeholder="One-line summary"
               onChange={(e) => handleInputChange("summary", e.target.value)}
             />
-          </div>
+          </div> */}
           <div className="grid w-full items-center gap-1.5">
             <Label htmlFor="description" className="">
               Description
