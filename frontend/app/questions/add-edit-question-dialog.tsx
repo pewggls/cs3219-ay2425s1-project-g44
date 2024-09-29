@@ -142,6 +142,10 @@ function AddEditQuestionDialog(
             console.log("error response from backend: ", response)
 
             const errorResponse = await response.json(); // Get the error details from the response
+            const errorCode = errorResponse.errorCode;
+            if (errorCode == "DUPLICATE_TITLE") {
+              alert(`Error: Question "${newQuestion.title}" already exists`);  
+            }
             const errorMessages = errorResponse.errors 
                     ? errorResponse.errors.join(", ") 
                     : errorResponse.message || "An unexpected error occurred.";
