@@ -5,6 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { ColumnDef } from "@tanstack/react-table"
 import { DataTableColumnHeader } from "./data-table-column-header"
 import { DataTableRowActions } from "./data-table-row-actions"
+import { Dispatch, SetStateAction } from "react"
 
 export type Question = {
     id: number,
@@ -16,7 +17,8 @@ export type Question = {
     link: string
 }
 
-export const columns: ColumnDef<Question>[] = [
+export const columns: (param: Dispatch<SetStateAction<Question[]>>) => ColumnDef<Question>[] = (setData) => {
+    return [
     {
         id: "select",
         header: ({ table }) => (
@@ -81,6 +83,21 @@ export const columns: ColumnDef<Question>[] = [
                 ))}
             </div>
         ),
+        // cell: ({ row }) => {
+        //     return (
+        //         <div className="w-[140px]">
+        //             {Array.isArray(row.original.categories) && row.original.categories.length > 0 ? (
+        //                 row.original.categories.map((category, index) => (
+        //                     <Badge key={index} variant="category" className="mr-1 my-0.5">
+        //                         {category}
+        //                     </Badge>
+        //                 ))
+        //             ) : (
+        //                 <span>No categories available</span> // Optional message if no categories
+        //             )}
+        //         </div>
+        //     );
+        // },
         filterFn: (row, id, selectedCategories) => {
             const rowCategories = row.getValue(id);
             console.log(selectedCategories);
@@ -108,6 +125,7 @@ export const columns: ColumnDef<Question>[] = [
     },
     {
         id: "actions",
-        cell: ({ row }) => <DataTableRowActions row={row} />,
+        cell: ({ row }) => <DataTableRowActions row={row} setData={setData}/>,
     }
 ]
+}

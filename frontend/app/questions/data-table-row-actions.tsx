@@ -13,7 +13,7 @@ import {
 
 import { ExternalLink, MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import { Question } from "./columns"
-import { useRef } from "react"
+import { useRef, useState } from "react"
 
 import AddEditQuestionDialog from "./add-edit-question-dialog"
 import DelQuestionDialog from "./del-question-dialog"
@@ -21,14 +21,19 @@ import Link from "next/link"
 
 interface DataTableRowActionsProps<TData> {
     row: Row<TData>
+    setData?: React.Dispatch<React.SetStateAction<TData[]>>
 }
 
 export function DataTableRowActions<TData>({
-    row,
+    row, setData
 }: DataTableRowActionsProps<TData>) {
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+
     const triggerEditRef = useRef<HTMLDivElement>(null);
     const triggerDelRef = useRef<HTMLDivElement>(null);
 
+    const handleEditClose = () => triggerEditRef.current?.click();
+    const handleDelClose = () => triggerDelRef.current?.click();
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -50,6 +55,7 @@ export function DataTableRowActions<TData>({
                 
                 <DropdownMenuItem onSelect={() => {
                     triggerEditRef.current?.click();
+                    setIsDialogOpen(true)
                 }}>
                     <Pencil className="mr-2 h-4 w-4" />
                     <span className="">Edit</span>
@@ -68,8 +74,8 @@ export function DataTableRowActions<TData>({
                 in this case we use this solution:
                 https://github.com/radix-ui/primitives/issues/1836#issuecomment-2177341164
             */}
-            <AddEditQuestionDialog row={row.original as Question} ref={triggerEditRef} />
-            <DelQuestionDialog row={row.original as Question} ref={triggerDelRef} />
+            <AddEditQuestionDialog row={row.original as Question} ref={triggerEditRef} reset={isDialogOpen} setReset={setIsDialogOpen} setData={setData} handleClose={handleEditClose}/>
+            <DelQuestionDialog row={row.original as Question} ref={triggerDelRef} setData={setData} handleClose={handleDelClose}/>
         </DropdownMenu>
         
     )

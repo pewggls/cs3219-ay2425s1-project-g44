@@ -8,19 +8,24 @@ import { Input } from "@/components/ui/input"
 
 import { categories, complexities } from "./data"
 import { DataTableFacetedFilter } from "./data-table-faceted-filter"
-import { useRef } from "react"
+import { useRef, useState } from "react"
 import AddEditQuestionDialog from "./add-edit-question-dialog"
+import { Question } from "./columns"
 
 interface DataTableToolbarProps<TData> {
     table: Table<TData>
+    data?:  TData[]
+    setData?: React.Dispatch<React.SetStateAction<TData[]>>
 }
 
 export function DataTableToolbar<TData>({
-    table,
+    table, data, setData
 }: DataTableToolbarProps<TData>) {
     const isFiltered = table.getState().columnFilters.length > 0
     const triggerAddRef = useRef<HTMLDivElement>(null);
 
+    const handleClose = () => triggerAddRef.current?.click();
+    
     return (
         <div className="justify-between flex items-center">
             <div className="flex items-center justify-between font-sans">
@@ -68,7 +73,7 @@ export function DataTableToolbar<TData>({
                 <Plus className="mr-2 h-4 w-4" />
                 <span className="font-semibold uppercase">Add</span>
             </Button>
-            <AddEditQuestionDialog ref={triggerAddRef} row={null} />
+            <AddEditQuestionDialog ref={triggerAddRef} row={null} setData={setData} handleClose={handleClose}/>
         </div>
     )
 }
