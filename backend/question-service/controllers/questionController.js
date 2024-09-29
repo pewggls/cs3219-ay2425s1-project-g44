@@ -85,7 +85,7 @@ exports.updateQuestion = async (req, res) => {
         const parsedId = Number(req.params.questionId)
         const queryResult = await Question.findOne({ id: parsedId });
         if (!queryResult) {
-            res.send(`Question ID ${parsedId} not found.`)
+            res.status(404).send(`Question ID ${parsedId} not found.`)
             return
         }
         const updates = req.body;
@@ -106,7 +106,7 @@ exports.patchQuestion = async (req, res) => {
         const parsedId = Number(req.params.questionId)
         const queryResult = await Question.findOne({ id: parsedId });
         if (!queryResult) {
-            res.send(`Question ID ${parsedId} not found.`)
+            res.status(404).send(`Question ID ${parsedId} not found.`)
             return
         }
         const updates = req.body;

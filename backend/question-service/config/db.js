@@ -13,18 +13,17 @@ exports.connectDB = async () => {
 };
 
 exports.populateDB = async () => {
-    
-    const questionList = JSON.parse(fs.readFileSync("config/questions.json", "utf-8"));
-    // console.log((questionList))
-    const numQuestions = await (Question.countDocuments().exec())
-    if (numQuestions < 20) {
-        Question.insertMany(questionList)
-        .then(() => {
-            console.log('Data successfully inserted into MongoDB');
-        })
-        .catch((error) => {
-            console.error('Error inserting data:', error);
-        });
-        console.log("POPULATED DB")
-    }
+
+  const questionList = JSON.parse(fs.readFileSync("config/questions.json", "utf-8"));
+  // console.log((questionList))
+  const numQuestions = await (Question.countDocuments().exec())
+  if (numQuestions < 20) {
+    Question.insertMany(questionList)
+      .then(() => {
+        console.log('Data successfully inserted into MongoDB');
+      })
+      .catch((error) => {
+        console.error('Error inserting data:', error);
+      });
+  }
 };
