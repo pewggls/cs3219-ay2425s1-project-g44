@@ -67,7 +67,7 @@ exports.addQuestion = async (req, res) => {
             });
         }
         if (error.code == 11000) {
-            return res.status(200).json({
+            return res.status(404).json({
                 errorCode: "DUPLICATE_TITLE",
                 msg: "This title already exists."
 
@@ -114,7 +114,7 @@ exports.updateQuestion = async (req, res) => {
         res.status(200).json(updatedQuestion);
     } catch (error) {
         if (error.code == 11000) {
-            return res.status(200).json({
+            return res.status(404).json({
                 errorCode: "DUPLICATE_TITLE",
                 msg: "This title already exists."
             });

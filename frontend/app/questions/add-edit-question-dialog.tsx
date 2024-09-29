@@ -28,6 +28,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { escape } from "querystring";
 
 interface AddEditQuestionDialogProps {
   row: Question | null;
@@ -139,17 +140,21 @@ function AddEditQuestionDialog(
         });
 
         if (!response.ok) {
-          if (!row?.id) {
-            const errorResponse = await response.json(); // Get the error details from the response
-            const errorMessages = errorResponse.errors 
-                    ? errorResponse.errors.join(", ") 
-                    : errorResponse.message || "An unexpected error occurred.";
+            console.log("error response from backend: ", response)
 
-            alert(`Error: ${errorMessages}`);
+            const errorResponse = await response.json(); // Get the error details from the response
+            const errorCode = errorResponse.errorCode;
+            if (errorCode == "DUPLICATE_TITLE") {
+              console.log("error")
+              alert(`Error: Question "${newQuestion.title}" already exists`);  
+            } else {
+              const errorMessages = errorResponse.errors 
+                      ? errorResponse.errors.join(", ") 
+                      : errorResponse.message || "An unexpected error occurred.";
+
+              alert(`Error: ${errorMessages}`);
+            }
             return;
-          } else {
-            throw new Error("Failed to update the question to backend");
-          }
         }
         const responseText = await response.text();
 
@@ -187,9 +192,7 @@ function AddEditQuestionDialog(
         handleClose();
       } catch (error) {
         alert(
-          `An error occurred while ${row?.id ? "updating" : "creating"} ${
-            row?.id ? row?.id : ""
-          } the question. Please try again.`
+          `An error occurred while ${row?.id ? "updating" : "creating"} the question. Please try again.`
         );
         console.error(
           `Error ${row?.id ? "updating" : "creating"} question:`,
