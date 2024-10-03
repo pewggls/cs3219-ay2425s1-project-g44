@@ -14,3 +14,17 @@ services:
         - action: sync
           path: ./frontend
           target: /app
+
+  question:
+    build:
+      context: ./backend/question-service
+      dockerfile: Dockerfile.dev
+    # depends_on:
+    #   - 
+    ports:
+      - "2000:2000"
+    develop:
+      watch:
+        - action: sync
+          path: ./backend/question-service
+          target: /app
