@@ -2,15 +2,17 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-Run the development server:
+The preferred way is to use Docker Compose from the PeerPrep root directory:
+```sh
+docker compose up --watch --build
+```
+Otherwise, run the development server:
 
 ```bash
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 ## Stack
 

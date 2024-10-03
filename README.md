@@ -15,15 +15,20 @@ The question microservice exposes the following API endpoints:
 - ```questions/patch/[Question ID]``` - Patches a question from the database by ID number.
 
 ### Running PeerPrep
-In the root directory, ```backend/question-service```, and ```frontend``` folders, run
+In the root directory, run
 ```sh
-npm install
-```
-Then, in the project root, run
-```sh
-npm run start
+docker compose up -d
 ```
 and access PeerPrep at [localhost:3000](http://localhost:3000)
+
+> To force a rebuild of the images, run
+> `docker compose up -d --build`
+
+#### Developing
+If you are developing PeerPrep, you can use [Compose Watch](https://docs.docker.com/compose/how-tos/file-watch/) to automatically update and preview code changes:
+```sh
+docker compose up --watch --build
+```
 
 ### Note: 
 - You can choose to develop individual microservices within separate folders within this repository **OR** use individual repositories (all public) for each microservice. 
