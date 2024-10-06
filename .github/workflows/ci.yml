@@ -24,12 +24,10 @@ jobs:
         with:
           mongodb-version: '6.0'
 
-      - name: Change directory to question-service
-        working-directory: backend/question-service
-        run: npm install
-   
       - name: Install dependencies
+        working-directory: backend/question-service
         run: npm ci
    
       - name: Run Tests
+        working-directory: backend/question-service
         run: npm run test-ci
