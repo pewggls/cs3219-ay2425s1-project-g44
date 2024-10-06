@@ -5,8 +5,6 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile.dev
-    # depends_on:
-    #   - 
     ports:
       - "3000:3000"
     develop:
@@ -19,8 +17,6 @@ services:
     build:
       context: ./backend/question-service
       dockerfile: Dockerfile.dev
-    # depends_on:
-    #   - 
     ports:
       - "2000:2000"
     develop:
@@ -28,3 +24,12 @@ services:
         - action: sync
           path: ./backend/question-service
           target: /app
+
+  user:
+    build:
+      context: ./backend/user-service
+      dockerfile: Dockerfile.prod
+    env_file:
+      - ./backend/user-service/.env
+    ports:
+      - "3001:3001"
