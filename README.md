@@ -13,6 +13,8 @@ The question microservice exposes the following API endpoints:
 - ```questions/delete/[Question ID]``` - Deletes a question from the database by ID number.
 - ```questions/update/[Question ID]``` - Updates a question from the database by ID number.
 - ```questions/patch/[Question ID]``` - Patches a question from the database by ID number.
+The matching microservice exposes the following API endpoints:
+- ```matching/produce``` - Produce a message to Kafka.
 
 ### Running PeerPrep
 In the root directory, run
