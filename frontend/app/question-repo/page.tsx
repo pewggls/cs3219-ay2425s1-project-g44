@@ -42,7 +42,7 @@ export default function Home() {
     useEffect(() => {
         async function fetchQuestions() {
             try {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/questions/all`, {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_QUESTION_API_BASE_URL}/all`, {
                     cache: "no-store",
                 });
                 if (!response.ok) {
@@ -80,7 +80,7 @@ export default function Home() {
                 <div className="flex items-center gap-2">
                     {/* <CodeIcon className="w-6 h-6 text-purple-600" /> */}
                     <Link
-                        href="#"
+                        href="/"
                         className="text-2xl font-bold font-branding tracking-tight text-brand-700"
                         prefetch={false}
                     >
