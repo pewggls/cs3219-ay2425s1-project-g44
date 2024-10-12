@@ -16,16 +16,18 @@ import {
 } from "@/components/ui/form"
 import { useRouter } from "next/navigation"
 import { useState } from "react";
-import { LoaderCircle } from "lucide-react";
+import { AlertCircle, LoaderCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const formSchema = z.object({
     email: z.string().min(1, "Email is required").email({ message: "Invalid email address" }),
-    password: z.string().min(6, "Password requires at least 6 characters"),
+    password: z.string().min(8, "Password requires at least 8 characters"), // Password has more criterias but we only let user know about length
 })
 
 export default function Login() {
     const router = useRouter()
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -53,11 +55,17 @@ export default function Login() {
                 body: JSON.stringify(values),
             });
 
-            if (response.status == 401) {
+            if (response.status == 400) {
+                setError("Missing email or password.");
+                throw new Error("Missing email or password: " + response.statusText);
+            } else if (response.status == 401) {
+                setError("Incorrect email or password.");
                 throw new Error("Incorrect email or password: " + response.statusText);
             } else if (response.status == 500) {
+                setError("Database or server error. Please try again.");
                 throw new Error("Database or server error: " + response.statusText);
             } else if (!response.ok) {
+                setError("There was an error logging in. Please try again.");
                 throw new Error("Error logging in: " + response.statusText);
             }
 
@@ -72,13 +80,22 @@ export default function Login() {
     }
 
     return (
-        <div className="flex min-h-screen w-screen items-center justify-center bg-white font-sans">
-            <div className="mx-auto flex flex-col justify-center gap-6 w-[400px]">
+        <div className="flex min-h-screen w-screen px-10 items-center justify-center bg-white font-sans">
+            <div className="mx-auto flex flex-col justify-center gap-6 w-[350px]">
                 <div className="flex flex-col gap-2 text-left pb-1">
                     <span className="font-serif font-light text-4xl text-primary tracking-tight">
                         Sign in
                     </span>
                 </div>
+                {error && (
+                    <Alert variant="destructive">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertTitle className="font-semibold">Error</AlertTitle>
+                        <AlertDescription>
+                            {error}
+                        </AlertDescription>
+                    </Alert>
+                )}
                 <div className="flex flex-col gap-4 text-black">
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
