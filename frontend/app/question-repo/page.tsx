@@ -5,6 +5,8 @@ import { columns, Question } from "./columns"
 import { DataTable } from "./data-table"
 import { Badge, BadgeProps } from "@/components/ui/badge";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const complexityList: Array<{
     value: string;
@@ -76,9 +78,8 @@ export default function QuestionRepo() {
 
     return (
         <div className="min-h-screen p-4 bg-white">
-            <header className="flex items-center justify-between p-4 border-b">
+            <header className="flex items-center justify-between p-4">
                 <div className="flex items-center gap-2">
-                    {/* <CodeIcon className="w-6 h-6 text-purple-600" /> */}
                     <Link
                         href="/"
                         className="text-2xl font-bold font-branding tracking-tight text-brand-700"
@@ -93,18 +94,19 @@ export default function QuestionRepo() {
                     )}
                 </div>
                 <div className="hidden desktop:flex items-center gap-4">
-                    <nav className="flex items-center gap-4 font-branding">
-                        <div className="mr-8">
-                            <Link href="#" className="text-lg font-semibold text-gray-700" prefetch={false}>
-                                QUESTIONS
-                            </Link>
-                        </div>
-                        {/* <Button variant="ghost" size="icon" className="rounded-full hover:text-brand-400">
+                    <nav className="flex items-center gap-10 font-branding">
+                        <Link href="/questions" className="text-lg font-semibold uppercase text-gray-700/50 hover:text-gray-700 transition duration-150" prefetch={false}>
+                            Questions
+                        </Link>
+                        <Link href="/question-repo" className="text-lg font-semibold uppercase text-gray-700 drop-shadow-md" prefetch={false}>
+                            Repository
+                        </Link>
+                        <Button variant="ghost" size="icon" className="rounded-full">
                             <Avatar>
                                 <AvatarImage src="/placeholder-user.jpg" alt="CR" />
-                                <AvatarFallback className="font-branding bg-brand-600">CR</AvatarFallback>
+                                <AvatarFallback className="font-branding">CR</AvatarFallback>
                             </Avatar>
-                        </Button> */}
+                        </Button>
                     </nav>
                 </div>
             </header>
