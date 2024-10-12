@@ -53,7 +53,11 @@ export default function Login() {
                 body: JSON.stringify(values),
             });
 
-            if (!response.ok) {
+            if (response.status == 401) {
+                throw new Error("Incorrect email or password: " + response.statusText);
+            } else if (response.status == 500) {
+                throw new Error("Database or server error: " + response.statusText);
+            } else if (!response.ok) {
                 throw new Error("Error logging in: " + response.statusText);
             }
 

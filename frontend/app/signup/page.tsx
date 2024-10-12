@@ -61,7 +61,11 @@ export default function Signup() {
                 body: JSON.stringify(signUpValues),
             });
 
-            if (!signUpResponse.ok) {
+            if (signUpResponse.status == 409) {
+                throw new Error("Duplicate username or email: " + signUpResponse.statusText);
+            } else if (signUpResponse.status == 500) {
+                throw new Error("Database or server error: " + signUpResponse.statusText);
+            } else if (!signUpResponse.ok) {
                 throw new Error("Error signing up: " + signUpResponse.statusText);
             }
 
@@ -75,7 +79,11 @@ export default function Signup() {
                 body: JSON.stringify(loginValues),
             });
 
-            if (!loginResponse.ok) {
+            if (loginResponse.status == 401) {
+                throw new Error("Incorrect email or password: " + loginResponse.statusText);
+            } else if (loginResponse.status == 500) {
+                throw new Error("Database or server error: " + loginResponse.statusText);
+            } else if (!loginResponse.ok) {
                 throw new Error("Error logging in: " + loginResponse.statusText);
             }
 
@@ -84,6 +92,8 @@ export default function Signup() {
             router.push("/question-repo");
         } catch (error) {
             console.error(error);
+        } finally {
+            setIsLoading(false);
         }
     }
 

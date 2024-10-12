@@ -35,7 +35,7 @@ const categoryList: Array<{
         { value: "strings", label: "Strings", badgeVariant: "category" },
     ];
 
-export default function Home() {
+export default function QuestionRepo() {
     const [questionList, setQuestionList] = useState<Question[]>([]); // Complete list of questions
     const [loading, setLoading] = useState(true);
     
@@ -114,5 +114,5 @@ export default function Home() {
                 <DataTable columns={columns(setQuestionList)} data={questionList} setData={setQuestionList} loading={loading}/>
             </main>
         </div>
-    )
+    );
 }
