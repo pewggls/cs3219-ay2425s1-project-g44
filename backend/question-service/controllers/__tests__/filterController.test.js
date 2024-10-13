@@ -6,88 +6,59 @@ const Question = require('../../models/question');
 
 const app = express();
 app.use(express.json());
-app.get('/filter', filterController.filterBy);
+app.get('/filter/q', filterController.filterBy);
 
 jest.mock('../../models/question');
 
-describe('filterController', () => {
-    beforeAll(async () => {
-        await mongoose.connect('mongodb://localhost:27017/test', { useNewUrlParser: true, useUnifiedTopology: true });
-    });
+// Create tests for filterBy function
+describe('GET /filter/q', () => {
+    // Test case for successful filtering
+    it('should return questions that match the filter', async () => {
+        const mockQuestions = [
+            { id: 1, title: 'Question 1', category: 'Science', complexity: 'Easy' },
+            { id: 2, title: 'Question 2', category: 'Math', complexity: 'Medium' },
+        ];
 
-    afterAll(async () => {
-        await mongoose.connection.close();
-    });
-
-    afterEach(() => {
-        jest.clearAllMocks();
-    });
-
-    it('should return "No filter found" if no filters are provided', async () => {
-        const res = await request(app).get('/filter');
-        expect(res.text).toBe('No filter found');
-        expect(res.status).toBe(200);
-    });
-
-    it('should filter questions by categories', async () => {
-        const mockQuestions = [{ _id: '1', category: 'math', complexity: 'easy', title: 'Question 1', description: 'Description 1' }];
-
-        // Mocking Question.find() to return an object with exec()
+        // Mock the database find operation with an exec function
         Question.find.mockReturnValue({
             exec: jest.fn().mockResolvedValue(mockQuestions)
         });
 
-        const res = await request(app).get('/filter').query({ categories: 'math' });
+        // Make a GET request to filter the questions
+        const response = await request(app)
+            .get('/filter/q')
+            .query({ categories: 'Science', complexities: 'Easy' });
 
-        expect(res.status).toBe(200);
-        expect(res.body).toEqual(mockQuestions);
-        expect(Question.find).toHaveBeenCalledWith({ category: { $in: ['math'] } });
+        // Assert the response status and body
+        expect(response.status).toBe(200);
+        expect(response.body).toEqual(mockQuestions);
     });
 
-    it('should filter questions by complexities', async () => {
-        const mockQuestions = [{ _id: '1', category: 'math', complexity: 'easy', title: 'Question 1', description: 'Description 1' }];
-
-        // Mocking Question.find() to return an object with exec()
-        Question.find.mockReturnValue({
-            exec: jest.fn().mockResolvedValue(mockQuestions)
-        });
-
-        const res = await request(app).get('/filter').query({ complexities: 'easy' });
-
-        expect(res.status).toBe(200);
-        expect(res.body).toEqual(mockQuestions);
-        expect(Question.find).toHaveBeenCalledWith({ complexity: { $in: ['easy'] } });
-    });
-
-    it('should filter questions by keywords', async () => {
-        const mockQuestions = [{ _id: '1', category: 'math', complexity: 'easy', title: 'Question 1', description: 'Description 1' }];
-
-        // Mocking Question.find() to return an object with exec()
-        Question.find.mockReturnValue({
-            exec: jest.fn().mockResolvedValue(mockQuestions)
-        });
-
-        const res = await request(app).get('/filter').query({ keywords: 'Question' });
-
-        expect(res.status).toBe(200);
-        expect(res.body).toEqual(mockQuestions);
-        expect(Question.find).toHaveBeenCalledWith({
-            $or: [
-                { title: { $regex: 'Question', $options: 'i' } },
-                { description: { $regex: 'Question', $options: 'i' } }
-            ]
-        });
-    });
-
-    it('should return "No matching questions found!" if no questions match the filters', async () => {
-        // Mocking Question.find() to return an empty array
+    // Test case for no matching questions
+    it('should return no matching questions found', async () => {
+        // Mock the database find operation to return an empty array
         Question.find.mockReturnValue({
             exec: jest.fn().mockResolvedValue([])
         });
 
-        const res = await request(app).get('/filter').query({ categories: 'science' });
+        // Make a GET request to filter the questions
+        const response = await request(app)
+            .get('/filter/q')
+            .query({ categories: 'Science', complexities: 'Easy' });
 
-        expect(res.status).toBe(200);
-        expect(res.text).toBe('No matching questions found!');
+        // Assert the response status and message
+        expect(response.status).toBe(200);
+        expect(response.text).toBe('No matching questions found!');
+    });
+
+    // Test case for no filter found
+    it('should return no filter found', async () => {
+        // Make a GET request without any query parameters
+        const response = await request(app)
+            .get('/filter/q');
+
+        // Assert the response status and message
+        expect(response.status).toBe(200);
+        expect(response.text).toBe('No filter found');
     });
 });

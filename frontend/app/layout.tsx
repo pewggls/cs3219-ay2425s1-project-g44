@@ -35,7 +35,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${brandingFont.variable} ${matterFont.variable} ${recklessNeueFont.variable} antialiased`}
+        className={`${brandingFont.variable} ${matterFont.variable} ${recklessNeueFont.variable} antialiased bg-white`}
       >
         {children}
       </body>

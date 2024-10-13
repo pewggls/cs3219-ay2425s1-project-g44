@@ -1,118 +1,154 @@
 "use client"
 
-import { useEffect, useState } from "react";
-import { columns, Question } from "./questions/columns"
-import { DataTable } from "./questions/data-table"
-import { Badge, BadgeProps } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import Link from "next/link";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from "@/components/ui/form"
+import { useRouter } from "next/navigation"
+import { useState } from "react";
+import { AlertCircle, LoaderCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
-const complexityList: Array<{
-    value: string;
-    label: string;
-    badgeVariant: BadgeProps["variant"];
-}> = [
-        { value: "easy", label: "Easy", badgeVariant: "easy" },
-        { value: "medium", label: "Medium", badgeVariant: "medium" },
-        { value: "hard", label: "Hard", badgeVariant: "hard" },
-    ];
+const formSchema = z.object({
+    email: z.string().min(1, "Email is required").email({ message: "Invalid email address" }),
+    password: z.string().min(8, "Password requires at least 8 characters"), // Password has more criterias but we only let user know about length
+})
 
-const categoryList: Array<{
-    value: string;
-    label: string;
-    badgeVariant: BadgeProps["variant"];
-}> = [
-        { value: "algorithms", label: "Algorithms", badgeVariant: "category" },
-        { value: "arrays", label: "Arrays", badgeVariant: "category" },
-        {
-            value: "bitmanipulation",
-            label: "Bit Manipulation",
-            badgeVariant: "category",
+export default function Login() {
+    const router = useRouter()
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const form = useForm<z.infer<typeof formSchema>>({
+        resolver: zodResolver(formSchema),
+        defaultValues: {
+            email: "",
+            password: "",
         },
-        { value: "brainteaser", label: "Brainteaser", badgeVariant: "category" },
-        { value: "databases", label: "Databases", badgeVariant: "category" },
-        { value: "datastructures", label: "Data Structures", badgeVariant: "category" },
-        { value: "recursion", label: "Recursion", badgeVariant: "category" },
-        { value: "strings", label: "Strings", badgeVariant: "category" },
-    ];
+    });
 
-export default function Home() {
-    const [questionList, setQuestionList] = useState<Question[]>([]); // Complete list of questions
-    const [loading, setLoading] = useState(true);
-    
-    useEffect(() => {
-        async function fetchQuestions() {
-            try {
-                const response = await fetch("http://localhost:2000/questions/all", {
-                    cache: "no-store",
-                });
-                if (!response.ok) {
-                    throw new Error("Network response was not ok");
-                }
-                const data = await response.json();
-
-                // Map backend data to match the frontend Question type
-                const mappedQuestions: Question[] = data.map((q: {id: number, title: string, complexity: string, category: string[], summary: string, description: string, link: string,selected: boolean}) => ({
-                    id: q.id,
-                    title: q.title,
-                    complexity: complexityList.find(
-                        (complexity) => complexity.value === q.complexity.toLowerCase()
-                    )?.value,
-                    categories: q.category.sort((a: string, b: string) => a.localeCompare(b)),
-                    summary: q.summary,
-                    description: q.description,
-                    link: q.link,
-                    selected: false, // Set selected to false initially
-                }));
-                console.log("question list: ", mappedQuestions)
-                setQuestionList(mappedQuestions); // Set the fetched data to state
-                setLoading(false);
-            } catch (error) {
-                console.error("Error fetching questions from server:", error);
+    async function onSubmit(values: z.infer<typeof formSchema>) {
+        // Placeholder for auth to user service
+        try {
+            await form.trigger();
+            if (!form.formState.isValid) {
+                return;
             }
-        }
 
-        fetchQuestions();
-    }, []);
+            setIsLoading(true);
+
+            const response = await fetch(`${process.env.NEXT_PUBLIC_USER_API_AUTH_URL}/login`, {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(values),
+            });
+
+            if (response.status == 400) {
+                setError("Missing email or password.");
+                throw new Error("Missing email or password: " + response.statusText);
+            } else if (response.status == 401) {
+                setError("Incorrect email or password.");
+                throw new Error("Incorrect email or password: " + response.statusText);
+            } else if (response.status == 500) {
+                setError("Database or server error. Please try again.");
+                throw new Error("Database or server error: " + response.statusText);
+            } else if (!response.ok) {
+                setError("There was an error logging in. Please try again.");
+                throw new Error("Error logging in: " + response.statusText);
+            }
+
+            const responseData = await response.json();
+            console.log(responseData.data["accessToken"]);
+            router.push("/question-repo");
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsLoading(false);
+        }
+    }
 
     return (
-        <div className="min-h-screen p-4 bg-white">
-            <header className="flex items-center justify-between p-4 border-b">
-                <div className="flex items-center gap-2">
-                    {/* <CodeIcon className="w-6 h-6 text-purple-600" /> */}
-                    <Link
-                        href="#"
-                        className="text-2xl font-bold font-branding tracking-tight text-brand-700"
-                        prefetch={false}
-                    >
-                        PeerPrep
-                    </Link>
-                    {process.env.NODE_ENV == "development" && (
-                        <Badge variant="dev" className="ml-2 font-branding">
-                            DEV
-                        </Badge>
-                    )}
+        <div className="flex min-h-screen w-screen px-10 items-center justify-center bg-white font-sans">
+            <div className="mx-auto flex flex-col justify-center gap-6 w-[350px]">
+                <div className="flex flex-col gap-2 text-left pb-1">
+                    <span className="font-serif font-light text-4xl text-primary tracking-tight">
+                        Sign in
+                    </span>
                 </div>
-                <div className="hidden desktop:flex items-center gap-4">
-                    <nav className="flex items-center gap-4 font-branding">
-                        <div className="mr-8">
-                            <Link href="#" className="text-lg font-semibold text-gray-700" prefetch={false}>
-                                QUESTIONS
-                            </Link>
-                        </div>
-                        {/* <Button variant="ghost" size="icon" className="rounded-full hover:text-brand-400">
-                            <Avatar>
-                                <AvatarImage src="/placeholder-user.jpg" alt="CR" />
-                                <AvatarFallback className="font-branding bg-brand-600">CR</AvatarFallback>
-                            </Avatar>
-                        </Button> */}
-                    </nav>
+                {error && (
+                    <Alert variant="destructive">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertTitle className="font-semibold">Error</AlertTitle>
+                        <AlertDescription>
+                            {error}
+                        </AlertDescription>
+                    </Alert>
+                )}
+                <div className="flex flex-col gap-4 text-black">
+                    <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
+                            <FormField
+                                control={form.control}
+                                name="email"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Email</FormLabel>
+                                        <FormControl>
+                                            <Input {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="password"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Password</FormLabel>
+                                        <FormControl>
+                                            <Input type="password" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <Button 
+                                type="submit" 
+                                className="btn btn-primary w-full mt-2 disabled:opacity-80"
+                                disabled={isLoading}
+                            >
+                                {isLoading ? (
+                                    <LoaderCircle className="animate-spin" />
+                                ) : (
+                                    "Sign in"
+                                )}
+                            </Button>
+                        </form>
+                    </Form>
+                    <div className="px-8 text-center text-sm">
+                        Don&apos;t have an account?{" "}
+                        <Link
+                            href="/signup"
+                            className="font-semibold hover:text-brand-700 transition-colors underline underline-offset-2"
+                        >
+                            Sign up
+                        </Link>
+                    </div>
                 </div>
-            </header>
-
-            <main className="mx-auto p-12">
-                <div className="mb-12"><span className="font-serif font-light text-4xl text-primary tracking-tight">Question Repository</span></div>
-                <DataTable columns={columns(setQuestionList)} data={questionList} setData={setQuestionList} loading={loading}/>
-            </main>
+            </div>
         </div>
     )
 }
