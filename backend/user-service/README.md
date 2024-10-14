@@ -61,6 +61,7 @@
     |-----------------------------|-------------------------------------------------------|
     | 201 (Created)               | User created successfully, created user data returned |
     | 400 (Bad Request)           | Missing fields                                        |
+    | 403 (Forbidden)             | User hasn't verified their email                      |
     | 409 (Conflict)              | Duplicate username or email encountered               |
     | 500 (Internal Server Error) | Database or server error                              |
 
@@ -253,6 +254,7 @@
     | 200 (OK)                    | Login successful, JWT token and user data returned |
     | 400 (Bad Request)           | Missing fields                                     |
     | 401 (Unauthorized)          | Incorrect email or password                        |
+    | 403 (Unauthorized)          | User hasn't verified their email                        |
     | 500 (Internal Server Error) | Database or server error                           |
 
 ### Verify Token
@@ -269,4 +271,44 @@
     |-----------------------------|----------------------------------------------------|
     | 200 (OK)                    | Token verified, authenticated user's data returned |
     | 401 (Unauthorized)          | Missing/invalid/expired JWT                        |
+    | 500 (Internal Server Error) | Database or server error                           |
+
+### Send Email Verification
+
+- This endpoint allows sending a verification email to the user after they sign up. The email contains a unique verification link.
+- HTTP Method: `POST`
+- Endpoint: http://localhost:3001/email//send-verification-email
+- Body
+  - Required: `email` (string), `title` (string), `body` (string)
+
+    ```json
+    {
+      "email": "sample@gmail.com",
+      "password": "Confirm Your Email for PeerPrep",
+      "body": "Click the link below to verify your email: <verification_link>"
+    }
+    ```
+
+- Responses:
+
+    | Response Code               | Explanation                                        |
+    |-----------------------------|----------------------------------------------------|
+    | 200 (OK)                    | Verification email sent successfully.              |
+    | 400 (Bad Request)	          | Missing or invalid fields (email, title, body).    |
+    | 500 (Internal Server Error) | Database or server error                           |
+
+### Verify Email
+
+- This endpoint verifies a user's email when they click the verification link provided in the email.
+- HTTP Method: `GET`
+- Endpoint: http://localhost:3001/email/verify-email
+- Headers
+  - Required: `Authorization: Bearer <JWT_ACCESS_TOKEN>`
+
+- Responses:
+
+    | Response Code               | Explanation                                        |
+    |-----------------------------|----------------------------------------------------|
+    | 200 (OK)                    | Email verified successfully.                       |
+    | 401 (Unauthorized)          | Missing/invalid id                                 |
     | 500 (Internal Server Error) | Database or server error                           |

@@ -68,7 +68,7 @@ export default function ForgottenPassword() {
         adminJWT = loginData.data.accessToken;
         tokenTimestamp = currentTime;
         return adminJWT;
-      }
+    }
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         // Placeholder for auth to user service
@@ -113,7 +113,7 @@ export default function ForgottenPassword() {
             } 
 
             // Send verification email
-            const emailResponse = await fetch(`${process.env.NEXT_PUBLIC_USER_API_URL}/email/send-verification-email`, {
+            const emailResponse = await fetch(`${process.env.NEXT_PUBLIC_USER_API_EMAIL_URL}/send-verification-email`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
@@ -129,8 +129,7 @@ export default function ForgottenPassword() {
                 throw new Error(`Failed to send verification email`);
             }
 
-            const result = await emailResponse.json();
-            setSuccessMessage("A link has been sent to your email. Please check your inbox to reset your password."); // Set the success message
+            setSuccessMessage("A link has been sent to your email. Please check your inbox to reset your password.");
         } catch (error) {
             console.error(error);
         } finally {

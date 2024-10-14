@@ -3,6 +3,7 @@ import cors from "cors";
 
 import userRoutes from "./routes/user-routes.js";
 import authRoutes from "./routes/auth-routes.js";
+import emailRoutes from "./routes/email-routes.js";
 
 const app = express();
 

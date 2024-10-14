@@ -26,6 +26,10 @@ const UserModelSchema = new Schema({
     required: true,
     default: false,
   },
+  isVerified: {
+    type: Boolean,
+    default: false,
+  }
 });
 
 export default mongoose.model("UserModel", UserModelSchema);

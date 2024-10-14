@@ -16,7 +16,7 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form"
-import { AlertCircle, Info, LoaderCircle } from "lucide-react"
+import { AlertCircle, Info, LoaderCircle, CheckCircle } from "lucide-react"
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
@@ -40,6 +40,8 @@ export default function Signup() {
     const router = useRouter()
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -65,6 +67,40 @@ export default function Signup() {
         }
     }, [watchConfirm, form]);
 
+    let adminJWT: string | null = null;
+    let tokenTimestamp: number | null = null;
+    async function getAdminJWT() {
+        // Check if the token is cached and not expired
+        const tokenValidFor = 24 * 60 * 60 * 1000;
+        const currentTime = Date.now();
+      
+        if (adminJWT && tokenTimestamp && (currentTime - tokenTimestamp < tokenValidFor)) {
+            return adminJWT;
+        }
+      
+        // If no token or token expired, login as admin to get a new token
+        const loginResponse = await fetch(`${process.env.NEXT_PUBLIC_USER_API_AUTH_URL}/login`, {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "email": process.env.NEXT_PUBLIC_EMAIL_USER,
+                "password": process.env.NEXT_PUBLIC_EMAIL_PASS
+            }),
+        });
+      
+        if (!loginResponse.ok) {
+            setError("Failed to reset password. Please try again.");
+            throw new Error(`Failed to fetch admin JWT token. Status: ${loginResponse.status}, Message: ${loginResponse.statusText}`);
+        }
+      
+        const loginData = await loginResponse.json();
+        adminJWT = loginData.data.accessToken;
+        tokenTimestamp = currentTime;
+        return adminJWT;
+    }
+
     async function onSubmit(values: z.infer<typeof formSchema>) {
         // Placeholder for auth to user service
         try {
@@ -74,6 +110,8 @@ export default function Signup() {
             }
 
             setIsLoading(true);
+            setError(""); // Clear any previous errors
+            setSuccessMessage(""); // Clear previous success message
 
             const { confirm, ...signUpValues } = values;
             const signUpResponse = await fetch(`${process.env.NEXT_PUBLIC_USER_API_USERS_URL}`, {
@@ -93,38 +131,60 @@ export default function Signup() {
             } else if (signUpResponse.status == 500) {
                 setError("Database or server error. Please try again.");
                 throw new Error("Database or server error: " + signUpResponse.statusText);
-            } else if (!signUpResponse.ok) {
+            } else if (signUpResponse.status == 403) {
+                setSuccessMessage("You have already registered but haven't verified your email. Please check your inbox for the verification link.");
+            }else if (!signUpResponse.ok) {
                 setError("There was an error signing up. Please try again.");
                 throw new Error("Error signing up: " + signUpResponse.statusText);
             }
 
-            // Sign up doesn't return JWT token so we need to login after signing up
-            const { username, ...loginValues } = values;
-            const loginResponse = await fetch(`${process.env.NEXT_PUBLIC_USER_API_AUTH_URL}/login`, {
-                method: "POST",
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(loginValues),
-            });
 
-            if (loginResponse.status == 400) {
-                setError("Missing email or password.");
-                throw new Error("Missing email or password: " + loginResponse.statusText);
-            } else if (loginResponse.status == 401) {
-                setError("Incorrect email or password.");
-                throw new Error("Incorrect email or password: " + loginResponse.statusText);
-            } else if (loginResponse.status == 500) {
-                setError("Database or server error. Please try again.");
-                throw new Error("Database or server error: " + loginResponse.statusText);
-            } else if (!loginResponse.ok) {
-                setError("There was an error logging in. Please try again.");
-                throw new Error("Error logging in: " + loginResponse.statusText);
+            const responseData = await signUpResponse.json();
+            const id = responseData.data.id;
+
+            // Send verification email
+            const emailResponse = await fetch(`${process.env.NEXT_PUBLIC_USER_API_EMAIL_URL}/send-verification-email`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    email: values.email,
+                    title: 'Confirm Your Email Address for PeerPrep',
+                    body: `
+                    <!DOCTYPE html>
+                    <html>
+                    <body>
+                        <p>Hi <strong>${values.username}</strong>,</p>
+                        <p>Thank you for signing up for <strong>PeerPrep</strong>! Before you can start using your account, we need to verify your email address.</p>
+                        <p>Please confirm your email by clicking the button below:</p>
+                        <a href="${process.env.NEXT_PUBLIC_FRONTEND_URL}/EmailVerification?id=${encodeURIComponent(id)}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-align: center; text-decoration: none; display: inline-block; border-radius: 5px;">Verify Email</a>
+                        <p>If the button doesn't work, copy and paste this URL into your browser:</p>
+                        <p><a href="${process.env.NEXT_PUBLIC_FRONTEND_URL}/EmailVerification?token=${encodeURIComponent(id)}">${process.env.NEXT_PUBLIC_FRONTEND_URL}/EmailVerification?token=${encodeURIComponent(id)}</a></p>
+                        <p>This link will expire in [time, e.g., 24 hours].</p>
+                        <p>If you didn't sign up for this account, you can safely ignore this email.</p>
+                        <p>Best regards,<br>The PeerPrep Team</p>
+                    </body>
+                    </html>` 
+                }),
+            });
+            console.log("email response: ", emailResponse);
+            const adminJWT = await getAdminJWT();
+            if (!emailResponse.ok) {
+                console.log(emailResponse)
+                setError("There was an error sending the verification email. Please try again.");
+                await fetch(`${process.env.NEXT_PUBLIC_USER_API_USERS_URL}/${id}`, {
+                    method: "DELETE",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${adminJWT}`,
+                        'userId' : id,
+                    }
+                });
+                throw new Error(`Failed to send verification email`);
             }
 
-            const responseData = await loginResponse.json();
-            console.log(responseData.data["accessToken"]);
-            router.push("/question-repo");
+            setSuccessMessage("Thank you for signing up! A verification link has been sent to your email. Please check your inbox to verify your account.");
         } catch (error) {
             console.error(error);
         } finally {
@@ -147,6 +207,15 @@ export default function Signup() {
                     </p>
                 </div>
                 <div className="flex flex-col gap-4 w-full laptop:w-[350px] px-10 laptop:px-0 text-black">
+                    {successMessage && (
+                        <Alert className="bg-green-100 text-green-800 border-green-300">
+                            <CheckCircle className="h-4 w-4" />
+                            <AlertTitle className="font-semibold">Success</AlertTitle>
+                            <AlertDescription>
+                                {successMessage}
+                            </AlertDescription>
+                        </Alert>
+                    )}
                     {error && (
                         <Alert variant="destructive">
                             <AlertCircle className="h-4 w-4" />

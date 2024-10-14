@@ -18,6 +18,14 @@ export async function createUser(req, res) {
     if (username && email && password) {
       const existingUser = await _findUserByUsernameOrEmail(username, email);
       if (existingUser) {
+        // Check if the user exists but is not verified
+        if (!existingUser.isVerified && username == existingUser.username && email == existingUser.email) {
+          // Return a specific message indicating the user is not verified
+          return res.status(403).json({ 
+            message: "This user has already registered but has not yet verified their email. Please check your inbox for the verification link." 
+          });
+        }
+        // Return conflict error if the user is already verified
         return res.status(409).json({ message: "username or email already exists" });
       }
 
@@ -69,7 +77,7 @@ export async function getAllUsers(req, res) {
 
 export async function updateUser(req, res) {
   try {
-    const { username, email, password } = req.body;
+    const { username, email, password, isVerified = false } = req.body;
     if (username || email || password) {
       const userId = req.params.id;
       if (!isValidObjectId(userId)) {
@@ -95,7 +103,7 @@ export async function updateUser(req, res) {
         const salt = bcrypt.genSaltSync(10);
         hashedPassword = bcrypt.hashSync(password, salt);
       }
-      const updatedUser = await _updateUserById(userId, username, email, hashedPassword);
+      const updatedUser = await _updateUserById(userId, username, email, hashedPassword, isVerified);
       return res.status(200).json({
         message: `Updated data for user ${userId}`,
         data: formatUserResponse(updatedUser),
