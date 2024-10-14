@@ -106,7 +106,7 @@ export default function Login() {
                                     <FormItem>
                                         <FormLabel>Email</FormLabel>
                                         <FormControl>
-                                            <Input {...field} />
+                                            <Input type="email" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -138,6 +138,15 @@ export default function Login() {
                             </Button>
                         </form>
                     </Form>
+                    <div className="px-8 text-center text-sm">
+                        Forgotten password?
+                        <Link
+                            href="/forgot-password"
+                            className="font-semibold hover:text-brand-700 transition-colors underline underline-offset-2"
+                        >
+                            Reset it
+                        </Link>
+                    </div>
                     <div className="px-8 text-center text-sm">
                         Don&apos;t have an account?{" "}
                         <Link
