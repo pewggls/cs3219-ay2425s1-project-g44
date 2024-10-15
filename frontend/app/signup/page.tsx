@@ -135,7 +135,7 @@ export default function Signup() {
     return (
         <div className="min-h-screen w-screen laptop:flex">
             <div className="hidden min-h-screen bg-brand-50 laptop:w-screen laptop:flex laptop:items-center laptop:justify-center">
-                <span className="text-4xl font-bold font-branding tracking-tight text-brand-700">PeerPrep</span>
+                <span className="text-4xl font-bold font-brand tracking-tight text-brand-700">PeerPrep</span>
             </div>
             <div className="min-h-screen laptop:w-screen text-black font-sans flex flex-col items-center justify-center gap-6 mx-auto w-[350px]">
                 <div className="flex flex-col gap-2 text-center">

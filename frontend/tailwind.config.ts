@@ -87,7 +87,7 @@ const config: Config = {
 				sm: 'calc(var(--radius) - 4px)'
 			},
 			fontFamily: {
-				branding: ['var(--font-branding)'],
+				brand: ['var(--font-brand)'],
 				sans: ['var(--font-matter)'],
 				serif: ['var(--font-reckless-neue)'],
 				inter: ['var(--font-inter)']

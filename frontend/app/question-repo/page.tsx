@@ -6,7 +6,8 @@ import { DataTable } from "./data-table"
 import { Badge, BadgeProps } from "@/components/ui/badge";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { User, LogOut } from "lucide-react";
 
 const complexityList: Array<{
     value: string;
@@ -82,31 +83,42 @@ export default function QuestionRepo() {
                 <div className="flex items-center gap-2">
                     <Link
                         href="/"
-                        className="text-2xl font-bold font-branding tracking-tight text-brand-700"
+                        className="text-2xl font-bold font-brand tracking-tight text-brand-700"
                         prefetch={false}
                     >
                         PeerPrep
                     </Link>
                     {process.env.NODE_ENV == "development" && (
-                        <Badge variant="dev" className="ml-2 font-branding">
+                        <Badge variant="dev" className="ml-2 font-brand">
                             DEV
                         </Badge>
                     )}
                 </div>
                 <div className="hidden desktop:flex items-center gap-4">
-                    <nav className="flex items-center gap-10 font-branding">
-                        <Link href="/questions" className="text-lg font-semibold uppercase text-gray-700/50 hover:text-gray-700 transition duration-150" prefetch={false}>
+                    <nav className="flex items-center gap-10 font-brand">
+                        <Link href="/questions" className="text-lg font-semibold uppercase text-gray-700/50 hover:text-gray-700 transition duration-100" prefetch={false}>
                             Questions
                         </Link>
                         <Link href="/question-repo" className="text-lg font-semibold uppercase text-gray-700 drop-shadow-md" prefetch={false}>
                             Repository
                         </Link>
-                        <Button variant="ghost" size="icon" className="rounded-full">
-                            <Avatar>
-                                <AvatarImage src="/placeholder-user.jpg" alt="CR" />
-                                <AvatarFallback className="font-branding">CR</AvatarFallback>
-                            </Avatar>
-                        </Button>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="rounded-full text-gray-400 transition duration-100 hover:text-gray-400 hover:bg-white hover:border-2"
+                                >
+                                    <User className="" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="font-sans">
+                                <DropdownMenuLabel>Username</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem asChild><Link href="/profile" className="cursor-pointer"><User className="mr-2 h-4 w-4" />Profile</Link></DropdownMenuItem>
+                                <DropdownMenuItem className="cursor-pointer"><LogOut className="mr-2 h-4 w-4" />Log out</DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </nav>
                 </div>
             </header>
