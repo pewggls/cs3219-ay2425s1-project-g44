@@ -14,28 +14,45 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form"
-import { useRouter } from "next/navigation"
-import { useState } from "react";
-import { AlertCircle, LoaderCircle } from "lucide-react";
+import { useEffect, useState } from "react";
+import { AlertCircle, ChevronLeft, LoaderCircle, TriangleAlert } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const formSchema = z.object({
     email: z.string().min(1, "Email is required").email({ message: "Invalid email address" }),
-    password: z.string().min(8, "Password requires at least 8 characters"), // Password has more criterias but we only let user know about length
 })
 
-export default function Login() {
-    const router = useRouter()
+export default function ForgotPassword() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState(false);
+    const [countdown, setCountdown] = useState(60);
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             email: "",
-            password: "",
         },
     });
+
+    useEffect(() => {
+        let timer: NodeJS.Timeout;
+        if (success && countdown > 0) {
+            timer = setInterval(() => {
+                setCountdown((prevCount) => prevCount - 1);
+            }, 1000);
+        }
+        return () => {
+            if (timer) clearInterval(timer);
+        };
+    }, [success, countdown]);
+
+    useEffect(() => {
+        if (countdown === 0) {
+            setSuccess(false);
+            setCountdown(60);
+        }
+    }, [countdown]);
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         // Placeholder for auth to user service
@@ -47,7 +64,7 @@ export default function Login() {
 
             setIsLoading(true);
 
-            const response = await fetch(`${process.env.NEXT_PUBLIC_USER_API_AUTH_URL}/login`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_USER_API_AUTH_URL}/forgot`, {
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json',
@@ -56,22 +73,19 @@ export default function Login() {
             });
 
             if (response.status == 400) {
-                setError("Missing email or password.");
-                throw new Error("Missing email or password: " + response.statusText);
-            } else if (response.status == 401) {
-                setError("Incorrect email or password.");
-                throw new Error("Incorrect email or password: " + response.statusText);
+                setError("Missing email.");
+                throw new Error("Missing email: " + response.statusText);
             } else if (response.status == 500) {
                 setError("Database or server error. Please try again.");
                 throw new Error("Database or server error: " + response.statusText);
             } else if (!response.ok) {
-                setError("There was an error logging in. Please try again.");
-                throw new Error("Error logging in: " + response.statusText);
+                setError("There was an error resetting your password. Please try again.");
+                throw new Error("Error sending reset link: " + response.statusText);
             }
 
             const responseData = await response.json();
-            console.log(responseData.data["accessToken"]);
-            router.push("/question-repo");
+            setSuccess(true);
+            setCountdown(60);
         } catch (error) {
             console.error(error);
         } finally {
@@ -80,19 +94,34 @@ export default function Login() {
     }
 
     return (
-        <div className="flex min-h-screen w-screen -mt-20 px-10 items-center justify-center bg-white font-sans">
-            <div className="mx-auto flex flex-col justify-center gap-6 w-[350px]">
-                <div className="flex flex-col gap-2 text-left pb-1">
+        <div className="flex flex-col min-h-screen w-screen px-10 items-start justify-center bg-white font-sans">
+            <div className="-mt-80 mx-auto flex flex-col justify-center gap-6 w-[350px]">
+                <div className="pb-10">
+                    <Button asChild variant="ghost" size="sm" className="pl-0 py-1 pr-2 -ml-1"><Link href="/" className="text-muted-foreground"><ChevronLeft className="h-5 w-5" />Back to Login</Link></Button>
+                </div>
+                <div className="flex flex-col gap-2 text-left">
                     <span className="font-serif font-light text-4xl text-primary tracking-tight">
-                        Sign in
+                        Forgot your password?
                     </span>
+                    <p className="text-sm text-muted-foreground">
+                        Enter your email address and we will send you a link to reset your password.
+                    </p>
                 </div>
                 {error && (
                     <Alert variant="destructive">
-                        <AlertCircle className="h-4 w-4" />
+                        <TriangleAlert className="h-4 w-4" />
                         <AlertTitle className="font-semibold">Error</AlertTitle>
                         <AlertDescription>
                             {error}
+                        </AlertDescription>
+                    </Alert>
+                )}
+                {success && (
+                    <Alert className="text-primary">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertTitle className="font-semibold">Check your email</AlertTitle>
+                        <AlertDescription>
+                            A link to reset your password has been sent to your email address.
                         </AlertDescription>
                     </Alert>
                 )}
@@ -112,48 +141,21 @@ export default function Login() {
                                     </FormItem>
                                 )}
                             />
-                            <FormField
-                                control={form.control}
-                                name="password"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>
-                                            <div className="flex justify-between">
-                                                <span>Password</span>
-                                                <Link href="/forgot-password" className="underline underline-offset-2">
-                                                    Forgot password?
-                                                </Link>
-                                            </div>
-                                        </FormLabel>
-                                        <FormControl>
-                                            <Input type="password" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
                             <Button 
                                 type="submit" 
                                 className="btn btn-primary w-full mt-2 disabled:opacity-80"
-                                disabled={isLoading}
+                                disabled={isLoading || (success && countdown > 0)}
                             >
                                 {isLoading ? (
                                     <LoaderCircle className="animate-spin" />
+                                ) : success && countdown > 0 ? (
+                                    `Try again in ${countdown}s`
                                 ) : (
-                                    "Sign in"
+                                    "Send reset link"
                                 )}
                             </Button>
                         </form>
                     </Form>
-                    <div className="px-8 text-center text-sm">
-                        Don&apos;t have an account?{" "}
-                        <Link
-                            href="/signup"
-                            className="font-semibold hover:text-brand-700 transition-colors underline underline-offset-2"
-                        >
-                            Sign up
-                        </Link>
-                    </div>
                 </div>
             </div>
         </div>

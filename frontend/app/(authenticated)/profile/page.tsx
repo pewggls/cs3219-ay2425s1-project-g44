@@ -28,8 +28,8 @@ export default function Home() {
     };
 
     return (
-        <main className="flex items-center justify-center min-h-screen p-2 pt-16 font-sans text-black">
-            <Card className="w-full max-w-xl rounded-2xl">
+        <main className="flex items-center justify-center min-h-screen p-4 font-sans text-black">
+            <Card className="-mt-80 w-full max-w-xl rounded-2xl">
                 <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle className="font-serif font-normal tracking-tight text-3xl">Profile</CardTitle>
                     {isEditing ? (
@@ -42,7 +42,7 @@ export default function Home() {
                             </Button>
                         </div>
                     ) : (
-                        <Button variant="default" size="icon" onClick={handleEdit} className="border rounded-xl rounded-r-xl hover:hover:bg-primary/85">
+                        <Button variant="ghost" size="icon" onClick={handleEdit} className="bg-primary text-primary-foreground border-none rounded-xl hover:bg-primary/85 hover:text-primary-foreground">
                             <Pencil className="h-4 w-4" />
                         </Button>
                     )}
@@ -79,13 +79,17 @@ export default function Home() {
                             />
                         </div>
                         <div className="flex justify-between">
-                            <div>
+                            <div className="text-left">
                                 <Label>Questions Attempted</Label>
-                                <p className="text-2xl font-bold">42</p>
+                                <div className="flex items-end gap-1.5 leading-7 font-mono">
+                                    <span className="text-2xl font-bold">11</span>
+                                    <span>/</span>
+                                    <span>20</span>
+                                </div>
                             </div>
-                            <div>
-                                <Label>Questions Completed</Label>
-                                <p className="text-2xl font-bold">38</p>
+                            <div className="text-right">
+                                <Label>Total Attempts</Label>
+                                <p className="text-2xl font-bold font-mono">14</p>
                             </div>
                         </div>
                     </div>

@@ -11,14 +11,14 @@ import { useForm } from "react-hook-form"
 import {
     Form,
     FormControl,
+    FormDescription,
     FormField,
     FormItem,
     FormLabel,
     FormMessage,
 } from "@/components/ui/form"
-import { AlertCircle, Info, LoaderCircle } from "lucide-react"
+import { AlertCircle, LoaderCircle } from "lucide-react"
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 const formSchema = z.object({
     username: z.string().min(4, "Username requires at least 4 characters"),
@@ -134,10 +134,10 @@ export default function Signup() {
 
     return (
         <div className="min-h-screen w-screen laptop:flex">
-            <div className="hidden min-h-screen bg-brand-50 laptop:w-screen laptop:flex laptop:items-center laptop:justify-center">
+            <div className="hidden min-h-screen bg-brand-50 -mt-16 laptop:w-screen laptop:flex laptop:items-center laptop:justify-center">
                 <span className="text-4xl font-bold font-brand tracking-tight text-brand-700">PeerPrep</span>
             </div>
-            <div className="min-h-screen laptop:w-screen text-black font-sans flex flex-col items-center justify-center gap-6 mx-auto w-[350px]">
+            <div className="min-h-screen laptop:w-screen text-black font-sans flex flex-col items-center justify-center gap-6 mx-auto -mt-24 w-[350px]">
                 <div className="flex flex-col gap-2 text-center">
                     <span className="font-serif font-light text-4xl text-primary tracking-tight">
                         Create an account
@@ -163,23 +163,12 @@ export default function Signup() {
                                 name="username"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>
-                                            <div className="flex items-center gap-2">
-                                                Username
-                                                <TooltipProvider>
-                                                    <Tooltip>
-                                                        <TooltipTrigger type="button"><Info className="h-4 w-4 text-muted-foreground" /></TooltipTrigger>
-                                                        <TooltipContent>
-                                                            <p className="font-normal text-sm">Minimum 4 characters</p>
-                                                        </TooltipContent>
-                                                    </Tooltip>
-                                                </TooltipProvider>
-                                            </div>
-                                        </FormLabel>
+                                        <FormLabel>Username</FormLabel>
                                         <FormControl>
                                             <Input {...field} />
                                         </FormControl>
                                         <FormMessage />
+                                        <FormDescription>Minimum 4 characters</FormDescription>
                                     </FormItem>
                                 )}
                             />
@@ -201,30 +190,21 @@ export default function Signup() {
                                 name="password"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>
-                                            <div className="flex items-center gap-2">
-                                                Password
-                                                <TooltipProvider>
-                                                    <Tooltip>
-                                                        <TooltipTrigger type="button"><Info className="h-4 w-4 text-muted-foreground" /></TooltipTrigger>
-                                                        <TooltipContent>
-                                                            <span>Password must have at least:</span>
-                                                            <ul className="list-disc ml-3">
-                                                                <li>8 characters</li>
-                                                                <li>1 uppercase character</li>
-                                                                <li>1 lowercase character</li>
-                                                                <li>1 number</li>
-                                                                <li>1 special character</li>
-                                                            </ul>
-                                                        </TooltipContent>
-                                                    </Tooltip>
-                                                </TooltipProvider>
-                                            </div>
-                                        </FormLabel>
+                                        <FormLabel>Password</FormLabel>
                                         <FormControl>
                                             <Input type="password" {...field} />
                                         </FormControl>
                                         <FormMessage />
+                                        <FormDescription>
+                                            <span>Must have at least:</span>
+                                            <ul className="list-disc ml-3">
+                                                <li>8 characters</li>
+                                                <li>1 uppercase character</li>
+                                                <li>1 lowercase character</li>
+                                                <li>1 number</li>
+                                                <li>1 special character</li>
+                                            </ul>
+                                        </FormDescription>
                                     </FormItem>
                                 )}
                             />
