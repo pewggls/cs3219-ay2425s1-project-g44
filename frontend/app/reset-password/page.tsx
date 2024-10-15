@@ -15,7 +15,6 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form"
-import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react";
 import { AlertCircle, LoaderCircle, TriangleAlert } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -124,7 +123,7 @@ export default function ResetPassword() {
                         <AlertCircle className="h-4 w-4" />
                         <AlertTitle className="font-semibold">Password has been reset</AlertTitle>
                         <AlertDescription>
-                            <Link href="/" className="underline underline-offset-2">Login here</Link> with your new password.
+                            <Link href="/login" className="underline underline-offset-2">Login here</Link> with your new password.
                         </AlertDescription>
                     </Alert>
                 )}

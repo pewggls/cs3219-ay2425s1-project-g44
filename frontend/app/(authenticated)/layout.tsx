@@ -68,7 +68,7 @@ export default function AuthenticatedLayout({
                                 <DropdownMenuLabel>Username</DropdownMenuLabel>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem asChild><Link href="/profile" className="cursor-pointer"><User className="mr-2 h-4 w-4" />Profile</Link></DropdownMenuItem>
-                                <DropdownMenuItem className="cursor-pointer"><LogOut className="mr-2 h-4 w-4" />Log out</DropdownMenuItem>
+                                <DropdownMenuItem asChild><Link href="/" className="cursor-pointer"><LogOut className="mr-2 h-4 w-4" />Log out</Link></DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </nav>
