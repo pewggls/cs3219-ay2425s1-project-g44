@@ -29,7 +29,15 @@ const UserModelSchema = new Schema({
   isVerified: {
     type: Boolean,
     default: false,
-  }
+  },
+  otp: {
+    type: String,
+    required: false,
+  },
+  otpExpiresAt: {
+    type: Date,
+    required: false,
+  },
 });
 
 export default mongoose.model("UserModel", UserModelSchema);

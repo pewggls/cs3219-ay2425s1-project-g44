@@ -61,6 +61,9 @@ export default function Login() {
             } else if (response.status == 401) {
                 setError("Incorrect email or password.");
                 throw new Error("Incorrect email or password: " + response.statusText);
+            } else if (response.status == 403) {
+                setError("Email not verified. Please verify your email before logging in.");
+                throw new Error("Email not verified: " + response.statusText);
             } else if (response.status == 500) {
                 setError("Database or server error. Please try again.");
                 throw new Error("Database or server error: " + response.statusText);
@@ -139,9 +142,9 @@ export default function Login() {
                         </form>
                     </Form>
                     <div className="px-8 text-center text-sm">
-                        Forgotten password?
+                        Forgot your password?{" "}
                         <Link
-                            href="/forgot-password"
+                            href="/auth/forgot-password"
                             className="font-semibold hover:text-brand-700 transition-colors underline underline-offset-2"
                         >
                             Reset it
@@ -150,7 +153,7 @@ export default function Login() {
                     <div className="px-8 text-center text-sm">
                         Don&apos;t have an account?{" "}
                         <Link
-                            href="/signup"
+                            href="/auth/sign-up"
                             className="font-semibold hover:text-brand-700 transition-colors underline underline-offset-2"
                         >
                             Sign up

@@ -65,6 +65,28 @@
     | 409 (Conflict)              | Duplicate username or email encountered               |
     | 500 (Internal Server Error) | Database or server error                              |
 
+### Check User Exist by Email or Id
+
+- This endpoint allows checking if a user exists in the database based on their email address.
+
+- HTTP Method: `GET`
+
+- Endpoint: http://localhost:3001/users/check?email={email}
+
+- Parameters
+    - Required: at least one of `email`, `id` path parameter
+    - Example: `http://localhost:3001/users?email=sample@example.com`
+    
+- Responses:
+
+    | Response Code               | Explanation                                              |
+    |-----------------------------|----------------------------------------------------------|
+    | 200 (OK)                    | User found                                               |
+    | 400 (Bad Request)           | Bad request, parameter is missing.                       |
+    | 404 (Not Found)             | User with the specified email not found                  |
+    | 500 (Internal Server Error) | Database or server error                                 |
+
+
 ### Get User
 
 - This endpoint allows retrieval of a single user's data from the database using the user's ID.
@@ -135,13 +157,14 @@
   - Required: `userId` path parameter
 
 - Body
-  - At least one of the following fields is required: `username` (string), `email` (string), `password` (string)
+  - At least one of the following fields is required: `username` (string), `email` (string), `password` (string), `isVerified` (boolean)
 
     ```json
     {
       "username": "SampleUserName",
       "email": "sample@gmail.com",
-      "password": "SecurePassword"
+      "password": "SecurePassword",
+      "isVerified": true,
     }
     ```
 
@@ -273,19 +296,19 @@
     | 401 (Unauthorized)          | Missing/invalid/expired JWT                        |
     | 500 (Internal Server Error) | Database or server error                           |
 
-### Send Email Verification
+### Send Email
 
-- This endpoint allows sending a verification email to the user after they sign up. The email contains a unique verification link.
+- This endpoint allows sending an email to the user.
 - HTTP Method: `POST`
 - Endpoint: http://localhost:3001/email//send-verification-email
 - Body
-  - Required: `email` (string), `title` (string), `body` (string)
+  - Required: `email` (string), `title` (string), `html` (string)
 
     ```json
     {
       "email": "sample@gmail.com",
-      "password": "Confirm Your Email for PeerPrep",
-      "body": "Click the link below to verify your email: <verification_link>"
+      "title": "Confirm Your Email for PeerPrep",
+      "html": "<p>Click the link below to verify your email: </p>"
     }
     ```
 
@@ -294,21 +317,54 @@
     | Response Code               | Explanation                                        |
     |-----------------------------|----------------------------------------------------|
     | 200 (OK)                    | Verification email sent successfully.              |
-    | 400 (Bad Request)	          | Missing or invalid fields (email, title, body).    |
+    | 400 (Bad Request)	          | Missing or invalid fields (email, title, html).    |
     | 500 (Internal Server Error) | Database or server error                           |
 
-### Verify Email
+### Send OTP Email
 
-- This endpoint verifies a user's email when they click the verification link provided in the email.
-- HTTP Method: `GET`
-- Endpoint: http://localhost:3001/email/verify-email
-- Headers
-  - Required: `Authorization: Bearer <JWT_ACCESS_TOKEN>`
+- This endpoint allows sending an email containing OTP to the user after they sign up.
+- HTTP Method: `POST`
+- Endpoint: http://localhost:3001/email//send-otp-email
+- Body
+  - Required: `email` (string), `username` (string)
+
+    ```json
+    {
+      "email": "sample@gmail.com",
+      "password": "Confirm Your Email for PeerPrep",
+      "html": "<p>Click the link below to verify your email: </p>"
+    }
+    ```
 
 - Responses:
 
     | Response Code               | Explanation                                        |
     |-----------------------------|----------------------------------------------------|
-    | 200 (OK)                    | Email verified successfully.                       |
-    | 401 (Unauthorized)          | Missing/invalid id                                 |
+    | 200 (OK)                    | Verification email sent successfully.              |
+    | 400 (Bad Request)	          | Missing or invalid fields (email, title, html).    |
+    | 404 (Not Found)             | User with specified email not found                |
+    | 500 (Internal Server Error) | Database or server error                           |
+
+### Send Verification Link Email
+
+- This endpoint sends a verification email containing a verification link to the user after they sign up.
+- HTTP Method: `POST`
+- Endpoint: http://localhost:3001/email//send-verification-email
+- Body
+  - Required: `email` (string), `username` (string), `verificationLink` (string)
+
+    ```json
+    {
+      "email": "sample@gmail.com",
+      "username": "us",
+      "verificationLink": "http://localhost:3001/"
+    }
+    ```
+
+- Responses:
+
+    | Response Code               | Explanation                                        |
+    |-----------------------------|----------------------------------------------------|
+    | 200 (OK)                    | Verification email sent successfully.              |
+    | 400 (Bad Request)	          | Missing or invalid fields (email, title, html).    |
     | 500 (Internal Server Error) | Database or server error                           |
