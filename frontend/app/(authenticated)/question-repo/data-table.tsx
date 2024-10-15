@@ -82,6 +82,11 @@ export function DataTable<TData, TValue>({
       columnFilters,
       rowSelection
     },
+    initialState: {
+      pagination: {
+        pageSize: 5,
+      },
+    },
     meta: {
       removeSelectedRows: (selectedRows: number[]) => {
         const filterFunc = (old: TData[]) => {
@@ -99,12 +104,12 @@ export function DataTable<TData, TValue>({
   })
 
   return (
-    <div className="font-sans text-black">
+    <div className="w-full font-sans text-black flex flex-col h-fit">
       <div className="pb-4">
         <DataTableToolbar table={table} data={data} setData={setData} />
       </div>
 
-      <div className="rounded-md border">
+      <div className="rounded-md border flex-grow overflow-hidden flex flex-col">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -124,7 +129,7 @@ export function DataTable<TData, TValue>({
               </TableRow>
             ))}
           </TableHeader>
-          <TableBody>
+          <TableBody className="overflow-auto">
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow

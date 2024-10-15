@@ -96,6 +96,10 @@ const config: Config = {
 				'tablet': '640px',
 				'laptop': '1024px',
 				'desktop': '1280px',
+			},
+			dropShadow: {
+				'question-card': '0px 2px 4px rgba(0, 0, 0, 0.15)',
+				'question-details': '0px 8px 8px rgba(0, 0, 0, 0.15)'
 			}
 		},
 	},
