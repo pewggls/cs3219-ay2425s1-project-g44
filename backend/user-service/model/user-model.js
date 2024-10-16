@@ -38,6 +38,14 @@ const UserModelSchema = new Schema({
     type: Date,
     required: false,
   },
+  resetToken: { // password reset token
+     type: String,
+     required: false,
+  }, 
+  resetTokenExpiresAt: {
+     type: Date,
+     required: false,
+  }
 });
 
 export default mongoose.model("UserModel", UserModelSchema);

@@ -349,7 +349,7 @@
 
 - This endpoint sends a verification email containing a verification link to the user after they sign up.
 - HTTP Method: `POST`
-- Endpoint: http://localhost:3001/email//send-verification-email
+- Endpoint: http://localhost:3001/email/send-verification-email
 - Body
   - Required: `email` (string), `username` (string), `verificationLink` (string)
 
@@ -368,3 +368,54 @@
     | 200 (OK)                    | Verification email sent successfully.              |
     | 400 (Bad Request)	          | Missing or invalid fields (email, title, html).    |
     | 500 (Internal Server Error) | Database or server error                           |
+
+### Verify OTP
+
+- This endpoint verifies the OTP (One-Time Password) sent to the user and returns a reset token upon success.
+- HTTP Method: `POST`
+- Endpoint: http://localhost:3001/auth/verif-otp
+- Body
+  - Required: `email` (string), `otp` (string)
+
+    ```json
+    {
+      "email": "user@example.com",
+      "otp": "123456"
+    }
+    ```
+
+- Responses:
+
+    | Response Code               | Explanation                                                     |
+    |-----------------------------|-----------------------------------------------------------------|
+    | 200 (OK)                    | OTP verified successfully. Returns a reset token                |
+    | 400	                        | Both email and otp are required fields.                         |
+    | 403	                        | No OTP request found for this user, or OTP expired or incorrect.|
+    | 404                         |	User with the provided email not found.                         |
+    | 500	                        | Database or server error                                        |
+
+### Reset Password
+
+- This endpoint resets the user’s password if the provided reset token is valid.
+- HTTP Method: `POST`
+- Endpoint: http://localhost:3001/auth/verif-otp
+- Body
+  - Required: `email` (string), `token` (string), `newPassword` (string)
+
+    ```json
+    {
+      "email": "user@example.com",
+      "token": "reset_token_value",
+      "newPassword": "newpassword123"
+    }
+    ```
+
+- Responses:
+
+    | Response Code               | Explanation                                                               |
+    |-----------------------------|---------------------------------------------------------------------------|
+    | 200 (OK)                    | OTP verified successfully. Returns a reset token                          |
+    | 400	                        | Missing required fields, token mismatch, expired token, or password reuse.|
+    | 403	                        | No OTP request found for this user, or OTP expired or incorrect.          |
+    | 404                         |	User not found.                                                           |
+    | 500	                        | Database or server error                                                  |

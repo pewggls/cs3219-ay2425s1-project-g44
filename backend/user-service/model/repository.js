@@ -40,7 +40,13 @@ export async function findAllUsers() {
   return UserModel.find();
 }
 
-export async function updateUserById(userId, username, email, password, isVerified) {
+export async function updateUserById(userId, username, email, password, isVerified, otp, otpExpiresAt, resetToken, resetTokenExpiresAt) {
+  console.log(userId)
+  console.log("db functionality, otp: ", otp)
+  console.log("db functionality, otpExpiresAt: ", otpExpiresAt)
+  console.log("db functionality, resetToken: ", resetToken)
+  console.log("db functionality, resetTokenExpiresAt: ", resetTokenExpiresAt)
+
   return UserModel.findByIdAndUpdate(
     userId,
     {
@@ -49,6 +55,10 @@ export async function updateUserById(userId, username, email, password, isVerifi
         email,
         password,
         isVerified,
+        otp,
+        otpExpiresAt,
+        resetToken,
+        resetTokenExpiresAt,
       },
     },
     { new: true },  // return the updated user

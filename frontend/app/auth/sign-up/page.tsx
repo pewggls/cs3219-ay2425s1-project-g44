@@ -109,6 +109,7 @@ export default function Signup() {
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         // Placeholder for auth to user service
+        let isErrorSet = false;
         try {
             await form.trigger();
             if (!form.formState.isValid) {
@@ -132,6 +133,7 @@ export default function Signup() {
 
             if (signUpResponse.status == 400) {
                 setError("Missing username, email or password.");
+                isErrorSet = true;
                 throw new Error("Missing username, email or password: " + signUpResponse.statusText);
             } else if (signUpResponse.status == 403) {
                 const responseData = await signUpResponse.json();
@@ -145,9 +147,11 @@ export default function Signup() {
                 return;
             } else if (signUpResponse.status == 409) {
                 setError("A user with this username or email already exists.");
+                isErrorSet = true;
                 throw new Error("Duplicate username or email: " + signUpResponse.statusText);
             } else if (signUpResponse.status == 500) {
                 setError("Database or server error. Please try again.");
+                isErrorSet = true;
                 throw new Error("Database or server error: " + signUpResponse.statusText);
             } else if (!signUpResponse.ok) {
                 setError("There was an error signing up. Please try again.");
@@ -183,6 +187,7 @@ export default function Signup() {
             if (!emailResponse.ok) {
                 console.log("In sign up page: error heppen when backend try to send email", emailResponse)
                 setError("There was an error sending the verification email. Please try again.");
+                isErrorSet = true;
                 console.log("In sign up page: call delete user api");
                 await fetch(`${process.env.NEXT_PUBLIC_USER_API_USERS_URL}/${encodeURIComponent(id)}`, {
                     method: "DELETE",
@@ -197,11 +202,11 @@ export default function Signup() {
 
             setSuccessMessage("Thank you for signing up! A verification link has been sent to your email. Please check your inbox to verify your account.");
             form.reset();
-        } catch (error) {
-            if (!error) {
+        } catch (err) {
+            if (!isErrorSet) {
                 setError("An unexpected error occurred when connecting to the backend. Please try again.");
             }
-            console.error(error);
+            console.error(err);
         } finally {
             setIsLoading(false);
         }

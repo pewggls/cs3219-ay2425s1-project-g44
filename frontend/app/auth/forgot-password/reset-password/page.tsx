@@ -14,12 +14,12 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react";
 import { AlertCircle, LoaderCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-
+import { Info } from "lucide-react"
 
 const formSchema = z.object({
     password: z
@@ -37,9 +37,12 @@ const formSchema = z.object({
 
 export default function ResetPassword() {
     const router = useRouter(); 
+    const searchParams = useSearchParams();
+    const param_email = searchParams.get("email");
+    const param_token = searchParams.get("token");
+
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [successMessage, setSuccessMessage] = useState("");
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -64,7 +67,7 @@ export default function ResetPassword() {
     }, [watchConfirm, form]);
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
-        // Placeholder for auth to user service
+        let isErrorSet = false;
         try {
             await form.trigger();
             if (!form.formState.isValid) {
@@ -73,57 +76,57 @@ export default function ResetPassword() {
 
             setIsLoading(true);
             setError(""); // Clear any previous errors
-            setSuccessMessage(""); // Clear previous success message
 
-            // Fetch user data with admin privileges
-            const userResponse = await fetch(`${process.env.NEXT_PUBLIC_USER_API_USERS_URL}/check-user?email=${values.email}`, {
+            // Verify code with backend
+            console.log("In reset password page: call api to reset passwsord");
+            const verifyTokenResponse = await fetch(`${process.env.NEXT_PUBLIC_USER_API_AUTH_URL}/reset-password`, {
+                method: "POST",
                 headers: {
                     'Content-Type': 'application/json',
-                }
-            });
-
-            if (!userResponse.ok) {
-                setError("No user found with the provided email address.");
-                throw new Error("User not found in the database with the provided email during password reset.");
-            }
-
-            const responseData = await userResponse.json();
-            const username = responseData.data.username;
-            const id = responseData.data.id;
-            console.log("response: ", responseData);
-            const resetLink = `${process.env.NEXT_PUBLIC_FRONTEND_URL}/resetPassword?id=${encodeURIComponent(id)}`
-
-            // Send verification email
-            const emailResponse = await fetch(`${process.env.NEXT_PUBLIC_USER_API_EMAIL_URL}/send-verification-email`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ 
-                    email: values.email,
-                    title: 'Reset Your Password for PeerPrep',
-                    body: `
-                    <!DOCTYPE html>
-                    <html>
-                    <body>
-                        <p>Hi <strong>${username}</strong>,</p>
-                        <p>We received a request to reset your password for your <strong>PeerPrep</strong> account. To reset your password, click the button below:<p>
-                        <a href="${resetLink}" style="background-color: #FF0000; color: white; padding: 10px 20px; text-decoration: none;">Reset Password</a>
-                        <p>If the button above doesn't work, copy and paste the following link into your browser:<p>
-                        ${resetLink}
-                        <p>Best regards,<br>The PeerPrep Team</p>
-                    </body>
-                    </html>` 
-                }),
+                body: JSON.stringify({
+                    email: param_email,
+                    token: param_token,
+                    newPassword: values.password
+                })
             });
-            
-            if (!emailResponse.ok) {
-                setError("There was an error sending the verification email. Please try again.");
-                throw new Error(`Failed to send verification email`);
+
+            // handle error response
+            if (verifyTokenResponse.status == 404) {
+                setError("We couldn't find an account with that email. It looks like the email is missing in the link. Please check and try again");
+                isErrorSet = true;
+                throw new Error("Missing email: " + verifyTokenResponse.statusText);
+            } else if (verifyTokenResponse.status == 400) {
+                const responseMessage = (await verifyTokenResponse.json()).message;
+                if (responseMessage.includes("expired")) {
+                    setError("The reset link has expired. Please request a new one");
+                    isErrorSet = true;
+                } else if (responseMessage.includes("not match")) {
+                    setError("The reset link is invalid. Please request a new password reset link.");
+                    isErrorSet = true;
+                } else if (responseMessage.includes("old password")) {
+                    setError("You cannot reuse your previous password. Please choose a new one.");
+                    isErrorSet = true;
+                } else {
+                    setError("It seems you haven’t requested a password reset. Please request a reset if needed.");
+                    isErrorSet = true;
+                } 
+                throw new Error("Error during verification: " + verifyTokenResponse.statusText);
+            } else if (verifyTokenResponse.status == 500) {
+                setError("Something went wrong on our end. Please try again later.");
+                isErrorSet = true;
+                throw new Error("Database or server error: " + verifyTokenResponse.statusText);
+            } else if (!verifyTokenResponse.ok) {
+                setError("There was an error happen when reset your password.");
+                isErrorSet = true;
+                throw new Error("Error resetting password: " + verifyTokenResponse.statusText);
             }
 
-            setSuccessMessage("Check your email for the reset link.");
-        } catch (error) {
+            router.push(`/auth/forgot-password/reset-password/success`);
+        } catch (err) {
+            if (!isErrorSet) {
+                setError("An unexpected error occurred when connecting to the backend. Please try again.");
+            }
             console.error(error);
         } finally {
             setIsLoading(false);
@@ -135,7 +138,7 @@ export default function ResetPassword() {
             <div className="mx-auto flex flex-col justify-center gap-6 w-[350px]">
                 <div className="flex flex-col gap-2 text-left pb-1">
                     <span className="font-serif font-light text-4xl text-primary tracking-tight">
-                        Password Reset
+                        Reset Password
                     </span>
                 </div>
                 {error && (
@@ -147,67 +150,54 @@ export default function ResetPassword() {
                         </AlertDescription>
                     </Alert>
                 )}
-                {successMessage && (
-                    <Alert>
-                        <AlertCircle className="h-4 w-4" />
-                        <AlertTitle className="font-semibold">Email Sent</AlertTitle>
-                        <AlertDescription>
-                            {successMessage} {' '}After verifying your email, proceed{' '}
-                            <Link href="/" className="text-blue-600 underline">
-                                here
-                            </Link>{' '}
-                            to log in.
-                        </AlertDescription>
-                    </Alert>
-                )}
                 <div className="flex flex-col gap-4 text-black">
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
                         <FormField
-                                control={form.control}
-                                name="password"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>
-                                            <div className="flex items-center gap-2">
-                                                Password
-                                                <TooltipProvider>
-                                                    <Tooltip>
-                                                        <TooltipTrigger type="button"><Info className="h-4 w-4 text-muted-foreground" /></TooltipTrigger>
-                                                        <TooltipContent>
-                                                            <span>Password must have at least:</span>
-                                                            <ul className="list-disc ml-3">
-                                                                <li>8 characters</li>
-                                                                <li>1 uppercase character</li>
-                                                                <li>1 lowercase character</li>
-                                                                <li>1 number</li>
-                                                                <li>1 special character</li>
-                                                            </ul>
-                                                        </TooltipContent>
-                                                    </Tooltip>
-                                                </TooltipProvider>
-                                            </div>
-                                        </FormLabel>
-                                        <FormControl>
-                                            <Input type="password" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="confirm"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Confirm password</FormLabel>
-                                        <FormControl>
-                                            <Input type="password" {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+                            control={form.control}
+                            name="password"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>
+                                        <div className="flex items-center gap-2">
+                                            Password
+                                            <TooltipProvider>
+                                                <Tooltip>
+                                                    <TooltipTrigger type="button"><Info className="h-4 w-4 text-muted-foreground" /></TooltipTrigger>
+                                                    <TooltipContent>
+                                                        <span>Password must have at least:</span>
+                                                        <ul className="list-disc ml-3">
+                                                            <li>8 characters</li>
+                                                            <li>1 uppercase character</li>
+                                                            <li>1 lowercase character</li>
+                                                            <li>1 number</li>
+                                                            <li>1 special character</li>
+                                                        </ul>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
+                                        </div>
+                                    </FormLabel>
+                                    <FormControl>
+                                        <Input type="password" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="confirm"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Confirm password</FormLabel>
+                                    <FormControl>
+                                        <Input type="password" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
                             <Button 
                                 type="submit" 
                                 className="btn btn-primary w-full mt-2 disabled:opacity-80"
@@ -216,7 +206,7 @@ export default function ResetPassword() {
                                 {isLoading ? (
                                     <LoaderCircle className="animate-spin" />
                                 ) : (
-                                    "Reset Password"
+                                    "Reset"
                                 )}
                             </Button>
                         </form>
