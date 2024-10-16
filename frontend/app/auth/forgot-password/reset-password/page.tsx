@@ -125,7 +125,7 @@ export default function ResetPassword() {
             router.push(`/auth/forgot-password/reset-password/success`);
         } catch (err) {
             if (!isErrorSet) {
-                setError("An unexpected error occurred when connecting to the backend. Please try again.");
+                setError("Something went wrong on our backend. Please retry shortly.");
             }
             console.error(error);
         } finally {

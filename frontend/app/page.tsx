@@ -38,6 +38,7 @@ export default function Login() {
     });
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
+        let isErrorSet = false;
         // Placeholder for auth to user service
         try {
             await form.trigger();
@@ -57,18 +58,23 @@ export default function Login() {
 
             if (response.status == 400) {
                 setError("Missing email or password.");
+                isErrorSet = true;
                 throw new Error("Missing email or password: " + response.statusText);
             } else if (response.status == 401) {
                 setError("Incorrect email or password.");
+                isErrorSet = true;
                 throw new Error("Incorrect email or password: " + response.statusText);
             } else if (response.status == 403) {
                 setError("Email not verified. Please verify your email before logging in.");
+                isErrorSet = true;
                 throw new Error("Email not verified: " + response.statusText);
             } else if (response.status == 500) {
                 setError("Database or server error. Please try again.");
+                isErrorSet = true;
                 throw new Error("Database or server error: " + response.statusText);
             } else if (!response.ok) {
                 setError("There was an error logging in. Please try again.");
+                isErrorSet = true;
                 throw new Error("Error logging in: " + response.statusText);
             }
 
@@ -76,6 +82,7 @@ export default function Login() {
             console.log(responseData.data["accessToken"]);
             router.push("/question-repo");
         } catch (error) {
+            
             console.error(error);
         } finally {
             setIsLoading(false);

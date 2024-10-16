@@ -204,7 +204,7 @@ export default function Signup() {
             form.reset();
         } catch (err) {
             if (!isErrorSet) {
-                setError("An unexpected error occurred when connecting to the backend. Please try again.");
+                setError("Something went wrong on our backend. Please retry shortly.");
             }
             console.error(err);
         } finally {
