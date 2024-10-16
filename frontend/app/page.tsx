@@ -79,10 +79,10 @@ export default function Login() {
             }
 
             const responseData = await response.json();
-            console.log(responseData.data["accessToken"]);
+            const { accessToken, id, username, email, isAdmin, ...other } = responseData.data;
+            localStorage.setItem('token', accessToken);
             router.push("/question-repo");
         } catch (error) {
-            
             console.error(error);
         } finally {
             setIsLoading(false);

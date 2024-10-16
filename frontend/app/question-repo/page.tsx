@@ -7,6 +7,7 @@ import { Badge, BadgeProps } from "@/components/ui/badge";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useRouter } from "next/navigation";
 
 const complexityList: Array<{
     value: string;
@@ -38,6 +39,7 @@ const categoryList: Array<{
     ];
 
 export default function QuestionRepo() {
+    const router = useRouter();
     const [questionList, setQuestionList] = useState<Question[]>([]); // Complete list of questions
     const [loading, setLoading] = useState(true);
     
@@ -76,6 +78,10 @@ export default function QuestionRepo() {
         fetchQuestions();
     }, []);
 
+    const handleProfileRedirect = () => {
+        router.push('/profile'); // Update with your actual profile page path
+    };
+
     return (
         <div className="min-h-screen p-4 bg-white">
             <header className="flex items-center justify-between p-4">
@@ -101,7 +107,7 @@ export default function QuestionRepo() {
                         <Link href="/question-repo" className="text-lg font-semibold uppercase text-gray-700 drop-shadow-md" prefetch={false}>
                             Repository
                         </Link>
-                        <Button variant="ghost" size="icon" className="rounded-full">
+                        <Button variant="ghost" size="icon" className="rounded-full" onClick={handleProfileRedirect}>
                             <Avatar>
                                 <AvatarImage src="/placeholder-user.jpg" alt="CR" />
                                 <AvatarFallback className="font-branding">CR</AvatarFallback>

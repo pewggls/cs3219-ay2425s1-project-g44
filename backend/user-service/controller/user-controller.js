@@ -76,6 +76,7 @@ export async function checkUserExistByEmailorId(req, res) {
 export async function getUser(req, res) {
   try {
     const userId = req.params.id;
+
     if (!isValidObjectId(userId)) {
       return res.status(404).json({ message: `User ${userId} not found` });
     }
