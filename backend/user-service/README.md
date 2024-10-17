@@ -351,13 +351,13 @@
 - HTTP Method: `POST`
 - Endpoint: http://localhost:3001/email/send-verification-email
 - Body
-  - Required: `email` (string), `username` (string), `verificationLink` (string)
+  - Required: `email` (string), `username` (string), `id` (string)
 
     ```json
     {
       "email": "sample@gmail.com",
       "username": "us",
-      "verificationLink": "http://localhost:3001/"
+      "id": "avid0ud9ay2189rgdbjvdak"
     }
     ```
 

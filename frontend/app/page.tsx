@@ -48,6 +48,7 @@ export default function Login() {
 
             setIsLoading(true);
 
+            console.log("In login page: call api to authenticate user")
             const response = await fetch(`${process.env.NEXT_PUBLIC_USER_API_AUTH_URL}/login`, {
                 method: "POST",
                 headers: {
@@ -83,6 +84,9 @@ export default function Login() {
             localStorage.setItem('token', accessToken);
             router.push("/question-repo");
         } catch (error) {
+            if (!isErrorSet) {
+                setError("Something went wrong on our backend. Please retry shortly.");
+            }
             console.error(error);
         } finally {
             setIsLoading(false);

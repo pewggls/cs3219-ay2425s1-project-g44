@@ -14,7 +14,7 @@ const PasswordChangeSuccess = () => {
   return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-white p-8 rounded-lg shadow-lg text-center">
         <div className="flex flex-col items-center mb-4">
-          <svg className="w-24 h-24 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 48 48" stroke="currentColor">
+        <svg className="w-24 h-24 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 48 48" stroke="currentColor">
             <circle cx="24" cy="24" r="22" stroke="currentColor" strokeWidth="3" fill="none" />
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M14 24l6 6L34 16" />
           </svg>

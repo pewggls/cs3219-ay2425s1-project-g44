@@ -22,7 +22,7 @@ export default function SuccessDialog({
   onClose,
   onResend,
 }: SuccessDialogProps) {
-    const [showTemporaryUI, setShowTemporaryUI] = useState(false);
+    const [showFeedback, setShowFeedback] = useState(false);
     // const [resendCount, setResendCount] = useState(0); // Track how many times resend is clicked
     // const [resendMessage, setResendMessage] = useState(message);
     // const maxResendAttempts = 3; // Maximum resend attempts
@@ -38,12 +38,12 @@ export default function SuccessDialog({
     //   };
     const handleResendClick = () => {
         onResend();
-        setShowTemporaryUI(true); // Show temporary UI
+        setShowFeedback(true);
 
-        // Hide the UI and close the dialog after 3 seconds (3000ms)
+        // Hide the UI and close the dialog after 3 seconds (3000ms) to avoid user multiple attempt of resend email
         setTimeout(() => {
-            setShowTemporaryUI(false); // Hide temporary UI
-            onClose(); // Close the dialog
+            setShowFeedback(false);
+            onClose();
         }, 3000); // Adjust the time as necessary
     };
 
@@ -79,13 +79,13 @@ export default function SuccessDialog({
                 )} */}
                 {
                     <p>
-                        Didn’t receive the code?{" "}
+                        Didn’t receive the code? It might be in your spam folder, or you can{" "}
                         <span className="text-blue-500 cursor-pointer" onClick={handleResendClick}>
-                            Resend
+                            Resend the link
                         </span>
                     </p>
                 }
-                {showTemporaryUI && (
+                {showFeedback && (
                     <Alert className="text-green-500">
                         <AlertCircle className="h-4 w-4" />
                         <AlertTitle className="font-semibold">Email has been resent! Please check your inbox.</AlertTitle>

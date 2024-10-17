@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import Link from 'next/link';
 
 export default function VerifyEmail() {
@@ -13,6 +12,8 @@ export default function VerifyEmail() {
   // Get the search params from the URL
   const searchParams = useSearchParams();
   const id = searchParams.get('id');
+  const type = searchParams.get('type')
+  const email = searchParams.get('email');
 
   let adminJWT: string | null = null;
   let tokenTimestamp: number | null = null;
@@ -60,7 +61,7 @@ export default function VerifyEmail() {
 
       try {
         // Check if param userId of url is valid
-        console.log("In verify user page: call check user exist api")
+        console.log("In verify user page: call api to check if user exist")
         const checkResponse = await fetch(`${process.env.NEXT_PUBLIC_USER_API_USERS_URL}/check?id=${id}`, {
           headers: {
             'Content-Type': 'application/json',
@@ -75,28 +76,46 @@ export default function VerifyEmail() {
         }
         
         // Update user verified state 
-        console.log("In verify user page: fetch admin jwt token api");
-        const adminJWT = await getAdminJWT();
-        console.log("In verify user page: call update user verify status api")
-        const updateResponse = await fetch(`${process.env.NEXT_PUBLIC_USER_API_USERS_URL}/${encodeURIComponent(id)}`, {
-          method: "PATCH",
-          headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${adminJWT}`,
-          },
-          body: JSON.stringify({
-            isVerified: true,
-          })
-        });
-        console.log("update response: ", updateResponse)
-        if (!updateResponse.ok) {
-          const errorMessage = (await updateResponse.json()).message;
-          setMessage('Unexpected error occured. Please check the URL or request a new one.');
-          setStatus('error');
-          throw Error("Failed to update user verified state: " + errorMessage);
+        if (type == 'sign-up') {
+          console.log("In verify user page: fetch admin jwt token api");
+          const adminJWT = await getAdminJWT();
+          console.log("In verify user page: call update user verify status api")
+          const updateResponse = await fetch(`${process.env.NEXT_PUBLIC_USER_API_USERS_URL}/${encodeURIComponent(id)}`, {
+            method: "PATCH",
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${adminJWT}`,
+            },
+            body: JSON.stringify({
+              isVerified: true,
+            })
+          });
+          console.log("update response: ", updateResponse)
+          if (!updateResponse.ok) {
+            const errorMessage = (await updateResponse.json()).message;
+            setMessage('Unexpected error occured. Please check the URL or request a new one.');
+            setStatus('error');
+            throw Error("Failed to update user verified state: " + errorMessage);
+          }
+          setMessage('Email verified successfully! You can now log in.');
+        } else {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_USER_API_USERS_URL}/${id}`, {
+            method: "PATCH",
+            headers: {
+                'Content-Type': 'application/json',
+                'authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({ email: email }),
+          });
+          if (!response.ok) {
+            const errorMessage = (await response.json()).message;
+            setMessage('Unexpected error occured. Please check the URL or request a new one.');
+            setStatus('error');
+            throw Error("Failed to update update user email: " + errorMessage);
+          }
+          setMessage('Your email address has been successfully updated!');
         }
 
-        setMessage('Email verified successfully! You can now log in.');
         setStatus('success');
       } catch (error) {
         console.error(error);
@@ -120,8 +139,8 @@ export default function VerifyEmail() {
               Email Verified!
             </span>
             <p className="text-gray-800">{message}</p>
-            <Link href="/">
-              <Button className="btn mt-4" >Go to Login</Button>
+            <Link href={type === 'sign-up' ? '/' : '/questions'}>
+              <Button className="btn mt-4" >{type === 'sign-up' ? 'Go to Login' : 'Go to Homepage'}</Button>
             </Link>
           </div>
         </>
@@ -133,8 +152,8 @@ export default function VerifyEmail() {
               Verification Failed
             </span>
             <p className="text-gray-800">{message}</p>
-            <Link href="/auth/sign-up">
-              <Button className="btn mt-4" variant="destructive">Go to Sign Up</Button>
+            <Link href={type === 'sign-up' ? '/auth/sign-up' : '/profile'}>
+              <Button className="btn mt-4" variant="destructive">Go Back to Profile</Button>
             </Link>
           </div>
         </>

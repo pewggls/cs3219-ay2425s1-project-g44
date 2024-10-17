@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Input } from "@/components/ui/input"; // Shadcn Input component
 import { Button } from "@/components/ui/button"; // Shadcn Button component
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"; // Shadcn Avatar component
-import { Label } from "@/components/ui/label";
+import { IoIosLogOut } from "react-icons/io";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogOverlay } from '@/components/ui/dialog';
 import Link from 'next/link';
@@ -32,7 +32,7 @@ const formSchema = z.object({
 const UserProfile = () => {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [feedback, setFeedback] = useState({ message: '', type: '' });
     const [username, setUsername] = useState<string | null>(null);
     const [email, setEmail] = useState<string | null>(null);
     const userId = useRef(null);
@@ -85,7 +85,7 @@ const UserProfile = () => {
     authenticateUser();
     }, []);
 
-    async function onSubmit(values: z.infer<typeof formSchema>) {
+    async function onChangeUserProfile(values: z.infer<typeof formSchema>) {
         let isErrorSet = false;
         try {
             await form.trigger();
@@ -94,9 +94,9 @@ const UserProfile = () => {
             }
 
             setIsLoading(true);
-            setError(""); // Clear any previous errors
+            setFeedback({ message: '', type: '' }); // three type: "success", "error", or "email-verification"
 
-            // update user to backend
+            // update username to backend
             console.log("In user profile page: call update user api");
             const signUpResponse = await fetch(`${process.env.NEXT_PUBLIC_USER_API_USERS_URL}/${userId.current}`, {
                 method: "PATCH",
@@ -104,28 +104,43 @@ const UserProfile = () => {
                     'Content-Type': 'application/json',
                     'authorization': `Bearer ${localStorage.getItem('token')}`
                 },
-                body: JSON.stringify(values),
+                body: JSON.stringify({ username: values.username }),
             });
             
             if (signUpResponse.status == 409) {
                 const responseMessage = (await signUpResponse.json()).message;
                 if (responseMessage.includes("username")) {
-                    setError("Username already in use. Please choose a different one");
+                    setFeedback({ message: "Username already in use. Please choose a different one", type: "error"});
                     isErrorSet = true;
                     throw new Error("username already exists " + signUpResponse.statusText);
                 } else {
-                    setError("Email already in use. Please choose a different one");
+                    setFeedback({ message: 'Email already in use. Please choose a different one', type: 'error' });
                     isErrorSet = true;
                     throw new Error("email already exist " + signUpResponse.statusText);
                 }
             } else if (!signUpResponse.ok) {
-                setError("Failed to update profile.");
+                setFeedback({ message: 'Failed to update profile.', type: 'error' });
                 isErrorSet = true;
                 throw new Error("User not found" + signUpResponse.statusText);
             } 
+
+            // Send email verifcation if user is changing email
+            if (email != values.email) {
+                const emailResponse = await fetch(`${process.env.NEXT_PUBLIC_USER_API_EMAIL_URL}/`, {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ id: userId.current, type: 'email-update', ...values }),
+                })
+                setFeedback({ message: "An has been sent to your email", type: "email-verification"});
+                return;
+            }
+
+            setFeedback({ message: 'Profile updated successfully.', type: 'success' });
         } catch(err) {
             if (!isErrorSet) {
-                setError("Something went wrong on our backend. Please retry shortly.");
+                setFeedback({ message: "Something went wrong on our backend. Please retry shortly.", type: 'error' });
             }
             console.error(err);
         } finally {
@@ -168,7 +183,7 @@ const UserProfile = () => {
                 </div>
             </header>
 
-            <main className="flex flex-grow justify-center items-center">
+            <main className="flex flex-col flex-grow justify-center items-center">
                 <Card className="w-full max-w-md p-4">
                     <CardHeader>
                         <CardTitle className="text-center">User Profile</CardTitle>
@@ -176,14 +191,14 @@ const UserProfile = () => {
                     <CardContent>
                         <div className="flex flex-col items-center mb-4">
                             <Avatar className="w-24 h-24 mb-4">
-                            <AvatarImage src="https://via.placeholder.com/150" alt="User Avatar" />
-                            <AvatarFallback>UserProfile</AvatarFallback>
+                                <AvatarImage src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRBrGPJ2q7Abf54iQOe8H_w11p07aS1mN11YXa9AJTfO3i_mPSSu3P5sR-VGxruGswg5s8&usqp=CAU" alt="User Avatar" />
+                                <AvatarFallback>{username?.slice(0, 2)}</AvatarFallback>
                             </Avatar>
                             <h2 className="text-lg font-semibold">{username}</h2>
                             <p className="text-gray-500">{email}</p>
                         </div>
                         <Form {...form}>
-                            <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
+                            <form onSubmit={form.handleSubmit(onChangeUserProfile)} className="flex flex-col gap-4">
                                 <FormField
                                     control={form.control}
                                     name="username"
@@ -237,22 +252,39 @@ const UserProfile = () => {
                          </Form>
                     </CardContent>
                 </Card>
+                <Button
+                    onClick={() => {
+                        localStorage.removeItem("token");
+                        router.push('/');
+                    }}
+                    variant="outline"
+                    className='p-5 mt-5'
+                    >
+                    <IoIosLogOut />{' '}
+                    Logout
+                </Button>
             </main>
-
-            {error && (
-                <Dialog open={!!error} onOpenChange={() => setError('')}>
-                    <DialogContent className="bg-white">
-                        <DialogHeader>
-                        <DialogTitle>Error</DialogTitle>
-                        <DialogDescription>
-                            {error}
-                        </DialogDescription>
-                        </DialogHeader>
-                        <DialogFooter>
-                        <Button onClick={() => setError('')}>Close</Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
+            { feedback.message && (
+            <Dialog open={!!feedback.message} onOpenChange={() => setFeedback({ message: '', type: '' })}>
+                <DialogContent className="bg-white" 
+                                onPointerDownOutside={(e) => e.preventDefault()}
+                                onInteractOutside={(e) => e.preventDefault()}
+                                onEscapeKeyDown={(e) => e.preventDefault()}>
+                <DialogHeader>
+                    <DialogTitle>
+                        {feedback.type === 'error' && 'Error'}
+                        {feedback.type === 'success' && 'Success'}
+                        {feedback.type === 'email-verification' && 'Email Verification Required'}
+                    </DialogTitle>
+                    <DialogDescription>
+                        {feedback.message}
+                    </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                    <Button onClick={() => setFeedback({ message: '', type: '' })}>Close</Button>
+                </DialogFooter>
+                </DialogContent>
+            </Dialog>
             )}
         </div>
     );

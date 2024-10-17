@@ -165,7 +165,6 @@ export default function Signup() {
                 email: email,
                 id: id, 
               })
-            const verificationLink = `${process.env.NEXT_PUBLIC_FRONTEND_URL}/auth/sign-up/verify-email?id=${encodeURIComponent(id)}`;
 
             // Send verification email
             console.log("In sign up page: call send verification email api");
@@ -177,7 +176,8 @@ export default function Signup() {
                 body: JSON.stringify({ 
                     username: username, 
                     email: email, 
-                    verificationLink: verificationLink 
+                    id: id,
+                    type: "sign-up"
                 }),
             });
             
@@ -218,23 +218,7 @@ export default function Signup() {
 
     const handleResendEmail = async () => {
         const { id, username, email } = userInfo;
-        const adminJWT = await getAdminJWT();
-        const response = await fetch(`${process.env.NEXT_PUBLIC_USER_API_USERS_URL}`, {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${adminJWT}`,
-            }
-          });
-        const user = (await response.json()).data.filter((user: {
-            id: number,
-            username: string,
-            email: string,
-            isAdmin: boolean,
-            isVerified: boolean,
-            createdAt: number,
-        }) => user.username == username || user.email == email)
-        const verificationLink = `${process.env.NEXT_PUBLIC_FRONTEND_URL}/auth/sign-up/verify-email?id=${encodeURIComponent(id)}`;
-        const emailResponse = await fetch(`${process.env.NEXT_PUBLIC_USER_API_EMAIL_URL}/send-verification-email`, {
+        await fetch(`${process.env.NEXT_PUBLIC_USER_API_EMAIL_URL}/send-verification-email`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -242,13 +226,19 @@ export default function Signup() {
             body: JSON.stringify({
                 username: username, 
                 email: email, 
-                verificationLink: verificationLink,
+                id: id,
+                type: "sign-up"
             }),
         });
     };
 
     return (
-      <>
+
+    <div className="min-h-screen w-screen laptop:flex">
+        <div className="hidden min-h-screen bg-brand-50 laptop:w-screen laptop:flex laptop:items-center laptop:justify-center">
+            <span className="text-4xl font-bold font-branding tracking-tight text-brand-700">PeerPrep</span>
+        </div>
+
         <div className="min-h-screen laptop:w-screen text-black font-sans flex flex-col items-center justify-center gap-6 mx-auto w-[350px]">
             <div className="flex flex-col gap-2 text-center">
                 <span className="font-serif font-light text-4xl text-primary tracking-tight">
@@ -378,6 +368,6 @@ export default function Signup() {
             </div>
         </div>
         <SuccessDialog onClose={handleCloseDialog} onResend={handleResendEmail} message={successMessage} />
-      </>
+    </div>
 )
 }

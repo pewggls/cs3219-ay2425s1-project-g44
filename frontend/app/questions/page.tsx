@@ -8,6 +8,7 @@ import { MultiSelect } from "@/components/ui/multi-select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Flag, MessageSquareText } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
 type Question = {
@@ -49,6 +50,7 @@ const categoryList: Array<{
     ];
 
 export default function Home() {
+    const router = useRouter();
     const [selectedComplexities, setSelectedComplexities] = useState<string[]>(
         complexityList.map((diff) => diff.value)
     );
@@ -61,6 +63,47 @@ export default function Home() {
         useState<Question | null>(null);
     const [isSelectAll, setIsSelectAll] = useState(false);
     const [reset, setReset] = useState(false);
+
+    // authenticate user else redirect them to login page
+    useEffect(() => {
+        const authenticateUser = async () => {
+            try {
+                const token = localStorage.getItem('token');
+
+                if (!token) {
+                    router.push('/'); // Redirect to login if no token
+                    return;
+                }
+
+                // Call the API to verify the token
+                const response = await fetch(`${process.env.NEXT_PUBLIC_USER_API_AUTH_URL}/verify-token`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
+
+                if (!response.ok) {
+                    localStorage.removeItem("token"); // remove invalid token from browser
+                    router.push('/'); // Redirect to login if not authenticated
+                    return;
+                }
+
+                const data = (await response.json()).data;
+                
+                // if needed
+                // setUsername(data.username);
+                // setEmail(data.email);
+                // form.setValue("username", data.username);
+                // form.setValue("email", data.email);
+                // userId.current = data.id;
+            } catch (error) {
+                console.error('Error during authentication:', error);
+                router.push('/login'); // Redirect to login in case of any error
+            }
+    };
+    authenticateUser();
+    }, []);
 
     // Fetch questions from backend API
     useEffect(() => {
@@ -177,6 +220,10 @@ export default function Home() {
         console.log("Selected complexities:", selectedComplexities);
     }, [selectedComplexities]); // This effect runs every time selectedcomplexities change 
 
+    const handleProfileRedirect = () => {
+        router.push('/profile'); // Update with your actual profile page path
+    };
+
     return (
         // <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
         <div className="min-h-screen p-4 bg-white">
@@ -203,7 +250,7 @@ export default function Home() {
                         <Link href="/question-repo" className="text-lg font-semibold uppercase text-gray-700/50 hover:text-gray-700 transition duration-150" prefetch={false}>
                             Repository
                         </Link>
-                        <Button variant="ghost" size="icon" className="rounded-full">
+                        <Button variant="ghost" size="icon" className="rounded-full" onClick={handleProfileRedirect}>
                             <Avatar>
                                 <AvatarImage src="/placeholder-user.jpg" alt="CR" />
                                 <AvatarFallback className="font-branding">CR</AvatarFallback>
