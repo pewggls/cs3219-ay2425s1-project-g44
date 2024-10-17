@@ -133,7 +133,7 @@ const UserProfile = () => {
                         'Content-Type': 'application/json',
                     }
                 });
-                
+
                 if (userResponse.status == 200) {
                     console.log("duplicate email")
                     setFeedback({ message: "This email is already in use. Please choose another one.", type: 'error' });
@@ -176,7 +176,7 @@ const UserProfile = () => {
             <header className="flex items-center justify-between p-4">
                 <div className="flex items-center gap-2">
                     <Link
-                        href="/"
+                        href="/questions"
                         className="text-2xl font-bold font-branding tracking-tight text-brand-700"
                         prefetch={false}
                     >

@@ -230,7 +230,7 @@ export default function Home() {
             <header className="flex items-center justify-between p-4">
                 <div className="flex items-center gap-2">
                     <Link
-                        href="/"
+                        href="/questions"
                         className="text-2xl font-bold font-branding tracking-tight text-brand-700"
                         prefetch={false}
                     >
