@@ -3,10 +3,7 @@
 import { useEffect, useState } from "react";
 import { columns, Question } from "./columns"
 import { DataTable } from "./data-table"
-import { Badge, BadgeProps } from "@/components/ui/badge";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { BadgeProps } from "@/components/ui/badge";
 
 const complexityList: Array<{
     value: string;
@@ -77,44 +74,9 @@ export default function QuestionRepo() {
     }, []);
 
     return (
-        <div className="min-h-screen p-4 bg-white">
-            <header className="flex items-center justify-between p-4">
-                <div className="flex items-center gap-2">
-                    <Link
-                        href="/"
-                        className="text-2xl font-bold font-branding tracking-tight text-brand-700"
-                        prefetch={false}
-                    >
-                        PeerPrep
-                    </Link>
-                    {process.env.NODE_ENV == "development" && (
-                        <Badge variant="dev" className="ml-2 font-branding">
-                            DEV
-                        </Badge>
-                    )}
-                </div>
-                <div className="hidden desktop:flex items-center gap-4">
-                    <nav className="flex items-center gap-10 font-branding">
-                        <Link href="/questions" className="text-lg font-semibold uppercase text-gray-700/50 hover:text-gray-700 transition duration-150" prefetch={false}>
-                            Questions
-                        </Link>
-                        <Link href="/question-repo" className="text-lg font-semibold uppercase text-gray-700 drop-shadow-md" prefetch={false}>
-                            Repository
-                        </Link>
-                        <Button variant="ghost" size="icon" className="rounded-full">
-                            <Avatar>
-                                <AvatarImage src="/placeholder-user.jpg" alt="CR" />
-                                <AvatarFallback className="font-branding">CR</AvatarFallback>
-                            </Avatar>
-                        </Button>
-                    </nav>
-                </div>
-            </header>
-
-            <main className="mx-auto p-12">
-                <div className="mb-12"><span className="font-serif font-light text-4xl text-primary tracking-tight">Question Repository</span></div>
-                <DataTable columns={columns(setQuestionList)} data={questionList} setData={setQuestionList} loading={loading}/>
-            </main>
-        </div>
+        <main className="flex flex-col min-h-screen px-20 pt-24 pb-10">
+            <div className="mb-10"><span className="font-serif font-light text-4xl text-primary tracking-tight">Question Repository</span></div>
+            <DataTable columns={columns(setQuestionList)} data={questionList} setData={setQuestionList} loading={loading}/>
+        </main>
     );
 }

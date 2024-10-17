@@ -3,11 +3,11 @@ import { Syne } from 'next/font/google'
 import localFont from "next/font/local";
 import "./globals.css";
 
-const brandingFont = Syne({
+const brandFont = Syne({
   subsets: ['latin'],
   weight: ["400", "500", "600", "700", "800"],
   display: "swap",
-  variable: "--font-branding",
+  variable: "--font-brand",
 });
 const matterFont = localFont({
   src: "./fonts/MatterTRIALVF-Uprights.woff2",
@@ -35,7 +35,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${brandingFont.variable} ${matterFont.variable} ${recklessNeueFont.variable} antialiased bg-white`}
+        className={`${brandFont.variable} ${matterFont.variable} ${recklessNeueFont.variable} antialiased bg-white`}
       >
         {children}
       </body>
