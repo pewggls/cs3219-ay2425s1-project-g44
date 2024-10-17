@@ -54,26 +54,22 @@ export async function verifOTP (req, res) {
     const { email, otp } = req.body;
 
     if (!email || !otp) {
-      console.log("error: Both 'email' and 'otp' are required.")
       return res.status(400).json({ message: "Both 'email' and 'otp' are required." });
     }
 
     const user = await _findUserByEmail(email);
 
     if (!user) {
-      console.log(`error: User with email '${email}' not found`)
       return res.status(404).json({ message: `User with email '${email}' not found` });
     }
 
     if (!user.otp) {
-      console.log("error: No OTP request found for this user")
       return res.status(403).json({
         message: 'No OTP request found for this user'
       });
     }
 
     if (user.otp !== otp || new Date() > user.otpExpiresAt) {
-      console.log("error: ", (user.otpExpiresAt ? 'OTP has expired': 'Incorrect OTP provided'))
       return res.status(403).json({
           message: new Date() > user.otpExpiresAt ? 'OTP has expired': 'Incorrect OTP provided' 
         });
@@ -90,14 +86,13 @@ export async function verifOTP (req, res) {
       }
     });
   } catch (error) {
-    console.log("error: ", error.message)
+    console.error("error: ", error.message)
     return res.status(500).json({ message: "Unknown error when verifying OTP!" });
   }
 };
 
 export async function resetPassword(req, res) {
   const { email, token, newPassword } = req.body;
-  console.log("pw receoved:",newPassword)
   try {
     const user = await _findUserByEmail(email);
 
@@ -135,7 +130,6 @@ export async function resetPassword(req, res) {
 
     res.status(200).json({ message: 'Password reset successfully' });
   } catch (error) {
-    console.log("inside error: ", error.message)
     res.status(500).json({ message: error.message });
   }
 };

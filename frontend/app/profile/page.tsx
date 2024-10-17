@@ -96,44 +96,67 @@ const UserProfile = () => {
             setIsLoading(true);
             setFeedback({ message: '', type: '' }); // three type: "success", "error", or "email-verification"
 
-            // update username to backend
-            console.log("In user profile page: call update user api");
-            const signUpResponse = await fetch(`${process.env.NEXT_PUBLIC_USER_API_USERS_URL}/${userId.current}`, {
-                method: "PATCH",
-                headers: {
-                    'Content-Type': 'application/json',
-                    'authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify({ username: values.username }),
-            });
-            
-            if (signUpResponse.status == 409) {
-                const responseMessage = (await signUpResponse.json()).message;
-                if (responseMessage.includes("username")) {
-                    setFeedback({ message: "Username already in use. Please choose a different one", type: "error"});
+            if (username != values.username) {
+                console.log("In user profile page: call update user api");
+                const signUpResponse = await fetch(`${process.env.NEXT_PUBLIC_USER_API_USERS_URL}/${userId.current}`, {
+                    method: "PATCH",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ username: values.username }),
+                });
+                if (signUpResponse.status == 409) {
+                    const responseMessage = (await signUpResponse.json()).message;
+                    if (responseMessage.includes("username")) {
+                        setFeedback({ message: "Username already in use. Please choose a different one", type: "error"});
+                        isErrorSet = true;
+                        throw new Error("username already exists " + signUpResponse.statusText);
+                    } else {
+                        setFeedback({ message: 'Email already in use. Please choose a different one', type: 'error' });
+                        isErrorSet = true;
+                        throw new Error("email already exist " + signUpResponse.statusText);
+                    }
+                } else if (!signUpResponse.ok) {
+                    setFeedback({ message: 'Failed to update profile.', type: 'error' });
                     isErrorSet = true;
-                    throw new Error("username already exists " + signUpResponse.statusText);
-                } else {
-                    setFeedback({ message: 'Email already in use. Please choose a different one', type: 'error' });
-                    isErrorSet = true;
-                    throw new Error("email already exist " + signUpResponse.statusText);
-                }
-            } else if (!signUpResponse.ok) {
-                setFeedback({ message: 'Failed to update profile.', type: 'error' });
-                isErrorSet = true;
-                throw new Error("User not found" + signUpResponse.statusText);
-            } 
+                    throw new Error("User not found" + signUpResponse.statusText);
+                } 
+            }
 
             // Send email verifcation if user is changing email
             if (email != values.email) {
-                const emailResponse = await fetch(`${process.env.NEXT_PUBLIC_USER_API_EMAIL_URL}/`, {
+                // detect duplicate email
+                console.log("In user profile page: call api to check email exist in db");
+                const userResponse = await fetch(`${process.env.NEXT_PUBLIC_USER_API_USERS_URL}/check?email=${values.email}`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                if (userResponse.status == 200) {
+                    console.log("duplicate email")
+                    setFeedback({ message: "This email is already in use. Please choose another one.", type: 'error' });
+                    isErrorSet = true;
+                    throw new Error("Email already exists in the database when user update their profile.");
+                } else if (userResponse.status !== 404) {
+                    throw new Error("Error happen when calling API to detect duplicate email")
+                }
+
+                const emailResponse = await fetch(`${process.env.NEXT_PUBLIC_USER_API_EMAIL_URL}/send-verification-email`, {
                     method: "POST",
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({ id: userId.current, type: 'email-update', ...values }),
                 })
-                setFeedback({ message: "An has been sent to your email", type: "email-verification"});
+
+                if (emailResponse.ok) {
+                    setFeedback({ message: "An email has been sent to your new address for verification.", type: "email-verification" });
+                } else {
+                    setFeedback({ message: "There was an error sending the verification email.", type: 'error' });
+                    throw new Error("Error during email verification process.");
+                }                
                 return;
             }
 

@@ -71,7 +71,7 @@
 
 - HTTP Method: `GET`
 
-- Endpoint: http://localhost:3001/users/check?email={email}
+- Endpoint: http://localhost:3001/users/check
 
 - Parameters
     - Required: at least one of `email`, `id` path parameter
@@ -351,13 +351,14 @@
 - HTTP Method: `POST`
 - Endpoint: http://localhost:3001/email/send-verification-email
 - Body
-  - Required: `email` (string), `username` (string), `id` (string)
+  - Required: `email` (string), `username` (string), `id` (string), `type` (string)
 
     ```json
     {
       "email": "sample@gmail.com",
       "username": "us",
-      "id": "avid0ud9ay2189rgdbjvdak"
+      "id": "avid0ud9ay2189rgdbjvdak",
+      "type": "sign-up" // or "update"
     }
     ```
 

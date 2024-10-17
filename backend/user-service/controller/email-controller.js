@@ -141,7 +141,7 @@ export const sendVerificationEmail = async (req, res) => {
         verificationLink = `${process.env.FRONTEND_HOST}:${process.env.FRONTEND_PORT}/auth/verify-email?type=sign-up&id=${encodeURIComponent(id)}`;
     } else if (type === 'email-update') {
         // For email update, include user ID, email, and username
-        verificationLink = `${process.env.FRONTEND_HOST}:${process.env.FRONTEND_PORT}/auth/verify-email?type=update&id=${encodeURIComponent(id)}&email=${encodeURIComponent(email)}}`;
+        verificationLink = `${process.env.FRONTEND_HOST}:${process.env.FRONTEND_PORT}/auth/verify-email?type=update&id=${encodeURIComponent(id)}&email=${encodeURIComponent(email)}`;
     }
 
     let emailTitle;
