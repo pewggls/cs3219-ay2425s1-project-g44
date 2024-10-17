@@ -146,7 +146,15 @@ export default function Signup() {
                 form.reset();
                 return;
             } else if (signUpResponse.status == 409) {
-                setError("A user with this username or email already exists.");
+                const responseMessage = await signUpResponse.json();
+
+                if (responseMessage.message.includes("username")) {
+                    setError("A user with this username already exists.");
+                } else if (responseMessage.message.includes("email")) {
+                    setError("This email is already registered.");
+                } else {
+                    setError("A user with this username or email already exists.");
+                }
                 isErrorSet = true;
                 throw new Error("Duplicate username or email: " + signUpResponse.statusText);
             } else if (signUpResponse.status == 500) {

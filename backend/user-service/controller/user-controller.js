@@ -16,20 +16,26 @@ export async function createUser(req, res) {
   try {
     const { username, email, password } = req.body;
     if (username && email && password) {
-      const existingUser = await _findUserByUsernameOrEmail(username, email);
-      if (existingUser) {
+      const existingUserByUsername = await _findUserByUsername(username);
+      const existingUserByEmail = await _findUserByEmail(email);
+      
+      if (existingUserByEmail) {
         // Check if the user exists but is not verified
-        if (!existingUser.isVerified && username == existingUser.username && email == existingUser.email) {
+        if (!existingUserByEmail.isVerified && username == existingUserByEmail.username) {
           // Return a specific message indicating the user is not verified
           return res.status(403).json({ 
             message: "This user has already registered but has not yet verified their email. Please check your inbox for the verification link.",
-            data: formatUserResponse(existingUser), 
+            data: formatUserResponse(existingUserByEmail), 
           });
         }
         // Return conflict error if the user is already verified
-        return res.status(409).json({ message: "username or email already exists" });
+        return res.status(409).json({ message: "email already exists" });
       }
-
+      if (existingUserByUsername){
+        return res.status(409).json({
+          message: "username already exists."
+        });
+      }
       const salt = bcrypt.genSaltSync(10);
       const hashedPassword = bcrypt.hashSync(password, salt);
       const createdUser = await _createUser(username, email, hashedPassword);
