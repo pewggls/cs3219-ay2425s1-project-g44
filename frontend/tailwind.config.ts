@@ -100,7 +100,16 @@ const config: Config = {
 			dropShadow: {
 				'question-card': '0px 2px 4px rgba(0, 0, 0, 0.15)',
 				'question-details': '0px 8px 8px rgba(0, 0, 0, 0.15)'
-			}
+			},
+			keyframes: {
+				"caret-blink": {
+				  "0%,70%,100%": { opacity: "1" },
+				  "20%,50%": { opacity: "0" },
+				},
+			},
+			animation: {
+				"caret-blink": "caret-blink 1.25s ease-out infinite",
+			},
 		},
 	},
 	plugins: [require("tailwindcss-animate")],

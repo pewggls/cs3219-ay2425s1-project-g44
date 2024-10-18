@@ -1,8 +1,10 @@
 import express from "express";
 import cors from "cors";
+import path from 'path';
 
 import userRoutes from "./routes/user-routes.js";
 import authRoutes from "./routes/auth-routes.js";
+import emailRoutes from "./routes/email-routes.js";
 
 const app = express();
 
@@ -32,6 +34,9 @@ app.use((req, res, next) => {
 
 app.use("/users", userRoutes);
 app.use("/auth", authRoutes);
+app.use('/email', emailRoutes);
+app.use('/public', express.static(path.join(process.cwd(), 'public')));
+
 
 app.get("/", (req, res, next) => {
   console.log("Sending Greetings!");

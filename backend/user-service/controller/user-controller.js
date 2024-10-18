@@ -16,11 +16,26 @@ export async function createUser(req, res) {
   try {
     const { username, email, password } = req.body;
     if (username && email && password) {
-      const existingUser = await _findUserByUsernameOrEmail(username, email);
-      if (existingUser) {
-        return res.status(409).json({ message: "username or email already exists" });
+      const existingUserByUsername = await _findUserByUsername(username);
+      const existingUserByEmail = await _findUserByEmail(email);
+      
+      if (existingUserByEmail) {
+        // Check if the user exists but is not verified
+        if (!existingUserByEmail.isVerified && username == existingUserByEmail.username) {
+          // Return a specific message indicating the user is not verified
+          return res.status(403).json({ 
+            message: "This user has already registered but has not yet verified their email. Please check your inbox for the verification link.",
+            data: formatUserResponse(existingUserByEmail), 
+          });
+        }
+        // Return conflict error if the user is already verified
+        return res.status(409).json({ message: "email already exists" });
       }
-
+      if (existingUserByUsername){
+        return res.status(409).json({
+          message: "username already exists."
+        });
+      }
       const salt = bcrypt.genSaltSync(10);
       const hashedPassword = bcrypt.hashSync(password, salt);
       const createdUser = await _createUser(username, email, hashedPassword);
@@ -37,9 +52,37 @@ export async function createUser(req, res) {
   }
 }
 
+export async function checkUserExistByEmailorId(req, res) {
+  try {
+    const { id, email } = req.query;
+    if (!id && !email ) {
+      return res.status(400).json({ message: "Either 'id' or 'email' is required." });
+    }
+
+    const user = email ? await _findUserByEmail(email): await _findUserById(id);
+
+    if (!user) {
+      const identifier = email ? email : id;
+      const identifierType = email ? 'email' : 'id';
+      return res.status(404).json({ message: `User with ${identifierType} '${identifier}' not found` });
+    } 
+
+    return res.status(200).json({
+      message: `User found`, 
+      data: {
+        username: user.username,
+      } 
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Unknown error when checking user by email!" });
+  }
+}
+
 export async function getUser(req, res) {
   try {
     const userId = req.params.id;
+
     if (!isValidObjectId(userId)) {
       return res.status(404).json({ message: `User ${userId} not found` });
     }
@@ -69,8 +112,8 @@ export async function getAllUsers(req, res) {
 
 export async function updateUser(req, res) {
   try {
-    const { username, email, password } = req.body;
-    if (username || email || password) {
+    const { username, email, password, isVerified } = req.body;
+    if (username || email || password || isVerified) {
       const userId = req.params.id;
       if (!isValidObjectId(userId)) {
         return res.status(404).json({ message: `User ${userId} not found` });
@@ -95,7 +138,7 @@ export async function updateUser(req, res) {
         const salt = bcrypt.genSaltSync(10);
         hashedPassword = bcrypt.hashSync(password, salt);
       }
-      const updatedUser = await _updateUserById(userId, username, email, hashedPassword);
+      const updatedUser = await _updateUserById(userId, username, email, hashedPassword, isVerified);
       return res.status(200).json({
         message: `Updated data for user ${userId}`,
         data: formatUserResponse(updatedUser),
@@ -162,6 +205,7 @@ export function formatUserResponse(user) {
     username: user.username,
     email: user.email,
     isAdmin: user.isAdmin,
+    isVerified: user.isVerified,
     createdAt: user.createdAt,
   };
 }

@@ -6,6 +6,8 @@ import { Card } from "@/components/ui/card";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Flag, MessageSquareText } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
 type Question = {
@@ -47,6 +49,7 @@ const categoryList: Array<{
     ];
 
 export default function Home() {
+    const router = useRouter();
     const [selectedComplexities, setSelectedComplexities] = useState<string[]>(
         complexityList.map((diff) => diff.value)
     );
@@ -59,6 +62,47 @@ export default function Home() {
         useState<Question | null>(null);
     const [isSelectAll, setIsSelectAll] = useState(false);
     const [reset, setReset] = useState(false);
+
+     // authenticate user else redirect them to login page
+     useEffect(() => {
+        const authenticateUser = async () => {
+            try {
+                const token = localStorage.getItem('token');
+
+                if (!token) {
+                    router.push('/'); // Redirect to login if no token
+                    return;
+                }
+
+                // Call the API to verify the token
+                const response = await fetch(`${process.env.NEXT_PUBLIC_USER_API_AUTH_URL}/verify-token`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
+
+                if (!response.ok) {
+                    localStorage.removeItem("token"); // remove invalid token from browser
+                    router.push('/'); // Redirect to login if not authenticated
+                    return;
+                }
+
+                const data = (await response.json()).data;
+                
+                // if needed
+                // setUsername(data.username);
+                // setEmail(data.email);
+                // form.setValue("username", data.username);
+                // form.setValue("email", data.email);
+                // userId.current = data.id;
+            } catch (error) {
+                console.error('Error during authentication:', error);
+                router.push('/login'); // Redirect to login in case of any error
+            }
+    };
+    authenticateUser();
+    }, []);
 
     // Fetch questions from backend API
     useEffect(() => {

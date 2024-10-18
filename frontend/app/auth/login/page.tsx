@@ -38,6 +38,7 @@ export default function Login() {
     });
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
+        let isErrorSet = false;
         // Placeholder for auth to user service
         try {
             await form.trigger();
@@ -47,6 +48,7 @@ export default function Login() {
 
             setIsLoading(true);
 
+            console.log("In login page: call api to authenticate user")
             const response = await fetch(`${process.env.NEXT_PUBLIC_USER_API_AUTH_URL}/login`, {
                 method: "POST",
                 headers: {
@@ -54,25 +56,41 @@ export default function Login() {
                 },
                 body: JSON.stringify(values),
             });
-
             if (response.status == 400) {
                 setError("Missing email or password.");
+                isErrorSet = true;
                 throw new Error("Missing email or password: " + response.statusText);
             } else if (response.status == 401) {
-                setError("Incorrect email or password.");
+                const data = await response.json(); 
+                if (data.message.includes("email")) {
+                    setError("User not registered yet.");
+                } else {
+                    setError("Incorrect password.");
+                }
+                isErrorSet = true;
                 throw new Error("Incorrect email or password: " + response.statusText);
+            } else if (response.status == 403) {
+                setError("Email not verified. Please verify your email before logging in.");
+                isErrorSet = true;
+                throw new Error("Email not verified: " + response.statusText);
             } else if (response.status == 500) {
                 setError("Database or server error. Please try again.");
+                isErrorSet = true;
                 throw new Error("Database or server error: " + response.statusText);
             } else if (!response.ok) {
                 setError("There was an error logging in. Please try again.");
+                isErrorSet = true;
                 throw new Error("Error logging in: " + response.statusText);
             }
 
             const responseData = await response.json();
-            console.log(responseData.data["accessToken"]);
+            const { accessToken, id, username, email, isAdmin, ...other } = responseData.data;
+            localStorage.setItem('token', accessToken);
             router.push("/question-repo");
         } catch (error) {
+            if (!isErrorSet) {
+                setError("Something went wrong on our backend. Please retry shortly.");
+            }
             console.error(error);
         } finally {
             setIsLoading(false);
@@ -80,7 +98,7 @@ export default function Login() {
     }
 
     return (
-        <div className="flex min-h-screen w-screen -mt-20 px-10 items-center justify-center bg-white font-sans">
+        <div className="flex min-h-screen w-screen px-10 items-center justify-center bg-white font-sans">
             <div className="mx-auto flex flex-col justify-center gap-6 w-[350px]">
                 <div className="flex flex-col gap-2 text-left pb-1">
                     <span className="font-serif font-light text-4xl text-primary tracking-tight">
@@ -106,7 +124,7 @@ export default function Login() {
                                     <FormItem>
                                         <FormLabel>Email</FormLabel>
                                         <FormControl>
-                                            <Input {...field} />
+                                            <Input type="email" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -120,7 +138,7 @@ export default function Login() {
                                         <FormLabel>
                                             <div className="flex justify-between">
                                                 <span>Password</span>
-                                                <Link href="/forgot-password" className="underline underline-offset-2">
+                                                <Link href="/auth/forgot-password" className="underline underline-offset-2">
                                                     Forgot password?
                                                 </Link>
                                             </div>
@@ -145,10 +163,19 @@ export default function Login() {
                             </Button>
                         </form>
                     </Form>
+                    {/* <div className="px-8 text-center text-sm">
+                        Forgot your password?{" "}
+                        <Link
+                            href="/auth/forgot-password"
+                            className="font-semibold hover:text-brand-700 transition-colors underline underline-offset-2"
+                        >
+                            Reset it
+                        </Link>
+                    </div> */}
                     <div className="px-8 text-center text-sm">
                         Don&apos;t have an account?{" "}
                         <Link
-                            href="/signup"
+                            href="/auth/sign-up"
                             className="font-semibold hover:text-brand-700 transition-colors underline underline-offset-2"
                         >
                             Sign up
