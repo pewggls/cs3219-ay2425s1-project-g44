@@ -1,25 +1,35 @@
-// index.js
-const express = require('express');
-const kafkaRoutes = require('./routes/matchingRoutes');
-const { produceStartupMessage, runConsumer } = require('./controllers/matchingController');
+const WebSocket = require("ws");
 
-// Create an Express app
-const app = express();
-const port = process.env.PORT || 3002;
+const wss = new WebSocket.Server({port: 3002});
+const { matchmakeUser, runConsumer} = require("./controllers/matchingController");
 
-// Middleware to parse JSON bodies
-app.use(express.json());
+console.log("Started Websocket server!!!");
 
-// Use the Kafka routes
-app.use('/matching', kafkaRoutes);
+runConsumer().catch(console.error);
 
-// Start the Express server and Kafka consumer
-app.listen(port, async () => {
-    console.log(`Matching service running on port ${port}`);
+wss.on("connection", (ws) => {
+    console.log("New Client Connected");
+    ws.send("Welcome to websocket server");
 
-    // Produce a message on startup
-    await produceStartupMessage();
+    ws.on('message', async (msg) => {
+        // console.log(`Received message: ${msg}`);
+        msg = JSON.parse(msg)
+        if (msg.event == "enqueue") {
+            let res;
+            // console.log(`User ${msg.userId} has been enqueued.`)
+            try {
+                res = await matchmakeUser(msg.userId, msg.questions)
+            } catch (failure) {
+                res = failure
+            }
+            ws.send(res)
+            ws.close()
+        } else if (msg.event == "dequeue") {
+            console.log("User has been dequeued")
+        }
+    });
 
-    // Start consuming messages
-    runConsumer().catch(console.error);
-});
+    ws.on("close", () => {
+        console.log("Client has disconnected")
+    });
+})
