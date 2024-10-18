@@ -61,8 +61,31 @@
     |-----------------------------|-------------------------------------------------------|
     | 201 (Created)               | User created successfully, created user data returned |
     | 400 (Bad Request)           | Missing fields                                        |
+    | 403 (Forbidden)             | User hasn't verified their email                      |
     | 409 (Conflict)              | Duplicate username or email encountered               |
     | 500 (Internal Server Error) | Database or server error                              |
+
+### Check User Exist by Email or Id
+
+- This endpoint allows checking if a user exists in the database based on their email address.
+
+- HTTP Method: `GET`
+
+- Endpoint: http://localhost:3001/users/check
+
+- Parameters
+    - Required: at least one of `email`, `id` path parameter
+    - Example: `http://localhost:3001/users?email=sample@example.com`
+    
+- Responses:
+
+    | Response Code               | Explanation                                              |
+    |-----------------------------|----------------------------------------------------------|
+    | 200 (OK)                    | User found                                               |
+    | 400 (Bad Request)           | Bad request, parameter is missing.                       |
+    | 404 (Not Found)             | User with the specified email not found                  |
+    | 500 (Internal Server Error) | Database or server error                                 |
+
 
 ### Get User
 
@@ -134,13 +157,14 @@
   - Required: `userId` path parameter
 
 - Body
-  - At least one of the following fields is required: `username` (string), `email` (string), `password` (string)
+  - At least one of the following fields is required: `username` (string), `email` (string), `password` (string), `isVerified` (boolean)
 
     ```json
     {
       "username": "SampleUserName",
       "email": "sample@gmail.com",
-      "password": "SecurePassword"
+      "password": "SecurePassword",
+      "isVerified": true,
     }
     ```
 
@@ -253,6 +277,7 @@
     | 200 (OK)                    | Login successful, JWT token and user data returned |
     | 400 (Bad Request)           | Missing fields                                     |
     | 401 (Unauthorized)          | Incorrect email or password                        |
+    | 403 (Unauthorized)          | User hasn't verified their email                   |
     | 500 (Internal Server Error) | Database or server error                           |
 
 ### Verify Token
@@ -270,3 +295,128 @@
     | 200 (OK)                    | Token verified, authenticated user's data returned |
     | 401 (Unauthorized)          | Missing/invalid/expired JWT                        |
     | 500 (Internal Server Error) | Database or server error                           |
+
+### Send Email
+
+- This endpoint allows sending an email to the user.
+- HTTP Method: `POST`
+- Endpoint: http://localhost:3001/email//send-verification-email
+- Body
+  - Required: `email` (string), `title` (string), `html` (string)
+
+    ```json
+    {
+      "email": "sample@gmail.com",
+      "title": "Confirm Your Email for PeerPrep",
+      "html": "<p>Click the link below to verify your email: </p>"
+    }
+    ```
+
+- Responses:
+
+    | Response Code               | Explanation                                        |
+    |-----------------------------|----------------------------------------------------|
+    | 200 (OK)                    | Verification email sent successfully.              |
+    | 400 (Bad Request)	          | Missing or invalid fields (email, title, html).    |
+    | 500 (Internal Server Error) | Database or server error                           |
+
+### Send OTP Email
+
+- This endpoint allows sending an email containing OTP to the user after they sign up.
+- HTTP Method: `POST`
+- Endpoint: http://localhost:3001/email//send-otp-email
+- Body
+  - Required: `email` (string), `username` (string)
+
+    ```json
+    {
+      "email": "sample@gmail.com",
+      "password": "Confirm Your Email for PeerPrep",
+      "html": "<p>Click the link below to verify your email: </p>"
+    }
+    ```
+
+- Responses:
+
+    | Response Code               | Explanation                                        |
+    |-----------------------------|----------------------------------------------------|
+    | 200 (OK)                    | Verification email sent successfully.              |
+    | 400 (Bad Request)	          | Missing or invalid fields (email, title, html).    |
+    | 404 (Not Found)             | User with specified email not found                |
+    | 500 (Internal Server Error) | Database or server error                           |
+
+### Send Verification Link Email
+
+- This endpoint sends a verification email containing a verification link to the user after they sign up.
+- HTTP Method: `POST`
+- Endpoint: http://localhost:3001/email/send-verification-email
+- Body
+  - Required: `email` (string), `username` (string), `id` (string), `type` (string)
+
+    ```json
+    {
+      "email": "sample@gmail.com",
+      "username": "us",
+      "id": "avid0ud9ay2189rgdbjvdak",
+      "type": "sign-up" // or "update"
+    }
+    ```
+
+- Responses:
+
+    | Response Code               | Explanation                                        |
+    |-----------------------------|----------------------------------------------------|
+    | 200 (OK)                    | Verification email sent successfully.              |
+    | 400 (Bad Request)	          | Missing or invalid fields (email, title, html).    |
+    | 500 (Internal Server Error) | Database or server error                           |
+
+### Verify OTP
+
+- This endpoint verifies the OTP (One-Time Password) sent to the user and returns a reset token upon success.
+- HTTP Method: `POST`
+- Endpoint: http://localhost:3001/auth/verif-otp
+- Body
+  - Required: `email` (string), `otp` (string)
+
+    ```json
+    {
+      "email": "user@example.com",
+      "otp": "123456"
+    }
+    ```
+
+- Responses:
+
+    | Response Code               | Explanation                                                     |
+    |-----------------------------|-----------------------------------------------------------------|
+    | 200 (OK)                    | OTP verified successfully. Returns a reset token                |
+    | 400	                        | Both email and otp are required fields.                         |
+    | 403	                        | No OTP request found for this user, or OTP expired or incorrect.|
+    | 404                         |	User with the provided email not found.                         |
+    | 500	                        | Database or server error                                        |
+
+### Reset Password
+
+- This endpoint resets the user’s password if the provided reset token is valid.
+- HTTP Method: `POST`
+- Endpoint: http://localhost:3001/auth/verif-otp
+- Body
+  - Required: `email` (string), `token` (string), `newPassword` (string)
+
+    ```json
+    {
+      "email": "user@example.com",
+      "token": "reset_token_value",
+      "newPassword": "newpassword123"
+    }
+    ```
+
+- Responses:
+
+    | Response Code               | Explanation                                                               |
+    |-----------------------------|---------------------------------------------------------------------------|
+    | 200 (OK)                    | OTP verified successfully. Returns a reset token                          |
+    | 400	                        | Missing required fields, token mismatch, expired token, or password reuse.|
+    | 403	                        | No OTP request found for this user, or OTP expired or incorrect.          |
+    | 404                         |	User not found.                                                           |
+    | 500	                        | Database or server error                                                  |

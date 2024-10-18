@@ -4,6 +4,7 @@ import {
   createUser,
   deleteUser,
   getAllUsers,
+  checkUserExistByEmailorId,
   getUser,
   updateUser,
   updateUserPrivilege,
@@ -13,6 +14,8 @@ import { verifyAccessToken, verifyIsAdmin, verifyIsOwnerOrAdmin } from "../middl
 const router = express.Router();
 
 router.get("/", verifyAccessToken, verifyIsAdmin, getAllUsers);
+
+router.get("/check", checkUserExistByEmailorId);
 
 router.patch("/:id/privilege", verifyAccessToken, verifyIsAdmin, updateUserPrivilege);
 

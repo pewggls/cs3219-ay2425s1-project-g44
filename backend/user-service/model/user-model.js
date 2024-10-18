@@ -26,6 +26,26 @@ const UserModelSchema = new Schema({
     required: true,
     default: false,
   },
+  isVerified: {
+    type: Boolean,
+    default: false,
+  },
+  otp: {
+    type: String,
+    required: false,
+  },
+  otpExpiresAt: {
+    type: Date,
+    required: false,
+  },
+  resetToken: { // password reset token
+     type: String,
+     required: false,
+  }, 
+  resetTokenExpiresAt: {
+     type: Date,
+     required: false,
+  }
 });
 
 export default mongoose.model("UserModel", UserModelSchema);
