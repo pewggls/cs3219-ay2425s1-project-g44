@@ -18,7 +18,7 @@ export default function Home() {
         email: "john@example.com",
         password: "abcdefgh",
     });
-    const initialUserData  = useRef({
+    const initialUserData = useRef({
         username: "johndoe",
         email: "john@example.com",
         password: "abcdefgh",
@@ -51,7 +51,7 @@ export default function Home() {
 
                 const data = (await response.json()).data;
                 // placeholder for password *Backend wont expose password via any API call
-                const password = "********";
+                const password = "";
 
                 setUserData({
                     username: data.username,
@@ -73,7 +73,7 @@ export default function Home() {
     }, []);
 
      // Validate the password before making the API call
-     const validatePassword = (password: string) => {
+    const validatePassword = (password: string) => {
         let errorMessage = "";
         if (!/[A-Z]/.test(password)) {
             errorMessage += "Must contain at least one uppercase letter.\n";
@@ -163,7 +163,7 @@ export default function Home() {
                     throw new Error("Error during email verification process.");
                 }                
             }
-              
+
             if (userData.password !== initialUserData.current.password) {
                 console.log("detect password change: original:", initialUserData.current.password, " new pw: ", userData.password)
                 // Check for password validity
@@ -232,8 +232,8 @@ export default function Home() {
     }
 
     return (
-        <main className="flex items-center justify-center min-h-screen p-4 font-sans text-black">
-            <Card className="w-full max-w-xl rounded-2xl">
+        <main className="flex items-start justify-center min-h-screen p-4 font-sans text-black">
+            <Card className="mt-40 w-full max-w-xl rounded-2xl">
                 <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle className="font-serif font-normal tracking-tight text-3xl">Profile</CardTitle>
                     {isEditing ? (
@@ -253,7 +253,7 @@ export default function Home() {
                 </CardHeader>
                 <CardContent>
                     {feedback.message && (
-                        <Alert variant={feedback.type === 'error' ? 'destructive' : 'default'}>
+                        <Alert variant={feedback.type === 'error' ? 'destructive' : 'default'} className="mb-4">
                             <AlertCircle className="h-4 w-4" />
                             <AlertTitle className="font-semibold">
                                 {feedback.type === 'error' ? 'Error' : 'Check your email'}

@@ -98,7 +98,7 @@ export default function Login() {
     }
 
     return (
-        <div className="flex min-h-screen w-screen px-10 items-center justify-center bg-white font-sans">
+        <div className="flex min-h-screen w-screen -mt-12 px-10 items-center justify-center bg-white font-sans">
             <div className="mx-auto flex flex-col justify-center gap-6 w-[350px]">
                 <div className="flex flex-col gap-2 text-left pb-1">
                     <span className="font-serif font-light text-4xl text-primary tracking-tight">

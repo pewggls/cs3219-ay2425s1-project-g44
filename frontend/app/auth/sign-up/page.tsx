@@ -230,7 +230,7 @@ export default function Signup() {
         await fetch(`${process.env.NEXT_PUBLIC_USER_API_EMAIL_URL}/send-verification-email`, {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json',
+                'Content-Type': 'application/json',
             },
             body: JSON.stringify({
                 username: username, 
@@ -244,11 +244,11 @@ export default function Signup() {
     return (
 
     <div className="min-h-screen w-screen laptop:flex">
-        <div className="hidden min-h-screen bg-brand-50 laptop:w-screen laptop:flex laptop:items-center laptop:justify-center">
-            <span className="text-4xl font-bold font-branding tracking-tight text-brand-700">PeerPrep</span>
+        <div className="hidden min-h-screen bg-brand-50 -mt-12 laptop:w-screen laptop:flex laptop:items-center laptop:justify-center">
+            <span className="text-4xl font-bold font-brand tracking-tight text-brand-700">PeerPrep</span>
         </div>
 
-        <div className="min-h-screen laptop:w-screen text-black font-sans flex flex-col items-center justify-center gap-6 mx-auto w-[350px]">
+        <div className="min-h-screen laptop:w-screen text-black font-sans flex flex-col items-center justify-center gap-6 mx-auto -mt-8 w-[350px]">
             <div className="flex flex-col gap-2 text-center">
                 <span className="font-serif font-light text-4xl text-primary tracking-tight">
                     Create an account

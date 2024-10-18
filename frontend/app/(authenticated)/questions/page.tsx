@@ -3,12 +3,14 @@
 import { Badge, BadgeProps } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Flag, MessageSquareText } from "lucide-react";
-import Link from "next/link";
+import { cn } from "@/lib/utils";
+import { Check, ChevronsRight, Flag, MessageSquareText, Plus, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 type Question = {
     id: number;
@@ -48,7 +50,7 @@ const categoryList: Array<{
         { value: "strings", label: "Strings", badgeVariant: "category" },
     ];
 
-export default function Home() {
+export default function Questions() {
     const router = useRouter();
     const [selectedComplexities, setSelectedComplexities] = useState<string[]>(
         complexityList.map((diff) => diff.value)
@@ -62,9 +64,17 @@ export default function Home() {
         useState<Question | null>(null);
     const [isSelectAll, setIsSelectAll] = useState(false);
     const [reset, setReset] = useState(false);
+    
+    const [isMatching, setIsMatching] = useState(false);
+    const [isHovering, setIsHovering] = useState(false);
+    const [matchTime, setMatchTime] = useState(0);
+    const [redirectTime, setRedirectTime] = useState(5);
+    const matchTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const [isMatchFoundDialogOpen, setMatchFoundDialogOpen] = useState(false);
+    const [isMatchFailDialogOpen, setMatchFailDialogOpen] = useState(false);
 
-     // authenticate user else redirect them to login page
-     useEffect(() => {
+    // authenticate user else redirect them to login page
+    useEffect(() => {
         const authenticateUser = async () => {
             try {
                 const token = localStorage.getItem('token');
@@ -89,7 +99,7 @@ export default function Home() {
                 }
 
                 const data = (await response.json()).data;
-                
+
                 // if needed
                 // setUsername(data.username);
                 // setEmail(data.email);
@@ -100,8 +110,8 @@ export default function Home() {
                 console.error('Error during authentication:', error);
                 router.push('/login'); // Redirect to login in case of any error
             }
-    };
-    authenticateUser();
+        };
+        authenticateUser();
     }, []);
 
     // Fetch questions from backend API
@@ -114,7 +124,7 @@ export default function Home() {
                 const data = await response.json();
 
                 // Map backend data to match the frontend Question type
-                const mappedQuestions: Question[] = data.map((q: {id: number, title: string, complexity: string, category: string[], description: string, link: string,selected: boolean}) => ({
+                const mappedQuestions: Question[] = data.map((q: { id: number, title: string, complexity: string, category: string[], description: string, link: string, selected: boolean }) => ({
                     id: q.id,
                     title: q.title,
                     complexity: complexityList.find(
@@ -140,7 +150,7 @@ export default function Home() {
         if (filtersElement) {
             const filtersRect = filtersElement.getBoundingClientRect();
             const totalHeight = filtersRect.bottom;
-            setFiltersHeight(totalHeight+16);
+            setFiltersHeight(totalHeight + 16);
         }
     }, []);
 
@@ -219,7 +229,81 @@ export default function Home() {
 
     useEffect(() => {
         console.log("Selected complexities:", selectedComplexities);
-    }, [selectedComplexities]); // This effect runs every time selectedComplexities change 
+    }, [selectedComplexities]); // This effect runs every time selectedcomplexities change 
+
+    const handleMatch = useCallback(() => {
+        setIsMatching(prev => !prev);
+        setIsHovering(false);
+    }, []);
+
+    useEffect(() => {
+        if (isMatching) {
+            setMatchTime(0);
+            matchTimerRef.current = setInterval(() => {
+                setMatchTime((prevTime) => {
+                    if (prevTime >= 32) { // we use 32 so there is buffer
+                        clearInterval(matchTimerRef.current as NodeJS.Timeout);
+                        setMatchFailDialogOpen(true);
+                        // setMatchFoundDialogOpen(true);  use this to open match found dialog
+                        return 32;
+                    }
+                    return prevTime + 1;
+                });
+            }, 1000);
+        } else {
+            if (matchTimerRef.current) {
+                clearInterval(matchTimerRef.current);
+            }
+            setMatchTime(0);
+        }
+    }, [isMatching]);   
+
+    useEffect(() => {
+        if (isMatchFoundDialogOpen) {
+            setRedirectTime(5);
+            const redirectTimer = setInterval(() => {
+                setRedirectTime((prevTime) => {
+                    if (prevTime <= 1) {
+                        clearInterval(redirectTimer);
+                        // router.push('/questions');  Redirect to question page
+                        setMatchFoundDialogOpen(false);
+                        setIsMatching(false);
+                        return 0;
+                    }
+                    return prevTime - 1;
+                });
+            }, 1000);
+    
+            return () => clearInterval(redirectTimer);
+        }
+    }, [isMatchFoundDialogOpen, router]);
+    
+    useEffect(() => {
+        if (isMatchFailDialogOpen) {
+            setRedirectTime(5);
+            const redirectTimer = setInterval(() => {
+                setRedirectTime((prevTime) => {
+                    if (prevTime <= 1) {
+                        clearInterval(redirectTimer);
+                        setMatchFailDialogOpen(false);
+                        setIsMatching(false);
+                        return 0;
+                    }
+                    return prevTime - 1;
+                });
+            }, 1000);
+    
+            return () => clearInterval(redirectTimer);
+        }
+    }, [isMatchFailDialogOpen, router]);
+
+    const handleMouseEnter = useCallback(() => {
+        setIsHovering(true);
+    }, []);
+
+    const handleMouseLeave = useCallback(() => {
+        setIsHovering(false);
+    }, []);
 
     return (
         <main className="flex min-h-screen flex-row px-4 mx-8 mt-0 pt-0 gap-4 font-sans text-black">
@@ -263,7 +347,7 @@ export default function Home() {
                                 className="uppercase rounded-3xl"
                                 onClick={handleSelectAll}
                             >
-                                {isSelectAll ? "Deselect All" : "Select All"}
+                                {isSelectAll ? "Remove all" : "Add all"}
                             </Button>
                         )}
                     </div>
@@ -274,7 +358,6 @@ export default function Home() {
                         type="hover"
                     >
                         <div className="flex flex-col gap-2 overflow-auto pl-4 pr-4 pb-4" style={{ paddingTop: `${filtersHeight}px` }}>
-                            
                             {filteredQuestions.length == 0 ? (
                                 <div className="flex flex-col pt-80 gap-6 items-center justify-center text-center">
                                     <p className="text-base">No questions found</p>
@@ -289,7 +372,7 @@ export default function Home() {
                                         >
                                             <div className="flex-1">
                                                 <h3 className="text-xl font-serif font-semibold tracking-tight">
-                                                    {question.title}
+                                                    {question.id}. {question.title}
                                                 </h3>
                                                 <div className="flex items-center gap-2 mt-3">
                                                     <Badge
@@ -309,9 +392,14 @@ export default function Home() {
                                             <Button
                                                 variant={question.selected ? "default" : "outline"}
                                                 className="ml-4"
+                                                    size="sm"
                                                 onClick={() => handleSelectQuestion(question.id)}
                                             >
-                                                {question.selected ? "Selected" : "Select"}
+                                                    {question.selected ? (
+                                                        <div className="flex justify-center items-center"><Check className="h-4 w-4 mr-2" />Added</div>
+                                                    ) : (
+                                                        <div className="flex justify-center items-center"><Plus className="h-4 w-4 mr-2" />Add</div>
+                                                    )}
                                             </Button>
                                         </Card>
                                     </div>
@@ -321,43 +409,154 @@ export default function Home() {
                     </ScrollArea>
                 </div>
             </div>
-            <div className="hidden desktop:block desktop:w-1/2 mt-24 mb-8 p-6 bg-white drop-shadow-question-details rounded-xl">
-                {!selectedViewQuestion ? (
-                    <div className="flex items-center justify-center h-full text-muted-foreground">Select a question to view</div>
-                ) : (
-                    <div className="desktop:flex desktop:flex-col">
-                        <h3 className="text-2xl font-serif font-medium tracking-tight">
-                            {selectedViewQuestion.title}
-                        </h3>
-                        <div className="flex items-center gap-10 mt-3">
-                            <div className="flex items-center gap-2">
-                                <Flag className="h-4 w-4 text-icon" />
-                                <Badge
-                                    variant={
-                                        selectedViewQuestion.complexity as BadgeProps["variant"]
-                                    }
-                                >
-                                    {selectedViewQuestion.complexity}
-                                </Badge>
+            <div className="hidden mt-24 mb-8 desktop:w-1/2 desktop:flex desktop:flex-col space-y-4 px-4">
+                <div className="flex gap-4 justify-between items-end">
+                    <div className="flex flex-col w-[70%] items-start text-sm">
+                        <div className="font-medium pb-1.5 pl-2.5">Questions added for matching</div>
+                        {questionList.filter((question) => question.selected).length == 0 ? (
+                            <div className="flex p-1 h-20 w-full bg-gray-50 rounded-xl text-xs text-muted-foreground items-center justify-center">No questions added for matching</div>
+                        ) : (
+                            <div className="w-full p-1 h-20 bg-gray-50 rounded-xl">
+                                <ScrollArea type="auto" barOffset={1} className="h-full">
+                                    <div className="flex flex-wrap gap-0.5 mr-4">
+                                        {questionList
+                                            .filter((question) => question.selected)
+                                            .map((question) => (
+                                                <HoverCard key={question.id} openDelay={300}>
+                                                    <HoverCardTrigger>
+                                                        <Badge variant={question.complexity as BadgeProps["variant"]} className="w-fit">
+                                                            {question.title}
+                                                        </Badge>
+                                                    </HoverCardTrigger>
+                                                    <HoverCardContent className="rounded-xl p-2 w-fit">
+                                                        <div className="flex items-center gap-2">
+                                                            <MessageSquareText className="h-4 w-4 text-icon" />
+                                                            {question.categories.map((category) => (
+                                                                <Badge
+                                                                    key={category}
+                                                                    variant="category"
+                                                                    className="uppercase text-category-text bg-category-bg"
+                                                                >
+                                                                    {category}
+                                                                </Badge>
+                                                            ))}
+                                                        </div>
+                                                    </HoverCardContent>
+                                                </HoverCard>
+                                            ))}
+
+                                    </div>
+                                </ScrollArea>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <MessageSquareText className="h-4 w-4 text-icon" />
-                                {selectedViewQuestion.categories.map((category) => (
-                                    <Badge
-                                        key={category}
-                                        variant="category"
-                                        className="uppercase text-category-text bg-category-bg"
-                                    >
-                                        {category}
-                                    </Badge>
-                                ))}
-                            </div>
-                        </div>
-                        <p className="mt-8 text-sm text-foreground">
-                            {selectedViewQuestion.description}
-                        </p>
+                        )}
                     </div>
-                )}
+                    <div className="">
+                        <Button
+                            variant="match"
+                            className={cn(
+                                "group min-w-[150px] max-w-[150px] font-brand uppercase",
+                                isMatching && !isHovering && "bg-brand-600 hover:bg-brand-600 text-white",
+                                isMatching && isHovering && "text-destructive-foreground hover:bg-destructive/90"
+                            )}
+                            onClick={handleMatch}
+                            onMouseEnter={handleMouseEnter}
+                            onMouseLeave={handleMouseLeave}
+                        >
+                            {isMatching 
+                                ? (isHovering ? 'Cancel' : 'Matching') 
+                                : 'Match'}
+                            {isMatching ? (
+                                isHovering ? (
+                                    <X className="ml-2" />
+                                ) : (
+                                    <span className="ml-3 text-white/60 lowercase font-mono">{Math.min(matchTime, 30)}s</span>
+                                )
+                            ) : (
+                                <ChevronsRight className="ml-2 group-hover:translate-x-2 transition" />
+                            )}
+                        </Button>
+                    </div>
+                </div>
+                <div className="bg-white drop-shadow-question-details rounded-xl p-6 h-full">
+                    {!selectedViewQuestion ? (
+                        <div className="flex items-center justify-center h-full text-muted-foreground">Click on a question to view its details</div>
+                    ) : (
+                        <div className="desktop:flex desktop:flex-col">
+                            <h3 className="text-2xl font-serif font-medium tracking-tight">
+                                {selectedViewQuestion.title}
+                            </h3>
+                            <div className="flex items-center gap-10 mt-3">
+                                <div className="flex items-center gap-2">
+                                    <Flag className="h-4 w-4 text-icon" />
+                                    <Badge
+                                        variant={
+                                            selectedViewQuestion.complexity as BadgeProps["variant"]
+                                        }
+                                    >
+                                        {selectedViewQuestion.complexity}
+                                    </Badge>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <MessageSquareText className="h-4 w-4 text-icon" />
+                                    {selectedViewQuestion.categories.map((category) => (
+                                        <Badge
+                                            key={category}
+                                            variant="category"
+                                            className="uppercase text-category-text bg-category-bg"
+                                        >
+                                            {category}
+                                        </Badge>
+                                    ))}
+                                </div>
+                            </div>
+                            <p className="mt-8 text-sm text-foreground">
+                                {selectedViewQuestion.description}
+                            </p>
+                        </div>
+                    )}
+                </div>
+
+                <Dialog open={isMatchFoundDialogOpen}>
+                    <DialogTrigger />
+                    <DialogContent
+                        className="laptop:max-w-[40vw] bg-white text-black font-sans rounded-2xl [&>button]:hidden"
+                        onPointerDownOutside={(e) => e.preventDefault()}
+                        onInteractOutside={(e) => e.preventDefault()}
+                        onEscapeKeyDown={(e) => e.preventDefault()}
+                    >
+                        <DialogHeader className="items-start">
+                        <DialogTitle className="font-serif font-normal tracking-tight text-3xl">
+                            Match found
+                        </DialogTitle>
+                        <DialogDescription className="hidden"></DialogDescription>
+                        </DialogHeader>
+                        <div className="flex flex-col w-full gap-2 py-4 justify-start">
+                            <p>A match has been found!</p>
+                            <p>Redirecting you back to the question page in {redirectTime} {redirectTime === 1 ? "second" : "seconds"}</p>
+                        </div>
+                    </DialogContent>
+                </Dialog>
+
+                <Dialog open={isMatchFailDialogOpen}>
+                    <DialogTrigger />
+                    <DialogContent
+                        className="laptop:max-w-[40vw] bg-white text-black font-sans rounded-2xl [&>button]:hidden"
+                        onPointerDownOutside={(e) => e.preventDefault()}
+                        onInteractOutside={(e) => e.preventDefault()}
+                        onEscapeKeyDown={(e) => e.preventDefault()}
+                    >
+                        <DialogHeader className="items-start">
+                        <DialogTitle className="font-serif font-normal tracking-tight text-3xl">
+                            Match not found
+                        </DialogTitle>
+                        <DialogDescription className="hidden"></DialogDescription>
+                        </DialogHeader>
+                        <div className="flex flex-col w-full gap-2 py-4 justify-start">
+                            <p>Please try again.</p>
+                            <p>Redirecting you back to the question page in {redirectTime} {redirectTime === 1 ? "second" : "seconds"}...</p>
+                        </div>
+                    </DialogContent>
+                </Dialog>
             </div>
         </main>
     );

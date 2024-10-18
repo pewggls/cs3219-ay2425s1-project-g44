@@ -174,18 +174,18 @@ export default function OTPForm() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="bg-white px-6 pt-10 pb-9 shadow-xl mx-auto w-full max-w-2xl rounded-2xl">
-        <div className="flex flex-col items-center justify-center text-center space-y-2 mb-5">
-          <div className="font-semibold text-3xl">
-            <p>Email Verification</p>
-          </div>
-          <div className="flex flex-row text-sm font-medium text-gray-400">
-            <p>We have sent a code to your email {param_email && ":" + param_email}<br/>Please check your email.</p>
-          </div>
+    <div className="flex items-center justify-center min-h-screen bg-gray-100 font-sans">
+      <div className="flex flex-col bg-white px-6 pt-10 pb-9 shadow-xl w-full max-w-2xl rounded-2xl">
+        <div className="flex flex-col gap-2 text-center">
+            <span className="font-serif font-light text-4xl text-primary tracking-tight">
+              Email Verification
+            </span>
+            <p className="text-sm text-muted-foreground">
+              We have sent a code to your email{param_email && ": " + param_email}
+            </p>
         </div>
         {error && (
-            <Alert variant="destructive">
+            <Alert variant="destructive" className="mt-4">
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle className="font-semibold">Error</AlertTitle>
                 <AlertDescription>
@@ -206,7 +206,7 @@ export default function OTPForm() {
                   <FormControl>
                     <OTPInput
                         maxLength={6}
-                        containerClassName="group flex items-center has-[:disabled]:opacity-30"
+                        containerClassName="group flex text-black items-center has-[:disabled]:opacity-30"
                         render={({ slots }) => (
                             <>
                             <div className="flex">
@@ -226,7 +226,7 @@ export default function OTPForm() {
                 {isLoading ? (
                     <LoaderCircle className="animate-spin" />
                 ) : (
-                    "Verify Account"
+                    "Verify"
                 )}
             </Button>
           </form>
