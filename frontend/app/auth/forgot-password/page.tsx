@@ -91,7 +91,7 @@ export default function ForgottenPassword() {
 
     return (
         <div className="flex flex-col min-h-screen w-screen px-10 items-start justify-center bg-white font-sans">
-            <div className="-mt-80 mx-auto flex flex-col justify-center gap-6 w-[350px]">
+            <div className="-mt-48 mx-auto flex flex-col justify-center gap-6 w-[350px]">
                 <div className="pb-10">
                     <Button asChild variant="ghost" size="sm" className="pl-0 py-1 pr-2 -ml-1"><Link href="/auth/login" className="text-muted-foreground"><ChevronLeft className="h-5 w-5" />Back to Login</Link></Button>
                 </div>
