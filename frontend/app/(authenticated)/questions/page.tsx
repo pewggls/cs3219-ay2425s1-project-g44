@@ -244,7 +244,7 @@ export default function Questions() {
                     if (prevTime >= 32) { // we use 32 so there is buffer
                         clearInterval(matchTimerRef.current as NodeJS.Timeout);
                         setMatchFailDialogOpen(true);
-                        // setMatchFoundDialogOpen(true);  use this to open match found dialog
+                        // setMatchFoundDialogOpen(true); // use this to open match found dialog
                         return 32;
                     }
                     return prevTime + 1;
@@ -346,6 +346,7 @@ export default function Questions() {
                                 variant="outline"
                                 className="uppercase rounded-3xl"
                                 onClick={handleSelectAll}
+                                disabled={isMatching}
                             >
                                 {isSelectAll ? "Remove all" : "Add all"}
                             </Button>
@@ -392,8 +393,9 @@ export default function Questions() {
                                             <Button
                                                 variant={question.selected ? "default" : "outline"}
                                                 className="ml-4"
-                                                    size="sm"
+                                                size="sm"
                                                 onClick={() => handleSelectQuestion(question.id)}
+                                                disabled={isMatching}
                                             >
                                                     {question.selected ? (
                                                         <div className="flex justify-center items-center"><Check className="h-4 w-4 mr-2" />Added</div>
@@ -517,7 +519,6 @@ export default function Questions() {
                 </div>
 
                 <Dialog open={isMatchFoundDialogOpen}>
-                    <DialogTrigger />
                     <DialogContent
                         className="laptop:max-w-[40vw] bg-white text-black font-sans rounded-2xl [&>button]:hidden"
                         onPointerDownOutside={(e) => e.preventDefault()}
@@ -530,15 +531,14 @@ export default function Questions() {
                         </DialogTitle>
                         <DialogDescription className="hidden"></DialogDescription>
                         </DialogHeader>
-                        <div className="flex flex-col w-full gap-2 py-4 justify-start">
-                            <p>A match has been found!</p>
-                            <p>Redirecting you back to the question page in {redirectTime} {redirectTime === 1 ? "second" : "seconds"}</p>
+                        <div className="flex flex-col w-full gap-1 py-4 justify-start">
+                            <p>You have been matched with <span className="font-semibold">username</span></p>
+                            <p>Redirecting you back to the question page in {redirectTime} {redirectTime === 1 ? "second" : "seconds"}...</p>
                         </div>
                     </DialogContent>
                 </Dialog>
 
                 <Dialog open={isMatchFailDialogOpen}>
-                    <DialogTrigger />
                     <DialogContent
                         className="laptop:max-w-[40vw] bg-white text-black font-sans rounded-2xl [&>button]:hidden"
                         onPointerDownOutside={(e) => e.preventDefault()}
@@ -551,7 +551,7 @@ export default function Questions() {
                         </DialogTitle>
                         <DialogDescription className="hidden"></DialogDescription>
                         </DialogHeader>
-                        <div className="flex flex-col w-full gap-2 py-4 justify-start">
+                        <div className="flex flex-col w-full gap-1 py-4 justify-start">
                             <p>Please try again.</p>
                             <p>Redirecting you back to the question page in {redirectTime} {redirectTime === 1 ? "second" : "seconds"}...</p>
                         </div>
