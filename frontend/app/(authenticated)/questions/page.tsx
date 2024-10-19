@@ -9,7 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { Check, ChevronsRight, Flag, MessageSquareText, Plus, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { use, useCallback, useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 type Question = {
@@ -72,6 +72,10 @@ export default function Questions() {
     const matchTimerRef = useRef<NodeJS.Timeout | null>(null);
     const [isMatchFoundDialogOpen, setMatchFoundDialogOpen] = useState(false);
     const [isMatchFailDialogOpen, setMatchFailDialogOpen] = useState(false);
+    const [matchResult, setMatchResult] = useState({ id: '', username: ''})
+    const timeout = useRef(false);
+    const selectedQuestionList = React.useRef<number[]>([])
+    const userInfo = useRef({ id: "", username: ""});
 
     // authenticate user else redirect them to login page
     useEffect(() => {
@@ -99,13 +103,7 @@ export default function Questions() {
                 }
 
                 const data = (await response.json()).data;
-
-                // if needed
-                // setUsername(data.username);
-                // setEmail(data.email);
-                // form.setValue("username", data.username);
-                // form.setValue("email", data.email);
-                // userId.current = data.id;
+                userInfo.current = { id: data.id, username: data.username};
             } catch (error) {
                 console.error('Error during authentication:', error);
                 router.push('/login'); // Redirect to login in case of any error
@@ -185,6 +183,10 @@ export default function Questions() {
         const newIsSelectAll = !isSelectAll;
         setIsSelectAll(newIsSelectAll);
 
+        const arr: number[] = newIsSelectAll
+            ? filteredQuestions.map((f_qns) => f_qns.id)
+            : [];
+
         // Toggle selection of all questions
         const updatedQuestions = questionList.map((question) =>
             filteredQuestions.map((f_qns) => f_qns.id).includes(question.id)
@@ -194,17 +196,24 @@ export default function Questions() {
                 }
                 : question
         );
+        selectedQuestionList.current = arr;
         setQuestionList(updatedQuestions);
     };
 
     // Function to handle individual question selection
     const handleSelectQuestion = (id: number) => {
+
         const updatedQuestions = questionList.map((question) =>
             question.id === id
                 ? { ...question, selected: !question.selected }
                 : question
         );
+        // Update the selected questions list (collect the IDs of selected questions)
+        const selectedQuestions = updatedQuestions
+            .filter((question) => question.selected) // Only keep selected questions
+            .map((question) => question.id); // Extract their IDs
         setQuestionList(updatedQuestions);
+        selectedQuestionList.current = selectedQuestions;
     };
 
     useEffect(() => {
@@ -231,17 +240,129 @@ export default function Questions() {
         console.log("Selected complexities:", selectedComplexities);
     }, [selectedComplexities]); // This effect runs every time selectedcomplexities change 
 
-    const handleMatch = useCallback(() => {
+    const handleMatch1 = useCallback(() => {
         setIsMatching(prev => !prev);
         setIsHovering(false);
     }, []);
 
+    const ws = useRef<WebSocket | null>(null); // WebSocket reference
+    const handleMatch = useCallback(() => {
+        setIsMatching(prev => !prev)
+        setIsHovering(false);
+
+        if (ws.current === null || ws.current.readyState === WebSocket.CLOSED || ws.current.readyState === WebSocket.CLOSING) {
+            console.log("Connecting to web socket for matching service ...")
+            // Initialize WebSocket connection if not already matching
+            ws.current = new WebSocket(process.env.NEXT_PUBLIC_MATCHING_API_URL || 'ws://localhost:3002/matching');
+        }
+
+        ws.current.onopen = () => {
+            console.log("WebSocket connection opened. Now sending msg to WebSocket.");
+
+            const message = {
+                event: "enqueue",
+                userId: userInfo.current.id,
+                username: userInfo.current.username,
+                questions: selectedQuestionList.current, 
+            };
+    
+            ws.current?.send(JSON.stringify(message));
+            console.log("Sent matching request to web socket:", message);
+        };
+
+        ws.current.onmessage = (event) => {
+            if (event.data == "Welcome to websocket server") {
+                console.log("receive welcome msg from websocket server")
+                return ;
+            }
+            // // Handle successful match
+            // if (message.startsWith("User") && message.includes("matched with User")) {
+            //     // Extract userId and peerUserId from the message (if needed for display purposes)
+            //     const matchDetails = message.match(/User (\w+) matched with User (\w+) \(username: ([\w\s]+)\)/);
+            //     console.log("match detail", matchDetails);
+            //     const userId = matchDetails[1];
+            //     const peerUserId = matchDetails[2];
+            //     const peerUserName = 
+
+            //     // Set match result in state (adjust as needed)
+            //     setMatchResult({ id: peerUserId, username: "" });
+            //     setMatchFoundDialogOpen(true); // Open match found dialog
+            // } else if (message.startsWith("No matches for")) { // Handle timeout/no match found message
+            //     console.log("No matches found for the user.");
+            //     setMatchFailDialogOpen(true); // Open match failed dialog
+            // } else { // Handle unexpected messages
+            //     console.warn("Unexpected message received:", message);
+            //     setMatchFailDialogOpen(true);
+            // }
+            const message = JSON.parse(event.data);
+            console.log("message receive from websocket", message);
+
+            // Handle different message statuses
+            switch (message.status) {
+                case 'success':
+                    console.log(`User ${message.userId} matched with User ${message.peerUserId} (username: ${message.peerUsername}).`);
+                    setMatchResult({ id: message.peerUserId, username: message.peerUsername });
+                    setMatchFoundDialogOpen(true);
+                    break;
+
+                case 'dequeue':
+                    console.log(`User ${message.userId} dequeued from matchmaking.`);
+                    break;
+
+                case 'timeout':
+                    console.log(`No matches for user ${message.userId}.`);
+                    setMatchFailDialogOpen(true);
+                    break;
+
+                default:
+                    console.warn("Unexpected message received:", message);
+                    setMatchFailDialogOpen(true);
+                    break;
+            }
+        }
+
+        ws.current.onclose = () => {
+            console.log("WebSocket connection closed");
+            setIsMatching(false);
+        };
+    
+        ws.current.onerror = (error) => {
+            console.error("WebSocket error:", error);
+            setIsMatching(false);
+            setMatchFailDialogOpen(true); // Show failure dialog if there's an error
+        };
+    }, []);
+
+    const handleCancel = useCallback(() => {
+        setIsMatching(false);
+        if (ws.current === null || ws.current.readyState === WebSocket.CLOSED || ws.current.readyState === WebSocket.CLOSING) {
+            console.log("Connecting to web socket for matching service ...")
+            // Initialize WebSocket connection if not already matching
+            ws.current = new WebSocket(process.env.NEXT_PUBLIC_MATCHING_API_URL || 'ws://localhost:3002/matching');
+            console.log(ws.current.readyState)
+        }
+        ws.current.onopen = () => {
+            console.log("WebSocket connection opened");
+
+            const message = {
+                event: "dequeue",
+                userId: userInfo.current.id,
+                username: userInfo.current.username,
+                questions: [],
+            };
+    
+            ws.current?.send(JSON.stringify(message));
+        };
+    }, [])
+
     useEffect(() => {
+        timeout.current = false;
         if (isMatching) {
             setMatchTime(0);
             matchTimerRef.current = setInterval(() => {
                 setMatchTime((prevTime) => {
                     if (prevTime >= 32) { // we use 32 so there is buffer
+                        timeout.current = true;
                         clearInterval(matchTimerRef.current as NodeJS.Timeout);
                         setMatchFailDialogOpen(true);
                         // setMatchFoundDialogOpen(true); // use this to open match found dialog
@@ -454,15 +575,23 @@ export default function Questions() {
                     </div>
                     <div className="">
                         <Button
-                            variant="match"
+                            variant="ghost"
                             className={cn(
                                 "group min-w-[150px] max-w-[150px] font-brand uppercase",
                                 isMatching && !isHovering && "bg-brand-600 hover:bg-brand-600 text-white",
                                 isMatching && isHovering && "text-destructive-foreground hover:bg-destructive/90"
                             )}
-                            onClick={handleMatch}
+                            onClick={() => {
+                                if (isMatching) {
+                                    handleCancel();
+                                } else {
+                                    // Perform the initial match action
+                                    handleMatch();
+                                }
+                            }}
                             onMouseEnter={handleMouseEnter}
                             onMouseLeave={handleMouseLeave}
+                            disabled={selectedQuestionList.current.length === 0}
                         >
                             {isMatching 
                                 ? (isHovering ? 'Cancel' : 'Matching') 
@@ -532,7 +661,7 @@ export default function Questions() {
                         <DialogDescription className="hidden"></DialogDescription>
                         </DialogHeader>
                         <div className="flex flex-col w-full gap-1 py-4 justify-start">
-                            <p>You have been matched with <span className="font-semibold">username</span></p>
+                            <p>You have been matched with <span className="font-semibold">{matchResult.username}</span></p>
                             <p>Redirecting you back to the question page in {redirectTime} {redirectTime === 1 ? "second" : "seconds"}...</p>
                         </div>
                     </DialogContent>
