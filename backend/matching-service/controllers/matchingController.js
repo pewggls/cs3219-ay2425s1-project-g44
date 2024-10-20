@@ -32,8 +32,24 @@ const consumer = kafka.consumer({ groupId: 'matching-group' });
 const eventEmitter = new EventEmitter();
 let dequeued = new Map();
 
+let userQueueMap = new Map();
+
 const matchmakeUser = async (userId, userName, questions) => {
     return new Promise((resolve, reject) => {
+        // Check if the user is already in the queue
+        if (userQueueMap.has(userId)) {
+            const kickOutMsg = {
+                event: "kicked-out",
+                userId: userId,
+                reason: "Multiple instances detected"
+            };
+            resolve(JSON.stringify(kickOutMsg));
+            return;
+        }
+
+        // Add the user to the queue map
+        userQueueMap.set(userId, Date.now());
+
         produceMessage({
             userId: userId,
             userName: userName,
@@ -121,6 +137,21 @@ const batchProcess = () => {
     console.log(`sorted batch is`, batch);
     let questionDict = new Map();
     let unmatchedUsers = new Map();
+
+    // Remove duplicate users, keeping only the most recent instance
+    let uniqueUsers = new Map();
+    for (const user of batch) {
+        if (uniqueUsers.has(user.userId)) {
+            if (user.enqueueTime > uniqueUsers.get(user.userId).enqueueTime) {
+                uniqueUsers.set(user.userId, user);
+            }
+        } else {
+            uniqueUsers.set(user.userId, user);
+        }
+    }
+    
+    batch = Array.from(uniqueUsers.values());
+
     batch.forEach((user) => {
         if (!dequeued.has(user.userId)) {
             unmatchedUsers.set(user.userId, user);
@@ -131,6 +162,7 @@ const batchProcess = () => {
             // User has timed out.
             // TODO: send timeout event emitter.
             unmatchedUsers.delete(user.userId);
+            userQueueMap.delete(user.userId);
             continue;
         }
         if (!unmatchedUsers.has(user.userId)) {
@@ -142,13 +174,15 @@ const batchProcess = () => {
             const peerUserId = questionDict.get(question);
             // Note: UserId cannot be 0, 
             // since 0 is falsy and would break this if-conditional.
-            if (peerUserId && unmatchedUsers.has(peerUserId)) {
+            if (peerUserId && unmatchedUsers.has(peerUserId) && peerUserId !== user.userId) {
                 // Found match!!
                 const peerUserName = unmatchedUsers.get(peerUserId).userName;
                 eventEmitter.emit(`success-${user.userId}`, peerUserId, peerUserName, question)
                 eventEmitter.emit(`success-${peerUserId}`, user.userId, user.userName, question)
                 unmatchedUsers.delete(user.userId);
                 unmatchedUsers.delete(peerUserId);
+                userQueueMap.delete(user.userId);
+                userQueueMap.delete(peerUserId);
             } else {
                 // Else, keep looking
                 questionDict.set(question, user.userId)
