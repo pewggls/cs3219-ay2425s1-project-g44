@@ -1,7 +1,7 @@
 // controllers/matchingController.js
 const { Kafka } = require('kafkajs');
 const EventEmitter = require('events');
-const QUEUE_TIME = 10000;
+const QUEUE_TIME = 30000;
 const BATCH_INTERVAL = 10000;
 
 // Kafka setup
