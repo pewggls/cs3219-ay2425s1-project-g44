@@ -13,18 +13,17 @@ wss.on("connection", (ws) => {
 
     ws.on('message', async (msg) => {
         msg = JSON.parse(msg)
+        let res;
         if (msg.event == "enqueue") {
-            let res;
             try {
-                res = await matchmakeUser(msg.userId, msg.questions)
+                res = await matchmakeUser(msg.userId, msg.userName, msg.questions)
             } catch (failure) {
                 res = failure
             }
-            ws.send(res)
-            ws.close()
+            ws.send(res);
+            ws.close();
         } else if (msg.event == "dequeue") {
             dequeueUser(msg.userId);
-            ws.close();
             console.log("User has been dequeued")
         }
     });

@@ -32,29 +32,32 @@ const consumer = kafka.consumer({ groupId: 'matching-group' });
 const eventEmitter = new EventEmitter();
 let dequeued = new Map();
 
-const matchmakeUser = async (userId, questions) => {
+const matchmakeUser = async (userId, userName, questions) => {
     return new Promise((resolve, reject) => {
         produceMessage({
             userId: userId,
+            userName: userName,
             questions: questions
         }, false);
-        eventEmitter.once(`success-${userId}`, (peerUserId, question) => {
-            const res = {
+        eventEmitter.once(`success-${userId}`, (peerUserId, peerUserName, question) => {
+            const success_res = {
                 event: "match-success",
                 userId: userId,
+                userName: userName,
                 peerUserId: peerUserId,
+                peerUserName: peerUserName,
                 agreedQuestion: question
             }
-            resolve(JSON.stringify(res));
+            resolve(JSON.stringify(success_res));
             // resolve(`User ${userId} matched with User ${peerUserId}.`)
         });
         eventEmitter.once(`dequeue-${userId}`, () => {
             dequeued.set(userId, true);
-            const res = {
+            const dequeue_res = {
                 event: "dequeued-success",
                 userId: userId
             }
-            resolve(JSON.stringify(res));
+            resolve(JSON.stringify(dequeue_res));
             // resolve(`User ${userId} dequeued from matchmaking.`)
         })
         setTimeout(() => {
@@ -76,6 +79,7 @@ const dequeueUser = async (userId) => {
 const produceMessage = async (request, isRequeue = false) => {
     const msg = {
         userId: request.userId,
+        userName: request.userName,
         questions: request.questions,
         enqueueTime: isRequeue ? request.enqueueTime : Date.now()
     }
@@ -139,8 +143,9 @@ const batchProcess = () => {
             // since 0 is falsy and would break this if-conditional.
             if (peerUserId && unmatchedUsers.has(peerUserId)) {
                 // Found match!!
-                eventEmitter.emit(`success-${user.userId}`, peerUserId, question)
-                eventEmitter.emit(`success-${peerUserId}`, user.userId, question)
+                const peerUserName = unmatchedUsers.get(peerUserId).userName;
+                eventEmitter.emit(`success-${user.userId}`, peerUserId, peerUserName, question)
+                eventEmitter.emit(`success-${peerUserId}`, user.userId, user.userName, question)
                 unmatchedUsers.delete(user.userId);
                 unmatchedUsers.delete(peerUserId);
             } else {
