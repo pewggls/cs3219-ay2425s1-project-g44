@@ -12,9 +12,11 @@ wss.on("connection", (ws) => {
     ws.send("Welcome to websocket server");
 
     ws.on('message', async (msg) => {
+        // console.log(`Received message: ${msg}`);
         msg = JSON.parse(msg)
         let res;
         if (msg.event == "enqueue") {
+
             try {
                 res = await matchmakeUser(msg.userId, msg.userName, msg.questions)
             } catch (failure) {
