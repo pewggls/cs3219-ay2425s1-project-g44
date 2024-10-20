@@ -4,6 +4,7 @@
 
 
 ### API Endpoints
+#### Question Service
 The question microservice exposes the following API endpoints:
 - ```questions/all``` - Returns all the questions available on the database.
 - ```questions/byId/[Question ID]``` - Returns a single question by ID number.
@@ -13,8 +14,49 @@ The question microservice exposes the following API endpoints:
 - ```questions/delete/[Question ID]``` - Deletes a question from the database by ID number.
 - ```questions/update/[Question ID]``` - Updates a question from the database by ID number.
 - ```questions/patch/[Question ID]``` - Patches a question from the database by ID number.
-The matching microservice exposes the following API endpoints:
-- ```matching/produce``` - Produce a message to Kafka.
+
+#### Matching Service
+The matching microservice exposes the following API endpoint (via a WebSocket connection):
+- ```/``` - Persistently opens a connection to the service.
+
+Message Protocol (JSON):
+
+**Note**: WebSocket only sends strings, so use ```JSON.stringify()``` to convert your JS request objects into strings (and ```JSON.parse()``` to parse responses) when communicating via WebSocket.<br>
+
+1. To enqueue a user:
+```
+{
+  event: "enqueue",
+  userId: <ID of the user>,
+  questions: [<Array containing question IDs.>]
+}
+```
+Replies with:
+
+- On successful match within 30s:
+```
+{
+  event: "match-success",
+  userId: <ID of this user>,
+  peerUserId: <ID of the other user>,
+  agreedQuestion: <The question that has been agreed upon by both users>
+}
+```
+- On timeout after 30s (no match found):
+```
+{
+   event: "match-timeout",
+   userId: <ID of this user>
+}
+```
+2. To dequeue a user:
+- Replies with an ```dequeue-success``` event.
+```
+{
+  "event": "dequeue",
+  "userId": <ID of this user>,
+}
+```
 
 ### Running PeerPrep
 In the root directory, run

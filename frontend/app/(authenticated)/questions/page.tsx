@@ -298,25 +298,25 @@ export default function Questions() {
             console.log("message receive from websocket", message);
 
             // Handle different message statuses
-            switch (message.status) {
-                case 'success':
-                    console.log(`User ${message.userId} matched with User ${message.peerUserId} (username: ${message.peerUsername}).`);
-                    setMatchResult({ id: message.peerUserId, username: message.peerUsername });
+            switch (message.event) {
+                case 'match-success':
+                    console.log(`User ${message.userId} matched with User ${message.peerUserId} (username: ${message.peerUserName}).`);
+                    setMatchResult({ id: message.peerUserId, username: message.peerUserName });
                     setMatchFoundDialogOpen(true);
                     break;
 
-                case 'dequeue':
+                case 'dequeued-success':
                     console.log(`User ${message.userId} dequeued from matchmaking.`);
                     break;
 
-                case 'timeout':
+                case 'match-timeout':
                     console.log(`No matches for user ${message.userId}.`);
-                    setMatchFailDialogOpen(true);
+                    // setMatchFailDialogOpen(true);
                     break;
 
                 default:
                     console.warn("Unexpected message received:", message);
-                    setMatchFailDialogOpen(true);
+                    // setMatchFailDialogOpen(true);
                     break;
             }
         }
@@ -343,7 +343,7 @@ export default function Questions() {
         }
         ws.current.onopen = () => {
             console.log("WebSocket connection opened");
-
+            console.log("Request to cancel match")
             const message = {
                 event: "dequeue",
                 userId: userInfo.current.id,
@@ -353,6 +353,15 @@ export default function Questions() {
     
             ws.current?.send(JSON.stringify(message));
         };
+
+        ws.current.onmessage = (event) => {
+            if (event.data == "Welcome to websocket server") {
+                console.log("receive welcome msg from websocket server")
+                return ;
+            }
+            const message = JSON.parse(event.data);
+            console.log("message receive from websocket", message);
+        }
     }, [])
 
     useEffect(() => {

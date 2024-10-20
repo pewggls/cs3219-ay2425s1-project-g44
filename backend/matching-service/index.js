@@ -19,12 +19,15 @@ wss.on("connection", (ws) => {
             // console.log(`User ${msg.userId} has been enqueued.`)
             try {
                 res = await matchmakeUser(msg.userId, msg.username, msg.questions)
+
             } catch (failure) {
                 res = failure
             }
             ws.send(res)
             ws.close()
         } else if (msg.event == "dequeue") {
+            dequeueUser(msg.userId);
+            ws.close();
             console.log("User has been dequeued")
         }
     });

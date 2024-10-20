@@ -30,51 +30,56 @@ const consumer = kafka.consumer({ groupId: 'matching-group' });
 })();
 
 const eventEmitter = new EventEmitter();
+let dequeued = new Map();
 
-const matchmakeUser = async (userId, username, questions) => {
+const matchmakeUser = async (userId, userName, questions) => {
     return new Promise((resolve, reject) => {
         produceMessage({
             userId: userId,
-            username: username,
+            userName: userName,
             questions: questions
         }, false);
-        eventEmitter.once(`success-${userId}`, (peerUserId, peerUsername) => {
-            const message = {
-                status: 'success',
+        eventEmitter.once(`success-${userId}`, (peerUserId, peerUserName, question) => {
+            const res = {
+                event: "match-success",
                 userId: userId,
+                userName: userName,
                 peerUserId: peerUserId,
-                peerUsername: peerUsername,
-                message: `User ${userId} matched with User ${peerUserId} (username: ${peerUsername}).`
-            };
-        
-            resolve(JSON.stringify(message));
+                peerUserName: peerUserName,
+                agreedQuestion: question
+            }
+            resolve(JSON.stringify(res));
+            // resolve(`User ${userId} matched with User ${peerUserId}.`)
         });
         eventEmitter.once(`dequeue-${userId}`, () => {
-            const message = {
-                status: 'dequeue',
-                userId: userId,
-                message: `User ${userId} dequeued from matchmaking.`
-            };
-        
-            resolve(JSON.stringify(message));
-        });
+            dequeued.set(userId, true);
+            const res = {
+                event: "dequeued-success",
+                userId: userId
+            }
+            resolve(JSON.stringify(res));
+            // resolve(`User ${userId} dequeued from matchmaking.`)
+        })
         setTimeout(() => {
-            const message = {
-                status: 'timeout',
-                userId: userId,
-                message: `No matches for ${userId}.`
+            const rejectionMsg = {
+                event: "match-timeout",
+                userId: userId
             };
-        
-            reject(JSON.stringify(message));
+            reject(JSON.stringify(rejectionMsg));
+            // reject(`No matches for ${userId}.`)
         }, QUEUE_TIME);
     })
+}
+
+const dequeueUser = async (userId) => {
+    eventEmitter.emit(`dequeue-${userId}`);
 }
 
 // Produce a message to Kafka (used in the POST /produce route)
 const produceMessage = async (request, isRequeue = false) => {
     const msg = {
         userId: request.userId,
-        username: request.username,
+        userName: request.userName,
         questions: request.questions,
         enqueueTime: isRequeue ? request.enqueueTime : Date.now()
     }
@@ -86,11 +91,9 @@ const produceMessage = async (request, isRequeue = false) => {
         ],
     }
     try {
-        // await producer.connect();
         await producer.send(message).then(() => {
             console.log(`Enqueued message: ${stringifiedMsg}`)
         });
-        // await producer.disconnect();
     } catch (error) {
         console.error('Error producing message:', error);
     }
@@ -99,20 +102,15 @@ const produceMessage = async (request, isRequeue = false) => {
 // Produce a startup message when the service starts
 const produceStartupMessage = async () => {
     try {
-        // await producer.connect();
         const message = 'Hello from producer';
-        // await producer.send({
-        //     topic: 'test-topic',
-        //     messages: [{ value: message }],
-        // });
         console.log(`Produced startup message: ${message}`);
-        // await producer.disconnect();
     } catch (error) {
         console.error('Error producing startup message:', error);
     }
 };
 
 let batch = [];
+
 const batchProcess = () => {
     if (batch.length == 0) {
         console.log("No messages to process in this batch cycle.");
@@ -123,7 +121,9 @@ const batchProcess = () => {
     let questionDict = new Map();
     let unmatchedUsers = new Map();
     batch.forEach((user) => {
-        unmatchedUsers.set(user.userId, user);
+        if (!dequeued.has(user.userId)) {
+            unmatchedUsers.set(user.userId, user);
+        }
     });
     for (const user of batch) {
         if (Date.now() - user.enqueueTime >= QUEUE_TIME) {
@@ -133,23 +133,24 @@ const batchProcess = () => {
             continue;
         }
         if (!unmatchedUsers.has(user.userId)) {
-            // User has already been matched.
+            // User has already been matched/dequeued.
             continue;
         }
         
         user.questions.forEach((question) => {
-            const peerUser = questionDict.get(question);
+            const peerUserId = questionDict.get(question);
             // Note: UserId cannot be 0, 
             // since 0 is falsy and would break this if-conditional.
-            if (peerUser && unmatchedUsers.has(peerUser.userId)) {
+            if (peerUserId && unmatchedUsers.has(peerUserId)) {
                 // Found match!!
-                eventEmitter.emit(`success-${user.userId}`, peerUser.userId, peerUser.username)
-                eventEmitter.emit(`success-${peerUser.userId}`, user.userId, user.username)
+                const peerUserName = unmatchedUsers.get(peerUserId).userName;
+                eventEmitter.emit(`success-${user.userId}`, peerUserId, peerUserName, question)
+                eventEmitter.emit(`success-${peerUserId}`, user.userId, user.userName, question)
                 unmatchedUsers.delete(user.userId);
-                unmatchedUsers.delete(peerUser.userId);
+                unmatchedUsers.delete(peerUserId);
             } else {
                 // Else, keep looking
-                questionDict.set(question, user)
+                questionDict.set(question, user.userId)
             }
         })
     }
@@ -158,13 +159,12 @@ const batchProcess = () => {
             console.log(`User ${key} returned to queue.`)
         }
         batch = [];
+        dequeued.clear();
 };
 
 // Start consuming messages from Kafka
 const runConsumer = async () => {
     try {
-        // await consumer.connect();
-        // await consumer.subscribe({ topic: 'test-topic', fromBeginning: true });
         await consumer.subscribe({ topic: 'test-topic', fromBeginning: true });
 
         setInterval(batchProcess, BATCH_INTERVAL);
@@ -182,5 +182,6 @@ const runConsumer = async () => {
 
 module.exports = {
     runConsumer,
-    matchmakeUser
+    matchmakeUser,
+    dequeueUser
 };
