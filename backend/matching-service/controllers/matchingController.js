@@ -49,7 +49,7 @@ const matchmakeUser = async (userId, questions) => {
             // resolve(`User ${userId} matched with User ${peerUserId}.`)
         });
         eventEmitter.once(`dequeue-${userId}`, () => {
-            dequeued.set(userId, True);
+            dequeued.set(userId, true);
             const res = {
                 event: "dequeued-success",
                 userId: userId
@@ -66,6 +66,10 @@ const matchmakeUser = async (userId, questions) => {
             // reject(`No matches for ${userId}.`)
         }, QUEUE_TIME);
     })
+}
+
+const dequeueUser = async (userId) => {
+    eventEmitter.emit(`dequeue-${userId}`);
 }
 
 // Produce a message to Kafka (used in the POST /produce route)
@@ -173,5 +177,6 @@ const runConsumer = async () => {
 
 module.exports = {
     runConsumer,
-    matchmakeUser
+    matchmakeUser,
+    dequeueUser
 };
