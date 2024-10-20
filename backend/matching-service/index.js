@@ -16,7 +16,7 @@ wss.on("connection", (ws) => {
         if (msg.event == "enqueue") {
             let res;
             try {
-                res = await matchmakeUser(msg.userId, msg.questions)
+                res = await matchmakeUser(msg.userId, msg.username, msg.questions)
             } catch (failure) {
                 res = failure
             }
