@@ -247,7 +247,7 @@ export default function Questions() {
 
     const ws = useRef<WebSocket | null>(null); // WebSocket reference
     const handleMatch = useCallback(() => {
-        setIsMatching(prev => !prev)
+        setIsMatching(prev => !prev);
         setIsHovering(false);
 
         if (ws.current === null || ws.current.readyState === WebSocket.CLOSED || ws.current.readyState === WebSocket.CLOSING) {
@@ -262,7 +262,7 @@ export default function Questions() {
             const message = {
                 event: "enqueue",
                 userId: userInfo.current.id,
-                username: userInfo.current.username,
+                userName: userInfo.current.username,
                 questions: selectedQuestionList.current, 
             };
     
@@ -311,7 +311,7 @@ export default function Questions() {
 
                 case 'match-timeout':
                     console.log(`No matches for user ${message.userId}.`);
-                    // setMatchFailDialogOpen(true);
+                    setMatchFailDialogOpen(true);
                     break;
 
                 default:
@@ -329,32 +329,30 @@ export default function Questions() {
         ws.current.onerror = (error) => {
             console.error("WebSocket error:", error);
             setIsMatching(false);
-            setMatchFailDialogOpen(true); // Show failure dialog if there's an error
+            setMatchFailDialogOpen(true);
         };
     }, []);
 
+    const ws1 = useRef<WebSocket | null>(null); // WebSocket reference
     const handleCancel = useCallback(() => {
         setIsMatching(false);
-        if (ws.current === null || ws.current.readyState === WebSocket.CLOSED || ws.current.readyState === WebSocket.CLOSING) {
+        if (ws1.current === null || ws1.current.readyState === WebSocket.CLOSED || ws1.current.readyState === WebSocket.CLOSING) {
             console.log("Connecting to web socket for matching service ...")
             // Initialize WebSocket connection if not already matching
-            ws.current = new WebSocket(process.env.NEXT_PUBLIC_MATCHING_API_URL || 'ws://localhost:3002/matching');
-            console.log(ws.current.readyState)
+            ws1.current = new WebSocket(process.env.NEXT_PUBLIC_MATCHING_API_URL || 'ws://localhost:3002/matching');
+            console.log(ws1.current.readyState)
         }
-        ws.current.onopen = () => {
+        ws1.current.onopen = () => {
             console.log("WebSocket connection opened");
-            console.log("Request to cancel match")
             const message = {
                 event: "dequeue",
                 userId: userInfo.current.id,
-                username: userInfo.current.username,
-                questions: [],
             };
     
             ws.current?.send(JSON.stringify(message));
         };
 
-        ws.current.onmessage = (event) => {
+        ws1.current.onmessage = (event) => {
             if (event.data == "Welcome to websocket server") {
                 console.log("receive welcome msg from websocket server")
                 return ;
@@ -373,6 +371,7 @@ export default function Questions() {
                     if (prevTime >= 32) { // we use 32 so there is buffer
                         timeout.current = true;
                         clearInterval(matchTimerRef.current as NodeJS.Timeout);
+                        console.log("open fail dialog")
                         setMatchFailDialogOpen(true);
                         // setMatchFoundDialogOpen(true); // use this to open match found dialog
                         return 32;
