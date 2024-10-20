@@ -36,10 +36,11 @@ const matchmakeUser = async (userId, userName, questions) => {
     return new Promise((resolve, reject) => {
         produceMessage({
             userId: userId,
+            userName: userName,
             questions: questions
         }, false);
         eventEmitter.once(`success-${userId}`, (peerUserId, peerUserName, question) => {
-            const res = {
+            const success_res = {
                 event: "match-success",
                 userId: userId,
                 userName: userName,
@@ -47,16 +48,16 @@ const matchmakeUser = async (userId, userName, questions) => {
                 peerUserName: peerUserName,
                 agreedQuestion: question
             }
-            resolve(JSON.stringify(res));
+            resolve(JSON.stringify(success_res));
             // resolve(`User ${userId} matched with User ${peerUserId}.`)
         });
         eventEmitter.once(`dequeue-${userId}`, () => {
             dequeued.set(userId, true);
-            const res = {
+            const dequeue_res = {
                 event: "dequeued-success",
                 userId: userId
             }
-            resolve(JSON.stringify(res));
+            resolve(JSON.stringify(dequeue_res));
             // resolve(`User ${userId} dequeued from matchmaking.`)
         })
         setTimeout(() => {
