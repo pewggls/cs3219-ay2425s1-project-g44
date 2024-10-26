@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
-import { Syne } from 'next/font/google'
 import localFont from "next/font/local";
 import "./globals.css";
 
-const brandFont = Syne({
-  subsets: ['latin'],
-  weight: ["400", "500", "600", "700", "800"],
+const brandFont = localFont({
+  src: "./fonts/Syne-VariableFont_wght.ttf",
+  weight: "400 800",
   display: "swap",
   variable: "--font-brand",
 });

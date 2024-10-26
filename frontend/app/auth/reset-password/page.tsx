@@ -139,7 +139,7 @@ export default function ResetPassword() {
             <div className="mx-auto flex flex-col justify-center gap-6 w-[350px]">
                 <div className="flex flex-col gap-2 text-left pb-1">
                     <span className="font-serif font-light text-4xl text-primary tracking-tight">
-                        Reset Password
+                        Reset your password
                     </span>
                 </div>
                 {error && (
