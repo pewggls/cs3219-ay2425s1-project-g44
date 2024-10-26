@@ -10,7 +10,7 @@ import { Toggle } from '@/components/ui/toggle';
 import { toast } from 'sonner';
 import { Toaster } from '@/components/ui/sonner';
 
-const DynamicCodeEditor = dynamic(() => import('./code-editor'), { ssr: false });
+const DynamicCodeEditor = dynamic(() => import('./code-editor/code-editor'), { ssr: false });
 const DynamicTextEditor = dynamic(() => import('./text-editor'), { ssr: false });
 
 export default function Collaborative() {
@@ -44,7 +44,7 @@ export default function Collaborative() {
 
     return (
         <div className="flex flex-col gap-8 min-h-screen">
-            <div className="flex justify-between text-black bg-white drop-shadow mt-28 mx-8 p-4 rounded-xl relative">
+            <div className="flex justify-between text-black bg-white drop-shadow mt-20 mx-8 p-4 rounded-xl relative">
                 <div className="flex items-center gap-2 text-sm">
                     <div className="flex items-center bg-brand-200 text-brand-800 py-2 px-3 font-semibold rounded-lg"><Clock3 className="h-4 w-4 mr-2" />3:35</div>
                     <span>with</span>
@@ -119,7 +119,7 @@ export default function Collaborative() {
                 <ResizablePanel defaultSize={50} minSize={35} maxSize={65}>
                     <DynamicCodeEditor />
                 </ResizablePanel>
-                <Toaster position="top-center" closeButton />
+                <Toaster position="top-center" closeButton offset={"16px"} visibleToasts={2} gap={8} />
             </ResizablePanelGroup>
         </div>
     );

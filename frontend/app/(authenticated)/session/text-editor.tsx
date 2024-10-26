@@ -45,6 +45,7 @@ export default function TextEditor() {
                 autofocus={false}
                 editable={true}
                 editorClassName="focus:outline-none"
+                immediatelyRender={false}
                 // extensions={collaborationExtensions}
             />
         </TooltipProvider>
