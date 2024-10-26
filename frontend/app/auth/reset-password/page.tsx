@@ -100,7 +100,7 @@ export default function ResetPassword() {
             } else if (verifyTokenResponse.status == 400) {
                 const responseMessage = (await verifyTokenResponse.json()).message;
                 if (responseMessage.includes("expired")) {
-                    setError("The reset link has expired. Please request a new one");
+                    setError("The reset link has expired. Please request a new one.");
                     isErrorSet = true;
                 } else if (responseMessage.includes("not match")) {
                     setError("The reset link is invalid. Please request a new password reset link.");
@@ -118,7 +118,7 @@ export default function ResetPassword() {
                 isErrorSet = true;
                 throw new Error("Database or server error: " + verifyTokenResponse.statusText);
             } else if (!verifyTokenResponse.ok) {
-                setError("There was an error happen when reset your password.");
+                setError("There was an error when resetting your password.");
                 isErrorSet = true;
                 throw new Error("Error resetting password: " + verifyTokenResponse.statusText);
             }
@@ -126,7 +126,7 @@ export default function ResetPassword() {
             router.push(`/auth/reset-password/success`);
         } catch (err) {
             if (!isErrorSet) {
-                setError("Something went wrong on our backend. Please retry shortly.");
+                setError("Something went wrong. Please retry shortly.");
             }
             console.error(error);
         } finally {

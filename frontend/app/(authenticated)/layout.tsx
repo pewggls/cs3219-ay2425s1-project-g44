@@ -5,7 +5,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { User, LogOut } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { deleteCookie, getCookie, getUsername, isUserAdmin } from "../utils/cookie-manager";
+import { isTokenExpired } from "../utils/token-utils";
 
 export default function AuthenticatedLayout({
     children,
@@ -13,6 +16,50 @@ export default function AuthenticatedLayout({
     children: React.ReactNode;
 }>) {
     const pathname = usePathname();
+
+    const router = useRouter();
+
+    useEffect(() => {
+        const authenticateUser = async () => {
+            const token = getCookie('token');
+            if (!token || isTokenExpired()) {
+                router.push('/auth/login');
+                return;
+            }
+
+            // if non-admin user tries to access repo, redirect user to question page
+            if (pathname.includes('/question-repo') && !isUserAdmin()) {
+                router.push('/questions');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_USER_API_AUTH_URL}/verify-token`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
+
+                if (!response.ok) {
+                    router.push('/auth/login');
+                }
+            } catch (error) {
+                console.error('Error during authentication:', error);
+                router.push('/auth/login');
+            }
+        };
+
+        authenticateUser();
+    }, []);
+
+    function logout() {
+        deleteCookie('token');
+        deleteCookie('username');
+        deleteCookie('isAdmin');
+        console.log(getCookie('token'));
+        router.push('/auth/login');
+    }
 
     return (
         <div className="min-h-screen bg-white relative">
@@ -31,29 +78,29 @@ export default function AuthenticatedLayout({
                         </Badge>
                     )}
                 </div>
-                <div className="hidden desktop:flex items-center gap-4">
+                <div className="flex items-center gap-4">
                     <nav className="flex items-center gap-10 font-brand">
-                        <Link 
-                            href="/questions" 
+                        <Link
+                            href="/questions"
                             className={`text-lg font-semibold uppercase transition duration-100
-                            ${pathname === '/questions' 
-                                ? 'text-gray-700 drop-shadow-md' 
-                                : 'text-gray-700/50 hover:text-gray-700'
-                            }`} prefetch={false}
+                            ${pathname === '/questions'
+                                    ? 'text-gray-700 drop-shadow-md'
+                                    : 'text-gray-700/50 hover:text-gray-700'
+                                }`} prefetch={false}
                         >
                             Questions
                         </Link>
-                        <Link 
-                            href="/question-repo" 
+                        {isUserAdmin() && (<Link
+                            href="/question-repo"
                             className={`text-lg font-semibold uppercase transition duration-100
-                                ${pathname === '/question-repo' 
-                                    ? 'text-gray-700 drop-shadow-md' 
+                                ${pathname === '/question-repo'
+                                    ? 'text-gray-700 drop-shadow-md'
                                     : 'text-gray-700/50 hover:text-gray-700'
                                 }`}
                             prefetch={false}
                         >
                             Repository
-                        </Link>
+                        </Link>)}
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button
@@ -65,12 +112,11 @@ export default function AuthenticatedLayout({
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="font-sans">
-                                <DropdownMenuLabel>Username</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
+                                {!pathname.includes('/profile') && (<><DropdownMenuLabel>{getUsername()}</DropdownMenuLabel>
+                                <DropdownMenuSeparator /></>)}
                                 <DropdownMenuItem asChild><Link href="/profile" className="cursor-pointer"><User className="mr-2 h-4 w-4" />Profile</Link></DropdownMenuItem>
                                 <DropdownMenuItem asChild onClick={(e) => {
-                                    // e.preventDefault();
-                                    localStorage.removeItem("token");
+                                    logout();
                                 }}>
                                     <Link href="/" className="cursor-pointer"><LogOut className="mr-2 h-4 w-4" />Log out</Link>
                                 </DropdownMenuItem>

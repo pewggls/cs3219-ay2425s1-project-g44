@@ -143,7 +143,7 @@ export default function Signup() {
                     email: responseData.data.email,
                     id: responseData.data.id, 
                   })
-                setSuccessMessage("You have already registered but haven't verified your email. Please check your inbox for the verification link.");
+                setSuccessMessage("You have already registered but haven't verified your email.");
                 form.reset();
                 return;
             } else if (signUpResponse.status == 409) {
@@ -209,7 +209,7 @@ export default function Signup() {
                 throw new Error(`Failed to send verification email`);
             }
 
-            setSuccessMessage("Thank you for signing up! A verification link has been sent to your email. Please check your inbox to verify your account.");
+            setSuccessMessage("A verification link has been sent to your email.");
             form.reset();
         } catch (err) {
             if (!isErrorSet) {

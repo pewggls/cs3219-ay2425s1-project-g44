@@ -15,9 +15,10 @@ import {
     FormMessage,
 } from "@/components/ui/form"
 import { useRouter } from "next/navigation"
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AlertCircle, LoaderCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { setCookie } from "@/app/utils/cookie-manager";
 
 const formSchema = z.object({
     email: z.string().min(1, "Email is required").email({ message: "Invalid email address" }),
@@ -39,7 +40,6 @@ export default function Login() {
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         let isErrorSet = false;
-        // Placeholder for auth to user service
         try {
             await form.trigger();
             if (!form.formState.isValid) {
@@ -85,17 +85,28 @@ export default function Login() {
 
             const responseData = await response.json();
             const { accessToken, id, username, email, isAdmin, ...other } = responseData.data;
-            localStorage.setItem('token', accessToken);
-            router.push("/question-repo");
+
+            // set token
+            setCookie('token', accessToken, { 'max-age': '86400', 'path': '/', 'SameSite': 'Strict' });
+
+            // set user info
+            setCookie('username', username, { 'max-age': '86400', 'path': '/', 'SameSite': 'Strict' });
+            setCookie('isAdmin', isAdmin.toString(), { 'max-age': '86400', 'path': '/', 'SameSite': 'Strict' });
+
+            router.push("/questions");
         } catch (error) {
             if (!isErrorSet) {
-                setError("Something went wrong on our backend. Please retry shortly.");
+                setError("Something went wrong. Please retry shortly.");
             }
             console.error(error);
         } finally {
             setIsLoading(false);
         }
     }
+
+    useEffect(() => {
+        router.prefetch("/questions");
+    }, [router]);
 
     return (
         <div className="flex min-h-screen w-screen -mt-12 px-10 items-center justify-center bg-white font-sans">

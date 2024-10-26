@@ -1,5 +1,6 @@
 "use client";
 
+import { deleteCookie, getCookie, setCookie } from "@/app/utils/cookie-manager";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,7 +29,7 @@ export default function Home() {
     useEffect(() => {
         const authenticateUser = async () => {
             try {
-                const token = localStorage.getItem('token');
+                const token = getCookie('token');
 
                 if (!token) {
                     router.push('/auth/login'); // Redirect to login if no token
@@ -44,7 +45,7 @@ export default function Home() {
                 });
 
                 if (!response.ok) {
-                    localStorage.removeItem("token"); // remove invalid token from browser
+                    deleteCookie('token'); // remove invalid token from browser
                     router.push('/auth/login'); // Redirect to login if not authenticated
                     return;
                 }
@@ -102,7 +103,7 @@ export default function Home() {
                     method: "PATCH",
                     headers: {
                         'Content-Type': 'application/json',
-                        'authorization': `Bearer ${localStorage.getItem('token')}`
+                        'authorization': `Bearer ${getCookie('token')}`
                     },
                     body: JSON.stringify({ username: userData.username }),
                 });
@@ -123,6 +124,7 @@ export default function Home() {
                     throw new Error("User not found" + signUpResponse.statusText);
                 } else {
                     initialUserData.current.username = userData.username; // update username new value
+                    setCookie('username', userData.username, { 'max-age': '86400', 'path': '/', 'SameSite': 'Strict' });
                 }
             }
             if (userData.email !== initialUserData.current.email) {
@@ -177,7 +179,7 @@ export default function Home() {
                     method: "PATCH",
                     headers: {
                         'Content-Type': 'application/json',
-                        'authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'authorization': `Bearer ${getCookie('token')}`,
                     },
                     body: JSON.stringify({ password: userData.password }),
                 });
@@ -209,12 +211,12 @@ export default function Home() {
         const response = await fetch(`${process.env.NEXT_PUBLIC_USER_API_AUTH_URL}/verify-token`, {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Authorization': `Bearer ${getCookie('token')}`,
             },
         });
 
         if (!response.ok) {
-            localStorage.removeItem("token"); // remove invalid token from browser
+            deleteCookie("token"); // remove invalid token from browser
             router.push('/auth/login'); // Redirect to login if not authenticated
             return;
         }

@@ -9,8 +9,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { Check, ChevronsRight, Flag, MessageSquareText, Plus, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import React, { use, useCallback, useEffect, useRef, useState } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 type Question = {
     id: number;
@@ -76,41 +76,6 @@ export default function Questions() {
     const timeout = useRef(false);
     const selectedQuestionList = React.useRef<number[]>([])
     const userInfo = useRef({ id: "", username: ""});
-
-    // authenticate user else redirect them to login page
-    useEffect(() => {
-        const authenticateUser = async () => {
-            try {
-                const token = localStorage.getItem('token');
-
-                if (!token) {
-                    router.push('/'); // Redirect to login if no token
-                    return;
-                }
-
-                // Call the API to verify the token
-                const response = await fetch(`${process.env.NEXT_PUBLIC_USER_API_AUTH_URL}/verify-token`, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`,
-                    },
-                });
-
-                if (!response.ok) {
-                    localStorage.removeItem("token"); // remove invalid token from browser
-                    router.push('/'); // Redirect to login if not authenticated
-                    return;
-                }
-
-                const data = (await response.json()).data;
-                userInfo.current = { id: data.id, username: data.username};
-            } catch (error) {
-                console.error('Error during authentication:', error);
-                router.push('/login'); // Redirect to login in case of any error
-            }
-        };
-        authenticateUser();
-    }, []);
 
     // Fetch questions from backend API
     useEffect(() => {
@@ -436,13 +401,13 @@ export default function Questions() {
 
     return (
         <main className="flex min-h-screen flex-row px-4 mx-8 mt-0 pt-0 gap-4 font-sans text-black">
-            <div className="flex-1 overflow-auto desktop:w-1/2 desktop:mx-auto">
+            <div className="flex-1 overflow-auto laptop:w-[620px] laptop:min-w-[620px] laptop:mx-auto">
                 <div className="relative h-screen">
                     <div
                         id="filters"
-                        className="absolute top-0 left-0 right-0 hidden tablet:flex gap-2 desktop:ml-8 desktop:mr-10 tablet:mt-16 desktop:mt-24 p-2 tablet:rounded-3xl bg-opacity-90 backdrop-blur desktop:drop-shadow-xl bg-white z-10"
+                        className="absolute top-0 left-0 right-0 flex flex-col laptop:flex-row gap-2 laptop:ml-8 laptop:mr-10 mt-16 laptop:mt-24 p-2 rounded-3xl bg-opacity-90 backdrop-blur laptop:drop-shadow-xl bg-white z-10"
                     >
-                        <div className="flex grow flex-col gap-2 2xl:flex-row">
+                        <div className="flex grow flex-col gap-2 min-w-[400px] 2xl:flex-row">
                             <MultiSelect
                                 options={complexityList}
                                 onValueChange={setSelectedComplexities}
@@ -470,16 +435,48 @@ export default function Questions() {
                                 onResetComplete={setReset}
                             />
                         </div>
-                        {filteredQuestions.length > 0 && (
+                        <div className="flex flex-row justify-between gap-2">
                             <Button
                                 variant="outline"
-                                className="uppercase rounded-3xl"
+                                className="uppercase rounded-3xl w-full"
                                 onClick={handleSelectAll}
-                                disabled={isMatching}
+                                disabled={filteredQuestions.length === 0 || isMatching}
                             >
                                 {isSelectAll ? "Remove all" : "Add all"}
                             </Button>
-                        )}
+                            <Button
+                                variant="match"
+                                className={cn(
+                                    "group w-full font-brand uppercase rounded-3xl laptop:hidden",
+                                    isMatching && !isHovering && "bg-brand-600 hover:bg-brand-600 text-white",
+                                    isMatching && isHovering && "text-destructive-foreground hover:bg-destructive/90"
+                                )}
+                                onClick={() => {
+                                    if (isMatching) {
+                                        handleCancel();
+                                    } else {
+                                        // Perform the initial match action
+                                        handleMatch();
+                                    }
+                                }}
+                                onMouseEnter={handleMouseEnter}
+                                onMouseLeave={handleMouseLeave}
+                                disabled={selectedQuestionList.current.length === 0}
+                            >
+                                {isMatching 
+                                    ? (isHovering ? 'Cancel' : 'Matching') 
+                                    : 'Match'}
+                                {isMatching ? (
+                                    isHovering ? (
+                                        <X className="ml-2" />
+                                    ) : (
+                                        <span className="ml-3 text-white/60 lowercase font-mono">{Math.min(matchTime, 30)}s</span>
+                                    )
+                                ) : (
+                                    <ChevronsRight className="ml-2 group-hover:translate-x-2 transition" />
+                                )}
+                            </Button>
+                        </div>
                     </div>
 
                     <ScrollArea
@@ -540,7 +537,7 @@ export default function Questions() {
                     </ScrollArea>
                 </div>
             </div>
-            <div className="hidden mt-24 mb-8 desktop:w-1/2 desktop:flex desktop:flex-col space-y-4 px-4">
+            <div className="hidden mt-24 mb-8 laptop:max-w-1/2 laptop:flex laptop:flex-col space-y-4 px-4">
                 <div className="flex gap-4 justify-between items-end">
                     <div className="flex flex-col w-[70%] items-start text-sm">
                         <div className="font-medium pb-1.5 pl-2.5">Questions added for matching</div>
@@ -583,7 +580,7 @@ export default function Questions() {
                     </div>
                     <div className="">
                         <Button
-                            variant="ghost"
+                            variant="match"
                             className={cn(
                                 "group min-w-[150px] max-w-[150px] font-brand uppercase",
                                 isMatching && !isHovering && "bg-brand-600 hover:bg-brand-600 text-white",

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import Link from 'next/link';
+import { getCookie } from '@/app/utils/cookie-manager';
 
 export default function VerifyEmail() {
   const [status, setStatus] = useState<'success' | 'error' | 'loading'>('loading');
@@ -72,7 +73,7 @@ export default function VerifyEmail() {
           const errorMessage = (await checkResponse.json()).message;
           setMessage('Invalid verification link. Please check the URL or request a new one.');
           setStatus('error');
-          throw Error("Failed to verified user: " + errorMessage);
+          throw Error("Failed to verify user: " + errorMessage);
         }
         
         // Update user verified state 
@@ -97,13 +98,13 @@ export default function VerifyEmail() {
             setStatus('error');
             throw Error("Failed to update user verified state: " + errorMessage);
           }
-          setMessage('Email verified successfully! You can now log in.');
+          setMessage('You can now log in.');
         } else {
           const response = await fetch(`${process.env.NEXT_PUBLIC_USER_API_USERS_URL}/${id}`, {
             method: "PATCH",
             headers: {
                 'Content-Type': 'application/json',
-                'authorization': `Bearer ${localStorage.getItem('token')}`
+                'authorization': `Bearer ${getCookie('token')}`
             },
             body: JSON.stringify({ email: email }),
           });
@@ -111,7 +112,7 @@ export default function VerifyEmail() {
             const errorMessage = (await response.json()).message;
             setMessage('Unexpected error occured. Please check the URL or request a new one.');
             setStatus('error');
-            throw Error("Failed to update update user email: " + errorMessage);
+            throw Error("Failed to update user email: " + errorMessage);
           }
           setMessage('Your email address has been successfully updated!');
         }

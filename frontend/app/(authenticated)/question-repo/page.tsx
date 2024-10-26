@@ -42,48 +42,6 @@ export default function QuestionRepo() {
     const router = useRouter();
     const [questionList, setQuestionList] = useState<Question[]>([]); // Complete list of questions
     const [loading, setLoading] = useState(true);
-    
-    // authenticate user else redirect them to login page
-    useEffect(() => {
-        const authenticateUser = async () => {
-            try {
-                const token = localStorage.getItem('token');
-
-                if (!token) {
-                    router.push('/'); // Redirect to login if no token
-                    return;
-                }
-
-                // Call the API to verify the token
-                const response = await fetch(`${process.env.NEXT_PUBLIC_USER_API_AUTH_URL}/verify-token`, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`,
-                    },
-                });
-
-                if (!response.ok) {
-                    localStorage.removeItem("token"); // remove invalid token from browser
-                    router.push('/'); // Redirect to login if not authenticated
-                    return;
-                }
-
-                const data = (await response.json()).data;
-                
-                // if needed
-                // setUsername(data.username);
-                // setEmail(data.email);
-                // form.setValue("username", data.username);
-                // form.setValue("email", data.email);
-                // userId.current = data.id;
-            } catch (error) {
-                console.error('Error during authentication:', error);
-                router.push('/login'); // Redirect to login in case of any error
-            }
-    };
-
-    authenticateUser();
-    }, []);
 
     useEffect(() => {
         async function fetchQuestions() {
