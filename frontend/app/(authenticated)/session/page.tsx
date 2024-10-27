@@ -9,11 +9,14 @@ import { Button } from '@/components/ui/button';
 import { Toggle } from '@/components/ui/toggle';
 import { toast } from 'sonner';
 import { Toaster } from '@/components/ui/sonner';
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { useRouter } from 'next/navigation';
 
 const DynamicCodeEditor = dynamic(() => import('./code-editor/code-editor'), { ssr: false });
 const DynamicTextEditor = dynamic(() => import('./text-editor'), { ssr: false });
 
 export default function Collaborative() {
+    const router = useRouter();
     const [isClient, setIsClient] = useState(false);
     const [isMicEnabled, setIsMicEnabled] = useState(false);
 
@@ -29,18 +32,22 @@ export default function Collaborative() {
         setIsMicEnabled(!isMicEnabled);
         if (!isMicEnabled) {
             toast('Your mic is now unmuted', {
-                className: "justify-center",
+                className: "justify-center font-sans text-sm",
                 duration: 1500,
                 icon: <MicIcon className="h-4 w-4 mr-2 text-green-500" />,
             });
         } else {
             toast('Your mic is now muted', {
-                className: "justify-center",
+                className: "justify-center font-sans text-sm",
                 duration: 1500,
                 icon: <MicOffIcon className="h-4 w-4 mr-2 text-red-500" />,
             });
         }
     };
+
+    async function endSession() {
+        router.push('/questions');
+    }
 
     return (
         <div className="flex flex-col gap-8 min-h-screen">
@@ -62,7 +69,40 @@ export default function Collaborative() {
                     </Toggle>
                 </div>
                 <div className="">
-                    <Button><OctagonXIcon className="size-4 mr-2" />End Session</Button>
+                    <Dialog>
+                        <DialogTrigger><Button><OctagonXIcon className="size-4 mr-2" />End Session</Button></DialogTrigger>
+                        <DialogContent
+                            className="laptop:max-w-[40vw] bg-white text-black font-sans rounded-2xl"
+                        >
+                            <DialogHeader className="items-start">
+                            <DialogTitle className="font-serif font-normal tracking-tight text-3xl">
+                                End your session?
+                            </DialogTitle>
+                            <DialogDescription className="hidden"></DialogDescription>
+                            </DialogHeader>
+                            <div className="flex flex-col w-full gap-1 py-4 justify-start">
+                                <p>Are you sure you want to end your session?</p>
+                            </div>
+                            <DialogFooter className="flex items-end">
+                                <DialogClose asChild>
+                                    <Button
+                                        variant="ghost"
+                                        className="rounded-lg"
+                                        onClick={endSession}
+                                    >
+                                        Cancel
+                                    </Button>
+                                </DialogClose>
+                                <Button
+                                    type="submit"
+                                    className="rounded-lg bg-brand-700 hover:bg-brand-600"
+                                    onClick={endSession}
+                                >
+                                    End session
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
                 </div>
             </div>
             <ResizablePanelGroup direction="horizontal" className="flex-grow">

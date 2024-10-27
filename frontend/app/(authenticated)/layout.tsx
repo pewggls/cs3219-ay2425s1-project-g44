@@ -9,6 +9,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { deleteCookie, getCookie, getUsername, isUserAdmin } from "../utils/cookie-manager";
 import { isTokenExpired } from "../utils/token-utils";
+import { useNavigationConfirm } from "../hooks/useNavConfirm";
 
 function AdminNav(pathname: string) {
     const [isClient, setIsClient] = useState(false);
@@ -46,6 +47,9 @@ export default function AuthenticatedLayout({
     const pathname = usePathname();
 
     const router = useRouter();
+
+    const isSessionPage = pathname === '/session';
+    const handleNavigation = useNavigationConfirm(isSessionPage);
 
     useEffect(() => {
         const authenticateUser = async () => {
@@ -97,6 +101,10 @@ export default function AuthenticatedLayout({
                         href="/"
                         className="text-2xl font-bold font-brand tracking-tight text-brand-700"
                         prefetch={false}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            handleNavigation("/");
+                        }}
                     >
                         PeerPrep
                     </Link>
@@ -114,7 +122,12 @@ export default function AuthenticatedLayout({
                             ${pathname === '/questions'
                                     ? 'text-gray-700 drop-shadow-md'
                                     : 'text-gray-700/50 hover:text-gray-700'
-                                }`} prefetch={false}
+                                }`} 
+                            onClick={(e) => {
+                                e.preventDefault();
+                                handleNavigation("/questions");
+                            }}
+                            prefetch={false}
                         >
                             Questions
                         </Link>
@@ -132,11 +145,27 @@ export default function AuthenticatedLayout({
                             <DropdownMenuContent align="end" className="font-sans">
                                 {!pathname.includes('/profile') && (<><DropdownMenuLabel>{getUsername()}</DropdownMenuLabel>
                                 <DropdownMenuSeparator /></>)}
-                                <DropdownMenuItem asChild><Link href="/profile" className="cursor-pointer"><User className="mr-2 h-4 w-4" />Profile</Link></DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                                    <Link href="/profile" className="cursor-pointer" 
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            handleNavigation("/profile");
+                                        }}
+                                    >
+                                        <User className="mr-2 h-4 w-4" />Profile
+                                    </Link>
+                                </DropdownMenuItem>
                                 <DropdownMenuItem asChild onClick={(e) => {
                                     logout();
                                 }}>
-                                    <Link href="/" className="cursor-pointer"><LogOut className="mr-2 h-4 w-4" />Log out</Link>
+                                    <Link href="/" className="cursor-pointer"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            handleNavigation("/");
+                                        }}
+                                    >
+                                        <LogOut className="mr-2 h-4 w-4" />Log out
+                                    </Link>
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
