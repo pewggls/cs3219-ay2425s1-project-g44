@@ -1,7 +1,7 @@
 import * as monaco from 'monaco-editor';
 import themeList from './theme-list.json';
 
-export let themes: { value: string; label: string }[] = [
+export const themes: { value: string; label: string }[] = [
     { value: 'light', label: 'VS Light' },
     { value: 'vs-dark', label: 'VS Dark' },
     { value: 'hc-black', label: 'High Contrast' },

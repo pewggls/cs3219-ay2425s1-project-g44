@@ -71,7 +71,7 @@ export default function Home() {
             }
     };
     authenticateUser();
-    }, []);
+    }, [router]);
 
      // Validate the password before making the API call
     const validatePassword = (password: string) => {

@@ -17,10 +17,10 @@ interface DelQuestionDialogProps {
 function DelQuestionDialog(props: DelQuestionDialogProps, ref: React.Ref<HTMLDivElement>) {
   const { row, setData, handleClose } = props;
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  const apiUrl = process.env.NEXT_PUBLIC_QUESTION_API_BASE_URL;
   async function deleteQuestion(id: number) {
     try {
-        const response = await fetch(`${apiUrl}/questions/delete/${id}`, {
+        const response = await fetch(`${apiUrl}/delete/${id}`, {
             method: 'DELETE',
         });
 
@@ -42,7 +42,7 @@ function DelQuestionDialog(props: DelQuestionDialogProps, ref: React.Ref<HTMLDiv
                   id: index + 1 // Reassign ID based on the new order
               }));
           });
-      }
+        }
 
         // Close the dialog after succesful deletion
         handleClose();
@@ -50,7 +50,7 @@ function DelQuestionDialog(props: DelQuestionDialogProps, ref: React.Ref<HTMLDiv
         alert(`An error occurred while fetching the updated question list.`)
         console.error(`Error while fetching question`);
     }
-}
+  }
 
 
   return (

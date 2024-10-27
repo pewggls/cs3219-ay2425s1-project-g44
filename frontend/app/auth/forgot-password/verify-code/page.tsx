@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, useEffect } from "react";
+import { useState, Suspense } from "react";
 import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -44,7 +44,7 @@ function Slot(props: SlotProps) {
           'border-border border-y border-r first:border-l first:rounded-l-md last:rounded-r-md',
           'group-hover:border-accent-foreground/20 group-focus-within:border-accent-foreground/20',
           'outline outline-0 outline-accent-foreground/20',
-          { 'outline-4 outline-accent-foreground': props.isActive },
+          { 'outline-[3px] outline-accent-foreground': props.isActive },
         )}
       >
         {props.char !== null && <div>{props.char}</div>}
@@ -59,7 +59,7 @@ const FormSchema = z.object({
   }),
 });
 
-export default function OTPForm() {
+function OTPForm() {
 //   const [value, setValue] = useState("");
 //   const [timer, setTimer] = useState(60);
 //   const [disable, setDisable] = useState(true);
@@ -118,6 +118,11 @@ export default function OTPForm() {
         setIsLoading(true);
         setError(""); // Clear any previous errors
 
+        if (param_email === null) {
+          setError("Email is missing. Please try again.");
+          return;
+        }
+
         // Verify code with backend
         console.log("In verify code page: call api to verify 6 digit code");
         const verifyCodeResponse = await fetch(`${process.env.NEXT_PUBLIC_USER_API_AUTH_URL}/verify-otp`, {
@@ -174,8 +179,8 @@ export default function OTPForm() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 font-sans">
-      <div className="flex flex-col bg-white px-6 pt-10 pb-9 shadow-xl w-full max-w-2xl rounded-2xl">
+    <div className="flex items-center justify-center min-h-screen font-sans">
+      <div className="flex flex-col bg-white px-6 pt-10 pb-9 drop-shadow-xl w-full max-w-2xl rounded-2xl">
         <div className="flex flex-col gap-2 text-center">
             <span className="font-serif font-light text-4xl text-primary tracking-tight">
               Email Verification
@@ -248,4 +253,12 @@ export default function OTPForm() {
       </div>
     </div>
   );
+}
+
+export default function OTPFormPage() {
+  return (
+    <Suspense>
+      <OTPForm />
+    </Suspense>
+  )
 }

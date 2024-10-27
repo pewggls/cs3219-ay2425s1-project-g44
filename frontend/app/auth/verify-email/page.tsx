@@ -1,12 +1,12 @@
 "use client"
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import Link from 'next/link';
 import { getCookie } from '@/app/utils/cookie-manager';
 
-export default function VerifyEmail() {
+function VerifyEmail() {
   const [status, setStatus] = useState<'success' | 'error' | 'loading'>('loading');
   const [message, setMessage] = useState('');
 
@@ -124,7 +124,7 @@ export default function VerifyEmail() {
     };
 
     verifyUserEmail();
-  }, [id]);
+  }, [id, email, getAdminJWT, type]);
 
   return (
     <div className="min-h-screen laptop:w-screen text-black font-sans flex flex-col items-center justify-center gap-6 mx-auto w-[350px]">
@@ -162,3 +162,11 @@ export default function VerifyEmail() {
     </div>
   );
 };
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense>
+      <VerifyEmail />
+    </Suspense>
+  );
+}

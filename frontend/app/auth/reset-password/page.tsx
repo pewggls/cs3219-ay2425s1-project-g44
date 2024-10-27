@@ -2,22 +2,20 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import Link from "next/link";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
     Form,
     FormControl,
-    FormDescription,
     FormField,
     FormItem,
     FormLabel,
     FormMessage,
 } from "@/components/ui/form"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useEffect, useState } from "react";
-import { AlertCircle, LoaderCircle, TriangleAlert } from "lucide-react";
+import { Suspense, useEffect, useState } from "react";
+import { AlertCircle, LoaderCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Info } from "lucide-react"
@@ -36,7 +34,7 @@ const formSchema = z.object({
     path: ["confirm"],
 });
 
-export default function ResetPassword() {
+function ResetPassword() {
     const router = useRouter(); 
     const searchParams = useSearchParams();
     const param_email = searchParams.get("email");
@@ -215,5 +213,13 @@ export default function ResetPassword() {
                 </div>
             </div>
         </div>
+    )
+}
+
+export default function ResetPasswordPage() {
+    return (
+        <Suspense>
+            <ResetPassword />
+        </Suspense>
     )
 }

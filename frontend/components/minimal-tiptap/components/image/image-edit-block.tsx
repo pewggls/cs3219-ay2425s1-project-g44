@@ -23,11 +23,7 @@ export const ImageEditBlock: React.FC<ImageEditBlockProps> = ({ editor, close })
       if (!files?.length) return
 
       const insertImages = async () => {
-        const contentBucket = []
-
-        for (const file of files) {
-          contentBucket.push({ src: file })
-        }
+        const contentBucket = Array.from(files).map(file => ({ src: file }));
 
         editor.commands.setImages(contentBucket)
       }

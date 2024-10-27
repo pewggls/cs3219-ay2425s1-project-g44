@@ -1,8 +1,6 @@
 import {
   forwardRef,
   useEffect,
-  useImperativeHandle,
-  useRef,
   useState,
 } from "react";
 import { z } from "zod";
@@ -28,7 +26,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { escape } from "querystring";
 
 interface AddEditQuestionDialogProps {
   row: Question | null;
@@ -72,13 +69,12 @@ function AddEditQuestionDialog(
       resetError();
       setReset(false);
     }
-  }, [reset]);
+  }, [reset, setReset]);
   
   // User input value
   const [newQuestion, setNewQuestion] = useState({
     id: row?.id || undefined,
     title: row?.title || "",
-    // summary: row?.summary || "",
     description: row?.description || "",
     complexity: row?.complexity
       ? capitalizeFirstLetter(row?.complexity)
@@ -117,14 +113,14 @@ function AddEditQuestionDialog(
     return !Object.values(newErrors).includes(true);
   };
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  const apiUrl = process.env.NEXT_PUBLIC_QUESTION_API_BASE_URL;
   async function createQuestion() {
     // validate required fields
     if (validateFields()) {
       try {
         const endpoint = row?.id ? `update/${row?.id}` : "add";
         const method = row?.id ? "PUT" : "POST";
-        const response = await fetch(`${apiUrl}/questions/${endpoint}`, {
+        const response = await fetch(`${apiUrl}/${endpoint}`, {
           method: method,
           headers: {
             "Content-Type": "application/json",
@@ -182,8 +178,6 @@ function AddEditQuestionDialog(
               );
             }
           }
-
-          window.location.reload()
         } else {
           throw new Error(`Unexpected response format: ${responseText}`);
         }

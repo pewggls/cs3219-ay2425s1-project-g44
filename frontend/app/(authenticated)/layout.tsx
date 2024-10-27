@@ -6,9 +6,37 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { User, LogOut } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { deleteCookie, getCookie, getUsername, isUserAdmin } from "../utils/cookie-manager";
 import { isTokenExpired } from "../utils/token-utils";
+
+function AdminNav(pathname: string) {
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
+
+    if (!isClient) return null;
+
+    if (isUserAdmin()) {
+        return (
+            <Link
+                href="/question-repo"
+                className={`text-lg font-semibold uppercase transition duration-100
+                ${pathname === '/question-repo'
+                        ? 'text-gray-700 drop-shadow-md'
+                        : 'text-gray-700/50 hover:text-gray-700'
+                    }`}
+                prefetch={false}
+            >
+                Repository
+            </Link>
+        )
+    }
+
+    return (<></>);
+}
 
 export default function AuthenticatedLayout({
     children,
@@ -51,7 +79,7 @@ export default function AuthenticatedLayout({
         };
 
         authenticateUser();
-    }, []);
+    }, [pathname, router]);
 
     function logout() {
         deleteCookie('token');
@@ -90,17 +118,7 @@ export default function AuthenticatedLayout({
                         >
                             Questions
                         </Link>
-                        {isUserAdmin() && (<Link
-                            href="/question-repo"
-                            className={`text-lg font-semibold uppercase transition duration-100
-                                ${pathname === '/question-repo'
-                                    ? 'text-gray-700 drop-shadow-md'
-                                    : 'text-gray-700/50 hover:text-gray-700'
-                                }`}
-                            prefetch={false}
-                        >
-                            Repository
-                        </Link>)}
+                        {AdminNav(pathname)}
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button
