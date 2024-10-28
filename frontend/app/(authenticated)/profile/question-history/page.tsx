@@ -2,8 +2,6 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { QuestionHistory, columns} from "./columns";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { DataTable } from "../../question-repo/data-table";
 import { useRouter } from "next/navigation";
 

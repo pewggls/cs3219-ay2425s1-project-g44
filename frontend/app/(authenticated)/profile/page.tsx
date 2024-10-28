@@ -17,11 +17,17 @@ export default function Home() {
         username: "johndoe",
         email: "john@example.com",
         password: "abcdefgh",
+        totalAttempt: 0,
+        questionAttempt: 0,
+        totalQuestion: 20,
     });
     const initialUserData = useRef({
         username: "johndoe",
         email: "john@example.com",
         password: "abcdefgh",
+        totalAttempt: 0,
+        questionAttempt: 0,
+        totalQuestion: 20,
     })
     const userId = useRef(null);
 
@@ -52,16 +58,38 @@ export default function Home() {
                 const data = (await response.json()).data;
                 // placeholder for password *Backend wont expose password via any API call
                 const password = "";
+                
+                // Call the API to fetch user question history stats
+                const questionHistoryResponse = await fetch(`${process.env.NEXT_PUBLIC_USER_API_HISTORY_URL}/${data.id}/stats`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
+
+                if (!questionHistoryResponse.ok) {
+                    localStorage.removeItem("token"); // remove invalid token from browser
+                    router.push('/auth/login'); // Redirect to login if not authenticated
+                    return;
+                }
+
+                const stats = (await questionHistoryResponse.json()).data;
 
                 setUserData({
                     username: data.username,
                     email: data.email,
                     password: password,
+                    totalAttempt: stats.totalQuestionsAvailable,
+                    questionAttempt: stats.questionsAttempted,
+                    totalQuestion: stats.totalAttempts,
                 })
                 initialUserData.current = {
                     username: data.username,
                     email: data.email,
                     password: password,
+                    totalAttempt: stats.totalQuestionsAvailable,
+                    questionAttempt: stats.questionsAttempted,
+                    totalQuestion: stats.totalAttempts,
                 };
                 userId.current = data.id;
             } catch (error) {
@@ -69,6 +97,7 @@ export default function Home() {
                 router.push('/auth/login'); // Redirect to login in case of any error
             }
     };
+
     authenticateUser();
     }, []);
 
@@ -304,14 +333,14 @@ export default function Home() {
                             <div className="text-left">
                                 <Label>Questions Attempted</Label>
                                 <div className="flex items-end gap-1.5 leading-7 font-mono">
-                                    <span className="text-2xl font-bold">11</span>
+                                    <span className="text-2xl font-bold">{userData.questionAttempt}</span>
                                     <span>/</span>
-                                    <span>20</span>
+                                    <span>{userData.totalQuestion}</span>
                                 </div>
                             </div>
                             <div className="text-right">
                                 <Label>Total Attempts</Label>
-                                <p className="text-2xl font-bold font-mono">14</p>
+                                <p className="text-2xl font-bold font-mono">{userData.totalAttempt}</p>
                             </div>
                         </div>
                     </div>
