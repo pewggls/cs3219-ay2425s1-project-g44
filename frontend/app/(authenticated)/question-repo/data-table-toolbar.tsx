@@ -17,10 +17,11 @@ interface DataTableToolbarProps<TData> {
     table: Table<TData>
     data?: TData[]
     setData?: React.Dispatch<React.SetStateAction<TData[]>>
+    isVisible: boolean
 }
 
 export function DataTableToolbar<TData>({
-    table, data, setData
+    table, data, setData, isVisible
 }: DataTableToolbarProps<TData>) {
     const isFiltered = table.getState().columnFilters.length > 0
     const isFilteredRowsSelected = table.getFilteredSelectedRowModel().rows.length > 0
@@ -97,7 +98,9 @@ export function DataTableToolbar<TData>({
                     )}
                 </div>
             </div>
-
+            
+            {isVisible && (
+            <>
             <div className="flex flex-row gap-4">
                 {isFilteredRowsSelected && (
                     <Dialog>
@@ -133,6 +136,8 @@ export function DataTableToolbar<TData>({
                 </Button>
             </div>
             <AddEditQuestionDialog ref={triggerAddRef} row={null} setData={setData} handleClose={handleClose} />
+            </>
+             )}
         </div>
     )
 }

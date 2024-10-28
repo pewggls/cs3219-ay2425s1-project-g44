@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { User, LogOut } from "lucide-react";
+import { User, FileText, LogOut } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 export default function AuthenticatedLayout({
@@ -65,9 +65,15 @@ export default function AuthenticatedLayout({
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="font-sans">
-                                <DropdownMenuLabel>Username</DropdownMenuLabel>
+                                <DropdownMenuLabel>My Account</DropdownMenuLabel>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem asChild><Link href="/profile" className="cursor-pointer"><User className="mr-2 h-4 w-4" />Profile</Link></DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                                    <Link href="/profile" className="cursor-pointer"><User className="mr-2 h-4 w-4" />Profile</Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                                    <Link href="/profile/question-history" className="cursor-pointer"> <FileText className="mr-2 h-4 w-4" />Attempt History</Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
                                 <DropdownMenuItem asChild onClick={(e) => {
                                     // e.preventDefault();
                                     localStorage.removeItem("token");
