@@ -5,18 +5,37 @@ interface DecodedToken {
     exp: number;
 }
 
-export function isTokenExpired(): boolean {
-    const token = getCookie("token");
+export async function isTokenExpired(inputToken: string | undefined): Promise<boolean> {
+    const token = inputToken || getCookie("token");
     if (!token) return true;
 
     try {
         const decodedToken = jwtDecode<DecodedToken>(token);
         const currentTime = Math.floor(Date.now() / 1000);
-        return decodedToken.exp < currentTime;
+        if (decodedToken.exp < currentTime) return true;
     } catch (error) {
         console.error("Error decoding token:", error);
         return true;
     }
+
+    try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_USER_API_AUTH_URL}/verify-token`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            cache: 'no-store',
+        });
+
+        if (!response.ok) {
+            return true;
+        }
+    } catch (error) {
+        console.error('Error during authentication:', error);
+        return true;
+    }
+
+    return false;
 }
 
 export function getTokenExpirationTime(): number | null {

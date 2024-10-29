@@ -1,3 +1,5 @@
+// only work on client side
+
 export function setCookie(name: string, value: string, options: { [key: string]: string } = {}) {
     if (typeof window === 'undefined') return;
     let cookieString = `${encodeURIComponent(name)}=${encodeURIComponent(value)}`;
@@ -34,6 +36,11 @@ export function deleteAllCookies() {
     deleteCookie('userId');
     deleteCookie('username');
     deleteCookie('isAdmin');
+}
+
+export function getToken(): string | null {
+    if (typeof window === 'undefined') return null;
+    return getCookie('token');
 }
 
 export function getUserId(): string | null {

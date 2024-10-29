@@ -54,7 +54,7 @@ export default function AuthenticatedLayout({
     useEffect(() => {
         const authenticateUser = async () => {
             const token = getCookie('token');
-            if (!token || isTokenExpired()) {
+            if (!token || await isTokenExpired(token)) {
                 router.push('/auth/login');
                 return;
             }
@@ -64,22 +64,6 @@ export default function AuthenticatedLayout({
                 router.push('/questions');
                 return;
             }
-
-            try {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_USER_API_AUTH_URL}/verify-token`, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`,
-                    },
-                });
-
-                if (!response.ok) {
-                    router.push('/auth/login');
-                }
-            } catch (error) {
-                console.error('Error during authentication:', error);
-                router.push('/auth/login');
-            }
         };
 
         authenticateUser();
@@ -87,7 +71,7 @@ export default function AuthenticatedLayout({
 
     function logout() {
         deleteAllCookies();
-        router.push('/auth/login');
+        router.push('/');
     }
 
     return (

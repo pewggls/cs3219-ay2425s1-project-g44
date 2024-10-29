@@ -110,7 +110,14 @@ export default function Login() {
     }, [router]);
 
     return (
-        <div className="flex min-h-screen w-screen -mt-12 px-10 items-center justify-center bg-white font-sans">
+        <div className="flex flex-col min-h-screen w-screen pt-10 laptop:pt-28 pb-10 px-10 gap-20 items-center justify-start bg-white font-sans">
+            <Link
+                href="/"
+                className="text-lg font-bold font-brand tracking-tight text-brand-700"
+                prefetch={false}
+            >
+                PeerPrep
+            </Link>
             <div className="mx-auto flex flex-col justify-center gap-6 w-[350px]">
                 <div className="flex flex-col gap-2 text-left pb-1">
                     <span className="font-serif font-light text-4xl text-primary tracking-tight">
