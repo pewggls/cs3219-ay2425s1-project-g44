@@ -7,7 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { User, LogOut } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { deleteCookie, getCookie, getUsername, isUserAdmin } from "../utils/cookie-manager";
+import { deleteAllCookies, getCookie, getUsername, isUserAdmin } from "../utils/cookie-manager";
 import { isTokenExpired } from "../utils/token-utils";
 import { useNavigationConfirm } from "../hooks/useNavConfirm";
 
@@ -48,7 +48,7 @@ export default function AuthenticatedLayout({
 
     const router = useRouter();
 
-    const isSessionPage = pathname === '/session';
+    const isSessionPage = pathname.startsWith('/session');
     const handleNavigation = useNavigationConfirm(isSessionPage);
 
     useEffect(() => {
@@ -86,10 +86,7 @@ export default function AuthenticatedLayout({
     }, [pathname, router]);
 
     function logout() {
-        deleteCookie('token');
-        deleteCookie('username');
-        deleteCookie('isAdmin');
-        console.log(getCookie('token'));
+        deleteAllCookies();
         router.push('/auth/login');
     }
 

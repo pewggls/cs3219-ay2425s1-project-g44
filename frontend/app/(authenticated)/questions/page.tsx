@@ -11,6 +11,7 @@ import { Check, ChevronsRight, Flag, MessageSquareText, Plus, X } from "lucide-r
 import { useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { getUserId, getUsername } from "@/app/utils/cookie-manager";
 
 type Question = {
     id: number;
@@ -226,8 +227,8 @@ export default function Questions() {
 
             const message = {
                 event: "enqueue",
-                userId: userInfo.current.id,
-                userName: userInfo.current.username,
+                userId: getUserId(),
+                userName: getUsername(),
                 questions: selectedQuestionList.current, 
             };
     
@@ -359,8 +360,9 @@ export default function Questions() {
                 setRedirectTime((prevTime) => {
                     if (prevTime <= 1) {
                         clearInterval(redirectTimer);
-                        // router.push('/questions');  Redirect to question page
-                        setMatchFoundDialogOpen(false);
+                        const sessionId = 1
+                        router.push(`/session/${sessionId}`);  // Redirect to question page
+                        // setMatchFoundDialogOpen(false);
                         setIsMatching(false);
                         return 0;
                     }
@@ -667,7 +669,7 @@ export default function Questions() {
                         </DialogHeader>
                         <div className="flex flex-col w-full gap-1 py-4 justify-start">
                             <p>You have been matched with <span className="font-semibold">{matchResult.username}</span></p>
-                            <p>Redirecting you back to the question page in {redirectTime} {redirectTime === 1 ? "second" : "seconds"}...</p>
+                            <p>Redirecting you in {redirectTime} {redirectTime === 1 ? "second" : "seconds"}...</p>
                         </div>
                     </DialogContent>
                 </Dialog>

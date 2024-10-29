@@ -29,6 +29,18 @@ export function deleteCookie(name: string) {
     console.log(name + ' cookie deleted');
 }
 
+export function deleteAllCookies() {
+    deleteCookie('token');
+    deleteCookie('userId');
+    deleteCookie('username');
+    deleteCookie('isAdmin');
+}
+
+export function getUserId(): string | null {
+    if (typeof window === 'undefined') return null;
+    return getCookie('userId');
+}
+
 export function getUsername(): string | null {
     if (typeof window === 'undefined') return null;
     return getCookie('username');

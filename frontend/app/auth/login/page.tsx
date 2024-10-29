@@ -90,6 +90,7 @@ export default function Login() {
             setCookie('token', accessToken, { 'max-age': '86400', 'path': '/', 'SameSite': 'Strict' });
 
             // set user info
+            setCookie('userId', id, { 'max-age': '86400', 'path': '/', 'SameSite': 'Strict' });
             setCookie('username', username, { 'max-age': '86400', 'path': '/', 'SameSite': 'Strict' });
             setCookie('isAdmin', isAdmin.toString(), { 'max-age': '86400', 'path': '/', 'SameSite': 'Strict' });
 

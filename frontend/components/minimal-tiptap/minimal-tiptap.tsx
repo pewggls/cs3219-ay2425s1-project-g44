@@ -1,3 +1,5 @@
+// Component from shadcn-minimal-tiptap https://github.com/Aslam97/shadcn-minimal-tiptap
+
 import * as React from 'react'
 import './styles/index.css'
 
