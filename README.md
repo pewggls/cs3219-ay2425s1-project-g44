@@ -14,6 +14,8 @@ The question microservice exposes the following API endpoints:
 - ```questions/delete/[Question ID]``` - Deletes a question from the database by ID number.
 - ```questions/update/[Question ID]``` - Updates a question from the database by ID number.
 - ```questions/patch/[Question ID]``` - Patches a question from the database by ID number.
+- `questions/byObjectId/[Question ObjectId]` - Returns a single question by its MongoDB ObjectId.
+- `questions/batch` - Accepts a POST request with a JSON array of ObjectIds and returns multiple questions by their IDs.
 
 #### Matching Service
 The matching microservice exposes the following API endpoint (via a WebSocket connection):

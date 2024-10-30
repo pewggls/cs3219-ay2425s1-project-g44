@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
 import { isValidObjectId } from "mongoose";
+import axios from 'axios';
 import {
   createUser as _createUser,
   deleteUserById as _deleteUserById,
@@ -8,6 +9,11 @@ import {
   findUserById as _findUserById,
   findUserByUsername as _findUserByUsername,
   findUserByUsernameOrEmail as _findUserByUsernameOrEmail,
+  findUserQuestionHistory as _findUserQuestionHistory,
+  countUniqueQuestionsAttempted as _countUniqueQuestionsAttempted,
+  addOrUpdateQuestionHistory as _addOrUpdateQuestionHistory,
+  sumTotalAttemptsByUser as _sumTotalAttemptsByUser,
+  getTotalQuestionsAvailable as _getTotalQuestionsAvailable,
   updateUserById as _updateUserById,
   updateUserPrivilegeById as _updateUserPrivilegeById,
 } from "../model/repository.js";
@@ -196,6 +202,114 @@ export async function deleteUser(req, res) {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Unknown error when deleting user!" });
+  }
+}
+
+export async function getUserHistory(req, res) {
+  try {
+    const userId = req.params.userId;
+
+    // Validate userId
+    if (!isValidObjectId(userId)) {
+      return res.status(404).json({ message: `User ${userId} not found` });
+    }
+
+    // Fetch question history for the user
+    const history = await _findUserQuestionHistory(userId);
+    if (!history || history.length === 0) {
+      return res.status(404).json({ message: `No question history found for user ${userId}` });
+    }
+
+    console.log("Found history:", history);
+
+    // Format the response according to the required structure
+    const formattedHistory = history.map(record => ({
+      attemptDate: record.attemptDate,
+      attemptCount: record.attemptCount,
+      attemptTime: record.attemptTime,
+      question: {
+        id: record.question.id,
+        title: record.question.title,
+        complexity: record.question.complexity,
+        category: record.question.category,
+        description: record.question.description,
+        link: record.question.link,
+      },
+    }));
+
+    return res.status(200).json(formattedHistory);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Unknown error when fetching user question history!" });
+  }
+}
+
+export async function addQuestionAttempt(req, res) {
+  try {
+    const userId = req.params.userId;
+    const { questionId, timeSpent } = req.body;
+
+    const parsedId = Number(questionId);
+    console.log(parsedId);
+
+    // Validate userId and questionId
+    if (!isValidObjectId(userId)) {
+      return res.status(400).json({ message: "Invalid user ID" });
+    }
+    if (typeof parsedId !== 'number') {
+      return res.status(400).json({ message: "Invalid question ID" });
+    }
+    if (!timeSpent || typeof timeSpent !== 'number') {
+      return res.status(400).json({ message: "Invalid time spent" });
+    }
+
+    const questionServiceUrl = `http://question:2000/questions/byId/${parsedId}`;
+
+    
+    // Fetch question data from question-service
+    const response = await axios.get(questionServiceUrl);
+    const question = response.data;
+
+    console.log("Found question:", question);
+    // Add or update the question attempt in the user's question history
+    const updated = await _addOrUpdateQuestionHistory(userId, question._id, timeSpent);
+
+    if (updated) {
+      return res.status(200).json({ message: "Question history updated successfully." });
+    } else {
+      return res.status(500).json({ message: "Error updating question history." });
+    }
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Unknown error when updating question history!" });
+  }
+}
+
+export async function getUserStats(req, res) {
+  try {
+    const userId = req.params.userId;
+
+    // Validate userId
+    if (!isValidObjectId(userId)) {
+      return res.status(400).json({ message: "Invalid user ID" });
+    }
+
+    // Fetch total questions available
+    const totalQuestionsAvailable = await _getTotalQuestionsAvailable();
+
+    // Fetch user's question history stats
+    const questionsAttempted = await _countUniqueQuestionsAttempted(userId);
+    const totalAttempts = await _sumTotalAttemptsByUser(userId);
+
+    // Respond with the aggregated statistics
+    return res.status(200).json({
+      totalQuestionsAvailable,
+      questionsAttempted,
+      totalAttempts,
+    });
+  } catch (err) {
+    console.error("Error fetching user statistics:", err);
+    return res.status(500).json({ message: "Unknown error when fetching user statistics!" });
   }
 }
 
