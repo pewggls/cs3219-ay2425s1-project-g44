@@ -17,9 +17,8 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form"
-import { AlertCircle, Info, LoaderCircle, CheckCircle } from "lucide-react"
+import { AlertCircle, LoaderCircle } from "lucide-react"
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import SuccessDialog from "./success-dialog"
 
 const formSchema = z.object({
@@ -80,11 +79,11 @@ export default function Signup() {
         // Check if the token is cached and not expired
         const tokenValidFor = 24 * 60 * 60 * 1000;
         const currentTime = Date.now();
-      
+
         if (adminJWT && tokenTimestamp && (currentTime - tokenTimestamp < tokenValidFor)) {
             return adminJWT;
         }
-      
+
         // If no token or token expired, login as admin to get a new token
         const loginResponse = await fetch(`${process.env.NEXT_PUBLIC_USER_API_AUTH_URL}/login`, {
             method: "POST",
@@ -96,12 +95,12 @@ export default function Signup() {
                 "password": process.env.NEXT_PUBLIC_EMAIL_PASS
             }),
         });
-      
+
         if (!loginResponse.ok) {
             setError("Failed to reset password. Please try again.");
             throw new Error(`Failed to fetch admin JWT token. Status: ${loginResponse.status}, Message: ${loginResponse.statusText}`);
         }
-      
+
         const loginData = await loginResponse.json();
         adminJWT = loginData.data.accessToken;
         tokenTimestamp = currentTime;
@@ -142,8 +141,8 @@ export default function Signup() {
                     username: responseData.data.username,
                     email: responseData.data.email,
                     id: responseData.data.id, 
-                  })
-                setSuccessMessage("You have already registered but haven't verified your email. Please check your inbox for the verification link.");
+                })
+                setSuccessMessage("You have already registered but haven't verified your email.");
                 form.reset();
                 return;
             } else if (signUpResponse.status == 409) {
@@ -173,14 +172,14 @@ export default function Signup() {
                 username: username,
                 email: email,
                 id: id, 
-              })
+            })
 
             // Send verification email
             console.log("In sign up page: call send verification email api");
             const emailResponse = await fetch(`${process.env.NEXT_PUBLIC_USER_API_EMAIL_URL}/send-verification-email`, {
                 method: 'POST',
                 headers: {
-                  'Content-Type': 'application/json',
+                    'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ 
                     username: username, 
@@ -209,7 +208,7 @@ export default function Signup() {
                 throw new Error(`Failed to send verification email`);
             }
 
-            setSuccessMessage("Thank you for signing up! A verification link has been sent to your email. Please check your inbox to verify your account.");
+            setSuccessMessage("A verification link has been sent to your email.");
             form.reset();
         } catch (err) {
             if (!isErrorSet) {
@@ -245,10 +244,10 @@ export default function Signup() {
 
     <div className="min-h-screen w-screen laptop:flex">
         <div className="hidden min-h-screen bg-brand-50 -mt-12 laptop:w-screen laptop:flex laptop:items-center laptop:justify-center">
-            <span className="text-4xl font-bold font-brand tracking-tight text-brand-700">PeerPrep</span>
+            <Link href="/" className="text-4xl font-bold font-brand tracking-tight text-brand-700" prefetch={false}>PeerPrep</Link>
         </div>
 
-        <div className="min-h-screen laptop:w-screen text-black font-sans flex flex-col items-center justify-center gap-6 mx-auto -mt-8 w-[350px]">
+        <div className="min-h-screen laptop:w-screen text-black font-sans flex flex-col items-center justify-center gap-6 mx-auto laptop:-mt-8 py-8 w-[350px]">
             <div className="flex flex-col gap-2 text-center">
                 <span className="font-serif font-light text-4xl text-primary tracking-tight">
                     Create an account

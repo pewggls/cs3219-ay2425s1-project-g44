@@ -90,9 +90,16 @@ export default function ForgottenPassword() {
     }
 
     return (
-        <div className="flex flex-col min-h-screen w-screen px-10 items-start justify-center bg-white font-sans">
-            <div className="-mt-48 mx-auto flex flex-col justify-center gap-6 w-[350px]">
-                <div className="pb-10">
+        <div className="flex flex-col min-h-screen w-screen pt-10 laptop:pt-28 pb-10 px-10 gap-12 items-center justify-start bg-white font-sans">
+            <Link
+                href="/"
+                className="text-lg font-bold font-brand tracking-tight text-brand-700"
+                prefetch={false}
+            >
+                PeerPrep
+            </Link>
+            <div className="mx-auto flex flex-col justify-center gap-6 w-[350px]">
+                <div className="pb-4">
                     <Button asChild variant="ghost" size="sm" className="pl-0 py-1 pr-2 -ml-1"><Link href="/auth/login" className="text-muted-foreground"><ChevronLeft className="h-5 w-5" />Back to Login</Link></Button>
                 </div>
                 <div className="flex flex-col gap-2 text-left">
