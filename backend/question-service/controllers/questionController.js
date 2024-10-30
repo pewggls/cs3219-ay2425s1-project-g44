@@ -1,4 +1,5 @@
 const z = require("zod");
+const mongoose = require("mongoose");
 const Question = require("../models/question");
 
 exports.getAllQuestions = async (req, res) => {
@@ -19,6 +20,35 @@ exports.getQuestionById = async (req, res) => {
     }
     res.json(queryResult)
 };
+
+exports.getQuestionByObjectId = async (req, res) => {
+    const parsedId = req.params.questionObjectId;
+  
+    const queryResult = await Question.findById(parsedId);
+    if (!queryResult) {
+        res.send(`Question Object ID ${parsedId} not found.`)
+        return
+    }
+    res.json(queryResult)
+};
+  
+exports.getQuestionsByIds = async (req, res) => {
+    const { ids } = req.body; // Extract the list of IDs from the request body
+  
+    // Validate that ids is an array of valid ObjectId strings
+    if (!Array.isArray(ids) || ids.some(id => !mongoose.Types.ObjectId.isValid(id))) {
+      return res.status(400).json({ message: "Invalid or missing 'ids' array in request body" });
+    }
+  
+    try {
+      // Find all questions with ObjectIds in the provided ids array
+      const questions = await Question.find({ _id: { $in: ids } });
+      res.json(questions); // Return the found questions as JSON
+    } catch (error) {
+      console.error("Error fetching questions by IDs:", error);
+      res.status(500).json({ message: "Error fetching questions", error: error.message });
+    }
+  };
 
 exports.getMaxQuestionId = async (req, res) => {
     const queryResult = await Question.findOne().sort({ id: -1 }).exec();

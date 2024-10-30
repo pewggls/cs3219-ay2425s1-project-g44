@@ -1,4 +1,6 @@
+import axios from 'axios';
 import UserModel from "./user-model.js";
+import QuestionHistory from "./questionHistory.js"; // Import the QuestionHistory model
 import "dotenv/config";
 import { connect } from "mongoose";
 
@@ -79,4 +81,128 @@ export async function updateUserPrivilegeById(userId, isAdmin) {
 
 export async function deleteUserById(userId) {
   return UserModel.findByIdAndDelete(userId);
+}
+
+export async function findUserQuestionHistory(userId) {
+  // Find all question history records for the user
+  const history = await QuestionHistory.find({ userId });
+  console.log("Fetched question history records:", history);
+
+  // Collect all unique question IDs
+  const questionIds = [...new Set(history.map(record => record.question.toString()))];
+  console.log("Unique question IDs:", questionIds);
+
+  // Fetch question details for these IDs in a single API call
+  let questionDetailsMap = {};
+  if (questionIds.length > 0) {
+    try {
+      console.log("Fetching question details for IDs:", questionIds);
+      const response = await axios.post('http://question:2000/questions/batch', { ids: questionIds });
+      console.log("Batch fetch response:", response.data);
+      
+      const questions = response.data;
+      questionDetailsMap = questions.reduce((acc, question) => {
+        acc[question._id] = question;
+        return acc;
+      }, {});
+    } catch (error) {
+      console.error("Error fetching questions in batch:", error.message);
+    }
+  }
+
+
+  // Populate each history record with its corresponding question details
+  console.log("Question details map:", questionDetailsMap);
+
+  const populatedHistory = history.map(record => {
+  const question = questionDetailsMap[record.question.toString()];
+  console.log("Populating history record for question:", question);
+
+  return {
+    ...record.toObject(),
+    question: question
+      ? {
+          id: question.id,
+          title: question.title,
+          complexity: question.complexity,
+          category: question.category,
+          description: question.description,
+          link: question.link,
+        }
+      : null, // If question details are not found
+  };
+  });
+  console.log("Populated history:", populatedHistory);
+
+
+  return populatedHistory;
+}
+
+/**
+ * Count the number of unique questions attempted by a user
+ */
+export async function countUniqueQuestionsAttempted(userId) {
+  const history = await QuestionHistory.find({ userId });
+  const uniqueQuestionIds = new Set(history.map(record => record.question.toString()));
+  return uniqueQuestionIds.size;
+}
+
+/**
+ * Sum the total attempts (including re-attempts) made by a user
+ */
+export async function sumTotalAttemptsByUser(userId) {
+  const history = await QuestionHistory.find({ userId });
+  return history.reduce((sum, record) => sum + record.attemptCount, 0);
+}
+
+/**
+ * Fetch the total number of questions available from the question service
+ */
+export async function getTotalQuestionsAvailable() {
+  const questionServiceUrl = 'http://question:2000/questions/all'; // Adjust URL as needed
+  const response = await axios.get(questionServiceUrl);
+  return response.data.length;
+}
+
+export async function addOrUpdateQuestionHistory(userId, questionId, timeSpent) {
+  try {
+    console.log("Received data in addOrUpdateQuestionHistory:", { userId, questionId, timeSpent });
+
+    // Try to find an existing record
+    console.log("Attempting to find existing history with userId and questionId...");
+    const existingHistory = await QuestionHistory.findOne({ userId, question: questionId });
+
+    if (existingHistory) {
+      console.log("Existing history found. Updating the record...");
+      
+      // Update the existing record
+      existingHistory.attemptCount += 1;
+      existingHistory.attemptTime += timeSpent;
+      existingHistory.attemptDate = new Date();
+
+      // Try to save the updated document
+      await existingHistory.save();
+      console.log("Existing history updated successfully.");
+      return true;  // Indicate that the update was successful
+    } else {
+      console.log("No existing history found. Creating a new record...");
+
+      // Create a new record for the question attempt
+      const newHistory = new QuestionHistory({
+        userId,
+        question: questionId,
+        attemptDate: new Date(),
+        attemptCount: 1,
+        attemptTime: timeSpent,
+      });
+
+      // Try to save the new document
+      await newHistory.save();
+      console.log("New history created successfully.");
+      return true;  // Indicate that the creation was successful
+    }
+  } catch (error) {
+    console.error("Error in addOrUpdateQuestionHistory:", error);
+    throw new Error("Failed to add or update question history");
+  }
 }

@@ -420,3 +420,83 @@
     | 403	                        | No OTP request found for this user, or OTP expired or incorrect.          |
     | 404                         |	User not found.                                                           |
     | 500	                        | Database or server error                                                  |
+
+### Question History Endpoints
+
+These endpoints allow for tracking and retrieving a user’s question history and statistics.
+
+#### 1. Fetch Question History for a User
+Fetches all question attempts made by a user, including details about each question attempted.
+
+- **Endpoint**: `GET /users/history/:userId`
+- **Request Parameters**:
+  - `userId` (string): The unique identifier of the user whose statistics are being fetched.
+
+- **Response Format** (JSON):
+  - **Code**: 200
+  - **Body**:
+    ```json
+    [
+      {
+        "attemptDate": "2024-10-12T12:34:56Z",
+        "attemptCount": 2,
+        "attemptTime": 600,
+        "question": {
+          "id": 1,
+          "title": "Two Sum",
+          "complexity": "Easy",
+          "category": ["Arrays", "Algorithms"],
+          "description": "Find two numbers that add up to the target.",
+          "link": "http://leetcode/"
+        }
+      },
+      {
+        "attemptDate": "2024-10-10T15:10:45Z",
+        "attemptCount": 1,
+        "attemptTime": 180,
+        "question": {
+          "id": 2,
+          "title": "Longest Substring Without Repeating Characters",
+          "complexity": "Medium",
+          "category": ["Strings", "Algorithms"],
+          "description": "Find the longest substring without repeating characters.",
+          "link": "http://leetcode/"
+        }
+      }
+    ]
+    ```
+#### 2. Add Question Attempt for a User
+Records a question attempt for a user, either creating a new record or updating an existing one.
+
+- **Endpoint**: `POST /users/history/:userId`
+- **Request Parameters**:
+  - `userId` (string): The unique identifier of the user whose statistics are being fetched.
+- **Request Body** (JSON):
+  ```json
+  {
+    "questionId": "18",
+    "timeSpent": 120
+  }
+- **Response Format** (JSON):
+- **Code**: 200
+- **Body**:
+  ```json
+  "Question history updated successfully."
+
+#### 3. Fetch Statistics for a User
+Fetches the statistics for a user, including the number of questions attempted, total time spent, and other relevant metrics.
+
+- **Endpoint**: `GET /users/history/:userId/stats`
+- **Request Parameters**:
+  - `userId` (string): The unique identifier of the user whose statistics are being fetched.
+
+- **Response Format** (JSON):
+  - **Code**: 200
+  - **Body**:
+    ```json
+    {
+      "totalQuestionsAvailable": 20,
+      "questionsAttempted": 2,
+      "totalAttempts": 4
+    }
+    ```
