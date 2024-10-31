@@ -12,6 +12,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useRouter } from 'next/navigation';
 import SessionLoading from '../loading';
+import { getCookie } from '@/app/utils/cookie-manager';
 
 const DynamicCodeEditor = dynamic(() => import('../code-editor/code-editor'), { ssr: false });
 const DynamicTextEditor = dynamic(() => import('../text-editor'), { ssr: false });
@@ -47,6 +48,19 @@ export default function Session({ params }: { params: { id: string } }) {
     };
 
     async function endSession() {
+        // Call the API to update user question history
+        const questionHistoryResponse = await fetch(`${process.env.NEXT_PUBLIC_USER_API_HISTORY_URL}/${getCookie('userId')}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getCookie('token')}`,
+            },
+            body: JSON.stringify({
+                questionId: "1", // TODO: one question id that user has attempted
+                timeSpent: 120, // TODO: time spent in second
+            }),
+        });
+
         router.push('/questions');
     }
 
