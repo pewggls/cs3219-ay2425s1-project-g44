@@ -1,5 +1,6 @@
 "use client";
 
+import { deleteCookie, getCookie, setCookie } from "@/app/utils/cookie-manager";
 import React, { useEffect, useRef, useState } from "react";
 import { QuestionHistory, columns} from "./columns";
 import { DataTable } from "../../question-repo/data-table";
@@ -25,54 +26,41 @@ export default function UserQuestionHistory() {
   const [loading, setLoading] = useState(true);
   const userId = useRef(null);
 
-  // authenticate user else redirect them to login page
-  useEffect(() => {
-    const authenticateUser = async () => {
-      try {
-        const token = localStorage.getItem("token");
-
-        if (!token) {
-          router.push("/auth/login"); // Redirect to login if no token
-          return;
-        }
-
-        // Call the API to verify the token
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_USER_API_AUTH_URL}/verify-token`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (!response.ok) {
-          localStorage.removeItem("token"); // remove invalid token from browser
-          router.push("/auth/login"); // Redirect to login if not authenticated
-          return;
-        }
-
-        const data = (await response.json()).data;
-        userId.current = data.id;
-      } catch (error) {
-        console.error("Error during authentication:", error);
-        router.push("/auth/login"); // Redirect to login in case of any error
-      }
-    };
-
-    authenticateUser();
-  }, []);
-
   // Fetch questions history from backend API
   useEffect(() => {
     async function fetchHistory() {
       try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_USER_API_HISTORY_URL}/${userId}`
-        );
-        const data = await response.json();
+        userId.current = getCookie('userId');
 
+        if (!userId.current) {
+          // Call the API to get user id
+          const response = await fetch(`${process.env.NEXT_PUBLIC_USER_API_AUTH_URL}/verify-token`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getCookie('token')}`,
+            },
+          }); 
+
+          const data = (await response.json()).data;
+          setCookie('userId', data.id, { 'max-age': '86400', 'path': '/', 'SameSite': 'Strict' });
+        }
+
+        console.log("In question history page: call api to fetch user question history")
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_USER_API_HISTORY_URL}/${getCookie('userId')}`, {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${getCookie('token')}`,
+            },
+          }
+        );
+        
+        const data = await response.json();
+        if (!response.ok) {
+            console.error("Error:", data.message);
+            return;
+        }
+        
         // const data: receiveQuestion[] = [
         // {
         //   "attemptDate": "2024-10-12T12:34:56Z",

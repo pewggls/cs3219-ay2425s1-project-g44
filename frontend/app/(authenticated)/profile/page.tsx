@@ -12,6 +12,7 @@ import React, { ChangeEvent, useEffect, useRef, useState } from "react";
 
 export default function Home() {
     const router = useRouter();
+    const [error, setError] = useState(false);
     const [feedback, setFeedback] = useState({ message: '', type: '' });
     const [isEditing, setIsEditing] = useState(false);
     const [userData, setUserData] = useState({
@@ -57,6 +58,10 @@ export default function Home() {
                 }
 
                 const data = (await response.json()).data;
+                if (!getCookie('userId')) {
+                    userId.current = data.id;
+                    setCookie('userId', data.id, { 'max-age': '86400', 'path': '/', 'SameSite': 'Strict' });
+                }
                 // placeholder for password *Backend wont expose password via any API call
                 const password = "";
                 
@@ -69,30 +74,27 @@ export default function Home() {
                 });
 
                 if (!questionHistoryResponse.ok) {
-                    localStorage.removeItem("token"); // remove invalid token from browser
-                    router.push('/auth/login'); // Redirect to login if not authenticated
-                    return;
+                    setError(true);
                 }
 
-                const stats = (await questionHistoryResponse.json()).data;
-
+                const stats = await questionHistoryResponse.json();
+                console.log("stats", stats)
                 setUserData({
                     username: data.username,
                     email: data.email,
                     password: password,
-                    totalAttempt: stats.totalQuestionsAvailable,
-                    questionAttempt: stats.questionsAttempted,
-                    totalQuestion: stats.totalAttempts,
+                    totalAttempt: stats?.totalQuestionsAvailable,
+                    questionAttempt: stats?.questionsAttempted,
+                    totalQuestion: stats?.totalAttempts,
                 })
                 initialUserData.current = {
                     username: data.username,
                     email: data.email,
                     password: password,
-                    totalAttempt: stats.totalQuestionsAvailable,
-                    questionAttempt: stats.questionsAttempted,
-                    totalQuestion: stats.totalAttempts,
+                    totalAttempt: stats?.totalQuestionsAvailable,
+                    questionAttempt: stats?.questionsAttempted,
+                    totalQuestion: stats?.totalAttempts,
                 };
-                userId.current = data.id;
             } catch (error) {
                 console.error('Error during authentication:', error);
                 router.push('/auth/login'); // Redirect to login in case of any error
@@ -331,6 +333,8 @@ export default function Home() {
                                 onChange={handleInputChange}
                             />
                         </div>
+
+                        { !error &&
                         <div className="flex justify-between">
                             <div className="text-left">
                                 <Label>Questions Attempted</Label>
@@ -345,6 +349,7 @@ export default function Home() {
                                 <p className="text-2xl font-bold font-mono">{userData.totalAttempt}</p>
                             </div>
                         </div>
+                        }
                     </div>
                 </CardContent>
             </Card>
