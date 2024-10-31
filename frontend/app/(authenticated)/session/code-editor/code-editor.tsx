@@ -59,15 +59,24 @@ export default function CodeEditor({ sessionId }: CodeEditorProps) {
             url: process.env.NEXT_PUBLIC_COLLAB_API_URL || 'ws://localhost:3003',
             name: `code-${sessionId}`,
             document: doc,
+            onConnect: () => {
+                console.log('Connected to server');
+            },
+            onClose: ({ event }) => {
+                console.error('Connection closed:', event);
+            },
+            onDisconnect: ({ event }) => {
+                console.error('Disconnected from server:', event);
+            },
         });
 
         const type = doc.getText('monaco');
 
         const awareness = provider.awareness!;
-        awareness.setLocalStateField('user', {
-            name: getUsername(),
-            color: '#' + Math.floor(Math.random() * 16777215).toString(16)
-        });
+        // awareness.setLocalStateField('user', {
+        //     name: getUsername(),
+        //     color: '#' + Math.floor(Math.random() * 16777215).toString(16)
+        // });
 
         const binding = new MonacoBinding(type, editor.getModel()!, new Set([editor]), provider.awareness);
 
@@ -215,7 +224,6 @@ export default function CodeEditor({ sessionId }: CodeEditorProps) {
                         horizontalScrollbarSize: 17,
                         alwaysConsumeMouseWheel: false,
                     },
-                    // model: monaco.editor.createModel(ytext.toString(), language),
                 }}
             />
         </div>
