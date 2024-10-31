@@ -90,7 +90,7 @@ export function DataTable<TData, TValue>({
     meta: {
       removeSelectedRows: (selectedRows: number[]) => {
         const filterFunc = (old: TData[]) => {
-          const newRows = old.filter((q) => !selectedRows.includes(q.id - 1));
+          const newRows = old.filter((q) => !selectedRows.includes((q as any).id - 1));
           return newRows.map((q, index) => ({
             ...q,
             id: index + 1 // Reassign ID based on the new order

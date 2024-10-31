@@ -1,7 +1,7 @@
 "use client"
 
 import { Plus, Trash2, X } from "lucide-react"
-import { Table } from "@tanstack/react-table"
+import { Table, TableMeta } from "@tanstack/react-table"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,28 +13,33 @@ import AddEditQuestionDialog from "./add-edit-question-dialog"
 import { Question } from "./columns"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 
-interface DataTableToolbarProps<TData> {
-    table: Table<TData>
-    data?: TData[]
-    setData?: React.Dispatch<React.SetStateAction<TData[]>>
+interface ExtendedTableMeta<TData> extends TableMeta<TData> {
+    removeSelectedRows?: (rows: number[]) => void;
 }
 
-export function DataTableToolbar<TData>({
+interface DataTableToolbarProps<TData extends Question> {
+    table: Table<TData> & { options: { meta?: ExtendedTableMeta<TData> } };
+    data?: TData[];
+    setData?: React.Dispatch<React.SetStateAction<TData[]>>;
+}
+
+export function DataTableToolbar<TData extends Question>({
     table, data, setData
 }: DataTableToolbarProps<TData>) {
     const isFiltered = table.getState().columnFilters.length > 0
     const isFilteredRowsSelected = table.getFilteredSelectedRowModel().rows.length > 0
     const triggerAddRef = useRef<HTMLDivElement>(null);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
 
     const handleClose = () => triggerAddRef.current?.click();
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    const apiUrl = process.env.NEXT_PUBLIC_QUESTION_API_BASE_URL;
     async function deleteQuestions() {
         const delRows = [];
         const errorResponses = [];
         for (const row of table.getFilteredSelectedRowModel().rows.reverse()) {
             try {
-                const response = await fetch(`${apiUrl}/questions/delete/${row.original.id}`, {
+                const response = await fetch(`${apiUrl}/delete/${row.original.id}`, {
                     method: 'DELETE'
                 });
 
@@ -55,7 +60,7 @@ export function DataTableToolbar<TData>({
             alert(`An error occurred while deleting questions: ${errorResponses.join(", ")}`);
         }
 
-        table.options.meta?.removeSelectedRows(delRows);
+        table.options.meta?.removeSelectedRows?.(delRows);
         table.resetRowSelection();
     }
 
@@ -132,7 +137,7 @@ export function DataTableToolbar<TData>({
                     <span className="font-semibold uppercase">Add</span>
                 </Button>
             </div>
-            <AddEditQuestionDialog ref={triggerAddRef} row={null} setData={setData} handleClose={handleClose} />
+            <AddEditQuestionDialog ref={triggerAddRef} row={null} reset={isDialogOpen} setReset={setIsDialogOpen} setData={setData as React.Dispatch<React.SetStateAction<Question[]>> | undefined} handleClose={handleClose} />
         </div>
     )
 }
