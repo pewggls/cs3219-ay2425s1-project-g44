@@ -13,7 +13,6 @@ import { AlignLeft } from "lucide-react"
 export type Question = {
     id: number,
     title: string,
-    summary: string,
     description: string,
     categories: string[],
     complexity: string,
@@ -118,9 +117,7 @@ export const columns: (param: Dispatch<SetStateAction<Question[]>>) => ColumnDef
         // },
         filterFn: (row, id, selectedCategories) => {
             const rowCategories = row.getValue(id);
-            console.log(selectedCategories);
-            console.log(rowCategories);
-            return selectedCategories.every(category => rowCategories.includes(category));
+            return selectedCategories.every((category: string) => (rowCategories as string[]).includes(category));
         },
         
     },

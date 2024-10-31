@@ -24,7 +24,7 @@ interface DataTableRowActionsProps<TData> {
     setData?: React.Dispatch<React.SetStateAction<TData[]>>
 }
 
-export function DataTableRowActions<TData>({
+export function DataTableRowActions<TData extends Question>({
     row, setData
 }: DataTableRowActionsProps<TData>) {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -74,8 +74,8 @@ export function DataTableRowActions<TData>({
                 in this case we use this solution:
                 https://github.com/radix-ui/primitives/issues/1836#issuecomment-2177341164
             */}
-            <AddEditQuestionDialog row={row.original as Question} ref={triggerEditRef} reset={isDialogOpen} setReset={setIsDialogOpen} setData={setData} handleClose={handleEditClose}/>
-            <DelQuestionDialog row={row.original as Question} ref={triggerDelRef} setData={setData} handleClose={handleDelClose}/>
+            <AddEditQuestionDialog row={row.original as Question} ref={triggerEditRef} reset={isDialogOpen} setReset={setIsDialogOpen} setData={setData as React.Dispatch<React.SetStateAction<Question[]>> | undefined} handleClose={handleEditClose}/>
+            <DelQuestionDialog row={row.original as Question} ref={triggerDelRef} setData={setData as React.Dispatch<React.SetStateAction<Question[]>> | undefined} handleClose={handleDelClose}/>
         </DropdownMenu>
         
     )

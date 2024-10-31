@@ -14,6 +14,11 @@ questionRouter.get("/maxQuestionId", questionController.getMaxQuestionId);
 
 questionRouter.get("/byId/:questionId", questionController.getQuestionById);
 
+questionRouter.get("/byObjectId/:questionObjectId", questionController.getQuestionByObjectId);
+
+questionRouter.use("/batch", express.json())
+questionRouter.post("/batch", questionController.getQuestionsByIds);
+
 questionRouter.get("/dummy", questionController.dummyCallbackFunction);
 
 questionRouter.use("/add", express.json())

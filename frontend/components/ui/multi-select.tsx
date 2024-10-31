@@ -199,7 +199,7 @@ export const MultiSelect = React.forwardRef<
         React.useEffect(() => {
             setSelectedValues(defaultValue);
             onResetComplete(false);
-        }, [reset]);
+        }, [reset, defaultValue, onResetComplete]);
 
         const handleInputKeyDown = (
             event: React.KeyboardEvent<HTMLInputElement>

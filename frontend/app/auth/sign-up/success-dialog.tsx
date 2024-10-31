@@ -79,17 +79,14 @@ export default function SuccessDialog({
         <Dialog open={!!message} onOpenChange={onClose}>
         <DialogContent
             className=" bg-white text-black font-sans rounded-2xl"
-            onPointerDownOutside={(e) => e.preventDefault()}
-            onInteractOutside={(e) => e.preventDefault()}
-            onEscapeKeyDown={(e) => e.preventDefault()}
         >           
             <DialogHeader className="items-start">
-            <DialogTitle className="text-normal text-3xl">
+            <DialogTitle className="font-serif font-normal tracking-tight text-3xl">
                 {/* { resendCount <= maxResendAttempts ? 
                     (resendMessage?.includes("haven't verified") ? "Reminder" : "Success!") : "Resend Limit Reached"
                 } */}
                 { 
-                    message?.includes("haven't verified") ? "Reminder" : "Success!"
+                    message?.includes("haven't verified") ? "Reminder" : "Verify your account"
                 }
             </DialogTitle>
             <DialogDescription className="text-base">{message}</DialogDescription>

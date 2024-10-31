@@ -2,22 +2,20 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import Link from "next/link";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
     Form,
     FormControl,
-    FormDescription,
     FormField,
     FormItem,
     FormLabel,
     FormMessage,
 } from "@/components/ui/form"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useEffect, useState } from "react";
-import { AlertCircle, LoaderCircle, TriangleAlert } from "lucide-react";
+import { Suspense, useEffect, useState } from "react";
+import { AlertCircle, LoaderCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Info } from "lucide-react"
@@ -36,7 +34,7 @@ const formSchema = z.object({
     path: ["confirm"],
 });
 
-export default function ResetPassword() {
+function ResetPassword() {
     const router = useRouter(); 
     const searchParams = useSearchParams();
     const param_email = searchParams.get("email");
@@ -100,7 +98,7 @@ export default function ResetPassword() {
             } else if (verifyTokenResponse.status == 400) {
                 const responseMessage = (await verifyTokenResponse.json()).message;
                 if (responseMessage.includes("expired")) {
-                    setError("The reset link has expired. Please request a new one");
+                    setError("The reset link has expired. Please request a new one.");
                     isErrorSet = true;
                 } else if (responseMessage.includes("not match")) {
                     setError("The reset link is invalid. Please request a new password reset link.");
@@ -118,7 +116,7 @@ export default function ResetPassword() {
                 isErrorSet = true;
                 throw new Error("Database or server error: " + verifyTokenResponse.statusText);
             } else if (!verifyTokenResponse.ok) {
-                setError("There was an error happen when reset your password.");
+                setError("There was an error when resetting your password.");
                 isErrorSet = true;
                 throw new Error("Error resetting password: " + verifyTokenResponse.statusText);
             }
@@ -126,7 +124,7 @@ export default function ResetPassword() {
             router.push(`/auth/reset-password/success`);
         } catch (err) {
             if (!isErrorSet) {
-                setError("Something went wrong on our backend. Please retry shortly.");
+                setError("Something went wrong. Please retry shortly.");
             }
             console.error(error);
         } finally {
@@ -139,7 +137,7 @@ export default function ResetPassword() {
             <div className="mx-auto flex flex-col justify-center gap-6 w-[350px]">
                 <div className="flex flex-col gap-2 text-left pb-1">
                     <span className="font-serif font-light text-4xl text-primary tracking-tight">
-                        Reset Password
+                        Reset your password
                     </span>
                 </div>
                 {error && (
@@ -215,5 +213,13 @@ export default function ResetPassword() {
                 </div>
             </div>
         </div>
+    )
+}
+
+export default function ResetPasswordPage() {
+    return (
+        <Suspense>
+            <ResetPassword />
+        </Suspense>
     )
 }

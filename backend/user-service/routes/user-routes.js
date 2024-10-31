@@ -6,6 +6,9 @@ import {
   getAllUsers,
   checkUserExistByEmailorId,
   getUser,
+  getUserHistory,
+  getUserStats,
+  addQuestionAttempt,
   updateUser,
   updateUserPrivilege,
 } from "../controller/user-controller.js";
@@ -17,9 +20,15 @@ router.get("/", verifyAccessToken, verifyIsAdmin, getAllUsers);
 
 router.get("/check", checkUserExistByEmailorId);
 
+router.get("/history/:userId", verifyAccessToken, getUserHistory);
+
+router.get("/history/:userId/stats", verifyAccessToken, getUserStats);
+
 router.patch("/:id/privilege", verifyAccessToken, verifyIsAdmin, updateUserPrivilege);
 
 router.post("/", createUser);
+
+router.post("/history/:userId", verifyAccessToken, addQuestionAttempt);
 
 router.get("/:id", verifyAccessToken, verifyIsOwnerOrAdmin, getUser);
 

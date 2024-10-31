@@ -21,6 +21,7 @@ export default function Landing() {
             <div className="flex gap-8">
                 <Link href="/questions" className="text-primary underline underline-offset-4">Questions (user facing)</Link>
                 <Link href="/question-repo" className="text-primary underline underline-offset-4">Question Repo (CRUD)</Link>
+                <Link href="/session" className="text-primary underline underline-offset-4">Collab Session</Link>
             </div>
         </div>
     )
