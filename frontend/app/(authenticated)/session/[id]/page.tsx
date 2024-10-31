@@ -1,7 +1,7 @@
 "use client"
 
 import React, { Suspense, useEffect, useState } from 'react';
-import { Flag, MessageSquareText, MicIcon, MicOffIcon, OctagonXIcon } from 'lucide-react';
+import { Clock3, Flag, MessageSquareText, MicIcon, MicOffIcon, OctagonXIcon } from 'lucide-react';
 import { Badge, BadgeProps } from '@/components/ui/badge';
 import dynamic from 'next/dynamic';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
@@ -31,7 +31,7 @@ export default function Session() {
     const [isMicEnabled, setIsMicEnabled] = useState(false);
     const [isRequestSent, setIsRequestSent] = useState(false); // Flag to track if API call has been made
     const [isEndingSession, setIsEndingSession] = useState(false);
-    const [controller, setController] = useState(null);
+    const [controller, setController] = useState<AbortController | null>(null);
     const [timeElapsed, setTimeElapsed] = useState(0);
 
     useEffect(() => {
@@ -68,20 +68,6 @@ export default function Session() {
 
     useEffect(() => {
         setIsClient(true);
-
-        // Add the event listener for the beforeunload event
-        // not always work, depend on browser
-        const handleBeforeUnload = (event) => {
-            callUserHistoryAPI();
-            event.preventDefault();
-        };
-
-        window.addEventListener('beforeunload', handleBeforeUnload);
-
-        // Cleanup function to remove the event listener on component unmount
-        return () => {
-            window.removeEventListener('beforeunload', handleBeforeUnload);
-        };
 
         const fetchQuestionDetails = async (id: string) => {
             try {
@@ -186,8 +172,9 @@ export default function Session() {
     };
 
     async function endSession() {
-        await callUserHistoryAPI();
-        router.push('/questions');
+        await callUserHistoryAPI().then(() => {
+            router.push('/questions');
+        });
     }
 
     function handleCancel() {
@@ -201,9 +188,9 @@ export default function Session() {
         <Suspense fallback={SessionLoading()}>
             <div className="flex flex-col gap-8 min-h-screen">
                 <div className="flex justify-between text-black bg-white drop-shadow mt-20 mx-8 p-4 rounded-xl relative">
-                    <div className="flex items-center gap-1 text-sm">
+                    <div className="flex items-center gap-2 text-sm">
                         <span>Session</span>
-                        {/* <div className="flex items-center bg-brand-200 text-brand-800 py-2 px-3 font-semibold rounded-lg"><Clock3 className="h-4 w-4 mr-2" />3:35</div> */}
+                        <div className="flex justify-center items-center bg-brand-200 text-brand-800 py-2 px-3 font-semibold rounded-lg"><Clock3 className="h-4 w-4 mr-2" /><div className="flex justify-center w-[40px]">{minutes}:{seconds < 10 ? `0${seconds}` : seconds}</div></div>
                         <span>with</span>
                         <span className="font-semibold">{peerUsername}</span>
                     </div>
@@ -310,3 +297,7 @@ export default function Session() {
         </Suspense>
     );
 }
+function callUserHistoryAPI() {
+    throw new Error('Function not implemented.');
+}
+
