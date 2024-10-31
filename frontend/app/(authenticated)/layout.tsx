@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { User, LogOut } from "lucide-react";
+import { User, FileText, LogOut } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { deleteAllCookies, getCookie, getUsername, isUserAdmin } from "../utils/cookie-manager";
@@ -134,6 +134,16 @@ export default function AuthenticatedLayout({
                                         }}
                                     >
                                         <User className="mr-2 h-4 w-4" />Profile
+                                    </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                                    <Link href="/profile/question-history" className="cursor-pointer" 
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            handleNavigation("/profile/question-history");
+                                        }}
+                                    >
+                                        <FileText className="mr-2 h-4 w-4" />Attempt History
                                     </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem asChild onClick={(e) => {
