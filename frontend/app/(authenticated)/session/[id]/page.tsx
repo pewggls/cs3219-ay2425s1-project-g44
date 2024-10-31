@@ -21,9 +21,23 @@ export default function Session({ params }: { params: { id: string } }) {
     const router = useRouter();
     const [isClient, setIsClient] = useState(false);
     const [isMicEnabled, setIsMicEnabled] = useState(false);
+    const [isSessionEnded, setIsSessionEnded] = useState(false); // Flag to track if API call has been made
 
     useEffect(() => {
         setIsClient(true);
+
+        // Add the event listener for the beforeunload event
+        const handleBeforeUnload = (event) => {
+            callUserHistoryAPI();
+            event.preventDefault();
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+
+        // Cleanup function to remove the event listener on component unmount
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+        };
     }, []);
 
     if (!isClient) {
@@ -47,20 +61,31 @@ export default function Session({ params }: { params: { id: string } }) {
         }
     };
 
-    async function endSession() {
-        // Call the API to update user question history
-        const questionHistoryResponse = await fetch(`${process.env.NEXT_PUBLIC_USER_API_HISTORY_URL}/${getCookie('userId')}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${getCookie('token')}`,
-            },
-            body: JSON.stringify({
-                questionId: "1", // TODO: one question id that user has attempted
-                timeSpent: 120, // TODO: time spent in second
-            }),
-        });
+    // Update user question history before the page being unloaded
+    const callUserHistoryAPI = async () => {
+        if (isSessionEnded) return;
+        try {
+            console.log('In session page: Call api to udate user question history');
+            await fetch(`${process.env.NEXT_PUBLIC_USER_API_HISTORY_URL}/${getCookie('userId')}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${getCookie('token')}`,
+                },
+                body: JSON.stringify({
+                    userId: getCookie('userId'),
+                    questionId: "1", // TODO: one question id that user has attempted
+                    timeSpent: 120, // TODO: time spent in second
+                }),
+            });
+            setIsSessionEnded(true); // Set flag to prevent multiple calls
+        } catch (error) {
+            console.error('Failed to update question history:', error);
+        }
+    };
 
+    async function endSession() {
+        await callUserHistoryAPI();
         router.push('/questions');
     }
 
