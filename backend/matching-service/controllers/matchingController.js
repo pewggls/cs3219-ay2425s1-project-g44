@@ -1,6 +1,8 @@
 // controllers/matchingController.js
 const { Kafka } = require('kafkajs');
 const EventEmitter = require('events');
+const uuid = require("uuid");
+
 const QUEUE_TIME = 30000;
 const BATCH_INTERVAL = 10000;
 
@@ -55,7 +57,7 @@ const matchmakeUser = async (userId, userName, questions) => {
             userName: userName,
             questions: questions
         }, false);
-        eventEmitter.once(`success-${userId}`, (peerUserId, peerUserName, question) => {
+        eventEmitter.once(`success-${userId}`, (peerUserId, peerUserName, question, roomName) => {
 
             const success_res = {
                 event: "match-success",
@@ -63,7 +65,8 @@ const matchmakeUser = async (userId, userName, questions) => {
                 userName: userName,
                 peerUserId: peerUserId,
                 peerUserName: peerUserName,
-                agreedQuestion: question
+                agreedQuestion: question,
+                roomName: roomName
             }
             resolve(JSON.stringify(success_res));
             // resolve(`User ${userId} matched with User ${peerUserId}.`)
@@ -177,8 +180,9 @@ const batchProcess = () => {
             if (peerUserId && unmatchedUsers.has(peerUserId) && peerUserId !== user.userId) {
                 // Found match!!
                 const peerUserName = unmatchedUsers.get(peerUserId).userName;
-                eventEmitter.emit(`success-${user.userId}`, peerUserId, peerUserName, question)
-                eventEmitter.emit(`success-${peerUserId}`, user.userId, user.userName, question)
+                const roomName = uuid.v4();
+                eventEmitter.emit(`success-${user.userId}`, peerUserId, peerUserName, question, roomName)
+                eventEmitter.emit(`success-${peerUserId}`, user.userId, user.userName, question, roomName)
                 unmatchedUsers.delete(user.userId);
                 unmatchedUsers.delete(peerUserId);
                 userQueueMap.delete(user.userId);
