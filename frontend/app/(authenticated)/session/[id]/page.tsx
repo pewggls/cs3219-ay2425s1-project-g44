@@ -153,14 +153,14 @@ export default function Session({ params }: { params: { id: string } }) {
                         <ResizableHandle withHandle />
                         <ResizablePanel defaultSize={50} minSize={35} maxSize={65}>
                             <div className="h-[calc(100%-4rem)] bg-white drop-shadow-question-details rounded-xl m-8">
-                                <DynamicTextEditor />
+                                {/* <DynamicTextEditor sessionId={params.id} /> */}
                             </div>
                         </ResizablePanel>
                         </ResizablePanelGroup>
                     </ResizablePanel>
                     <ResizableHandle withHandle />
                     <ResizablePanel defaultSize={50} minSize={35} maxSize={65}>
-                        <DynamicCodeEditor />
+                        <DynamicCodeEditor sessionId={params.id} />
                     </ResizablePanel>
                     <Toaster position="top-center" closeButton offset={"16px"} visibleToasts={2} gap={8} />
                 </ResizablePanelGroup>
