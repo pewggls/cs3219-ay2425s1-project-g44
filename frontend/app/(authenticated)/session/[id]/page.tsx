@@ -21,12 +21,27 @@ export default function Session({ params }: { params: { id: string } }) {
     const router = useRouter();
     const [isClient, setIsClient] = useState(false);
     const [isMicEnabled, setIsMicEnabled] = useState(false);
-    const [isSessionEnded, setIsSessionEnded] = useState(false); // Flag to track if API call has been made
+    const [isRequestSent, setIsRequestSent] = useState(false); // Flag to track if API call has been made
+    const [isEndingSession, setIsEndingSession] = useState(false);
+    const [controller, setController] = useState(null);
+    const [timeElapsed, setTimeElapsed] = useState(0);
+
+    useEffect(() => {
+        const timerInterval = setInterval(() => {
+            setTimeElapsed((prevTime) => prevTime + 1);
+        }, 1000);
+
+        return () => clearInterval(timerInterval);
+    }, []);
+
+    const minutes = Math.floor(timeElapsed / 60);
+    const seconds = timeElapsed % 60;
 
     useEffect(() => {
         setIsClient(true);
 
         // Add the event listener for the beforeunload event
+        // not always work, depend on browser
         const handleBeforeUnload = (event) => {
             callUserHistoryAPI();
             event.preventDefault();
@@ -63,7 +78,12 @@ export default function Session({ params }: { params: { id: string } }) {
 
     // Update user question history before the page being unloaded
     const callUserHistoryAPI = async () => {
-        if (isSessionEnded) return;
+        if (isRequestSent) return;
+
+        const abortController = new AbortController();
+        setController(abortController);
+        setIsEndingSession(true); 
+
         try {
             console.log('In session page: Call api to udate user question history');
             await fetch(`${process.env.NEXT_PUBLIC_USER_API_HISTORY_URL}/${getCookie('userId')}`, {
@@ -75,12 +95,16 @@ export default function Session({ params }: { params: { id: string } }) {
                 body: JSON.stringify({
                     userId: getCookie('userId'),
                     questionId: "1", // TODO: one question id that user has attempted
-                    timeSpent: 120, // TODO: time spent in second
+                    timeSpent: timeElapsed,
                 }),
+                signal: abortController.signal,
             });
-            setIsSessionEnded(true); // Set flag to prevent multiple calls
+            setIsRequestSent(true);
         } catch (error) {
             console.error('Failed to update question history:', error);
+        } finally {
+            setIsEndingSession(false);
+            setController(null);
         }
     };
 
@@ -89,13 +113,20 @@ export default function Session({ params }: { params: { id: string } }) {
         router.push('/questions');
     }
 
+    function handleCancel() {
+        if (controller) {
+            controller.abort(); // Cancel the API call
+            setIsEndingSession(false);
+        }
+    }
+
     return (
         <Suspense fallback={SessionLoading()}>
             <div className="flex flex-col gap-8 min-h-screen">
                 <div className="flex justify-between text-black bg-white drop-shadow mt-20 mx-8 p-4 rounded-xl relative">
                     <div className="flex items-center gap-2 text-sm">
                         <span>Session {params.id}</span>
-                        <div className="flex items-center bg-brand-200 text-brand-800 py-2 px-3 font-semibold rounded-lg"><Clock3 className="h-4 w-4 mr-2" />3:35</div>
+                        <div className="flex items-center bg-brand-200 text-brand-800 py-2 px-3 font-semibold rounded-lg"><Clock3 className="h-4 w-4 mr-2" />{minutes}:{seconds}</div>
                         <span>with</span>
                         <span className="font-semibold">username</span>
                     </div>
@@ -130,7 +161,7 @@ export default function Session({ params }: { params: { id: string } }) {
                                         <Button
                                             variant="ghost"
                                             className="rounded-lg"
-                                            onClick={endSession}
+                                            onClick={handleCancel}
                                         >
                                             Cancel
                                         </Button>
@@ -139,6 +170,7 @@ export default function Session({ params }: { params: { id: string } }) {
                                         type="submit"
                                         className="rounded-lg bg-brand-700 hover:bg-brand-600"
                                         onClick={endSession}
+                                        disabled={isEndingSession}
                                     >
                                         End session
                                     </Button>
