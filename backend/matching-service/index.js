@@ -3,8 +3,6 @@ const WebSocket = require("ws");
 const wss = new WebSocket.Server({port: 3002});
 const { matchmakeUser, runConsumer, dequeueUser} = require("./controllers/matchingController");
 
-console.log("Started Websocket server!!!");
-
 runConsumer().catch(console.error);
 
 wss.on("connection", (ws) => {
