@@ -21,10 +21,11 @@ interface DataTableToolbarProps<TData extends Question> {
     table: Table<TData> & { options: { meta?: ExtendedTableMeta<TData> } };
     data?: TData[];
     setData?: React.Dispatch<React.SetStateAction<TData[]>>;
+    isVisible: boolean
 }
 
 export function DataTableToolbar<TData extends Question>({
-    table, data, setData
+    table, data, setData, isVisible
 }: DataTableToolbarProps<TData>) {
     const isFiltered = table.getState().columnFilters.length > 0
     const isFilteredRowsSelected = table.getFilteredSelectedRowModel().rows.length > 0
@@ -102,7 +103,9 @@ export function DataTableToolbar<TData extends Question>({
                     )}
                 </div>
             </div>
-
+            
+            {isVisible && (
+            <>
             <div className="flex flex-row gap-4">
                 {isFilteredRowsSelected && (
                     <Dialog>
@@ -138,6 +141,8 @@ export function DataTableToolbar<TData extends Question>({
                 </Button>
             </div>
             <AddEditQuestionDialog ref={triggerAddRef} row={null} reset={isDialogOpen} setReset={setIsDialogOpen} setData={setData as React.Dispatch<React.SetStateAction<Question[]>> | undefined} handleClose={handleClose} />
+            </>
+            )}
         </div>
     )
 }

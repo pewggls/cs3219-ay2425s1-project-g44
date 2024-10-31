@@ -12,6 +12,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import SessionLoading from '../loading';
+import { getCookie } from '@/app/utils/cookie-manager';
 
 const DynamicCodeEditor = dynamic(() => import('../code-editor/code-editor'), { ssr: false });
 const DynamicTextEditor = dynamic(() => import('../text-editor'), { ssr: false });
@@ -28,6 +29,21 @@ export default function Session() {
     const router = useRouter();
     const [isClient, setIsClient] = useState(false);
     const [isMicEnabled, setIsMicEnabled] = useState(false);
+    const [isRequestSent, setIsRequestSent] = useState(false); // Flag to track if API call has been made
+    const [isEndingSession, setIsEndingSession] = useState(false);
+    const [controller, setController] = useState(null);
+    const [timeElapsed, setTimeElapsed] = useState(0);
+
+    useEffect(() => {
+        const timerInterval = setInterval(() => {
+            setTimeElapsed((prevTime) => prevTime + 1);
+        }, 1000);
+
+        return () => clearInterval(timerInterval);
+    }, []);
+
+    const minutes = Math.floor(timeElapsed / 60);
+    const seconds = timeElapsed % 60;
     const [sessionEnded, setSessionEnded] = useState(false);
 
     const [question, setQuestion] = useState<Question | null>(null);
@@ -52,6 +68,20 @@ export default function Session() {
 
     useEffect(() => {
         setIsClient(true);
+
+        // Add the event listener for the beforeunload event
+        // not always work, depend on browser
+        const handleBeforeUnload = (event) => {
+            callUserHistoryAPI();
+            event.preventDefault();
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+
+        // Cleanup function to remove the event listener on component unmount
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+        };
 
         const fetchQuestionDetails = async (id: string) => {
             try {
@@ -123,8 +153,48 @@ export default function Session() {
         }
     };
 
+    // Update user question history before the page being unloaded
+    const callUserHistoryAPI = async () => {
+        if (isRequestSent) return;
+
+        const abortController = new AbortController();
+        setController(abortController);
+        setIsEndingSession(true); 
+
+        try {
+            console.log('In session page: Call api to udate user question history');
+            await fetch(`${process.env.NEXT_PUBLIC_USER_API_HISTORY_URL}/${getCookie('userId')}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${getCookie('token')}`,
+                },
+                body: JSON.stringify({
+                    userId: getCookie('userId'),
+                    questionId: "1", // TODO: one question id that user has attempted
+                    timeSpent: timeElapsed,
+                }),
+                signal: abortController.signal,
+            });
+            setIsRequestSent(true);
+        } catch (error) {
+            console.error('Failed to update question history:', error);
+        } finally {
+            setIsEndingSession(false);
+            setController(null);
+        }
+    };
+
     async function endSession() {
+        await callUserHistoryAPI();
         router.push('/questions');
+    }
+
+    function handleCancel() {
+        if (controller) {
+            controller.abort(); // Cancel the API call
+            setIsEndingSession(false);
+        }
     }
 
     return (
@@ -176,6 +246,7 @@ export default function Session() {
                                         type="submit"
                                         className="rounded-lg bg-brand-700 hover:bg-brand-600"
                                         onClick={endSession}
+                                        disabled={isEndingSession}
                                     >
                                         End session
                                     </Button>
