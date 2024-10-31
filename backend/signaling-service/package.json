@@ -1,7 +1,7 @@
 {
   "name": "signaling-service",
   "version": "1.0.0",
-  "description": "Dedicated signaling server for WebRTC peer discovery.",
+  "description": "Dedicated collaborative server.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@hocuspocus/server": "^2.13.7",
     "express": "^4.21.1",
     "ws": "^8.18.0"
   },

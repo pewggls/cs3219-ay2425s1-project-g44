@@ -1,44 +1,52 @@
-const WebSocket = require("ws");
-
-const wss = new WebSocket.Server({port: 3003});
+import { Hocuspocus } from "@hocuspocus/server";
 
 const rooms = new Map();
 
-wss.on("connection", (ws) => {
-    console.log("New Peer connected!");
-    ws.send("Welcome to Signaling Service!")
+const server = new Hocuspocus({
+    port: 3003,
 
-    let currentRoom;
-    ws.on("message", (message) => {
-        const parsedMessage = JSON.parse(message);
-        if (parsedMessage.type === 'join') {
-            // Assign the user to the specified room
-            currentRoom = parsedMessage.room;
-            if (!rooms.has(currentRoom)) {
-                rooms.set(currentRoom, []);
-            }
-            rooms.get(currentRoom).push(ws);
-            console.log(`User joined room: ${currentRoom}`);
-        } else {
-            // Relay the message to other clients in the same room
-            if (currentRoom && rooms.has(currentRoom)) {
-                rooms.get(currentRoom).forEach((client) => {
-                if (client !== ws && client.readyState === WebSocket.OPEN) {
-                    client.send(message.toString()); // Forward the message
-                }
-                });
-            } else {
-                ws.send("Sorry, please join a room first.");
-            }
-    }
-    });
-    ws.on('close', () => {
-        if (currentRoom && rooms.has(currentRoom)) {
-          const newRoom = rooms.get(currentRoom).filter((client) => client !== ws);
-          if (newRoom.length === 0) {
-            rooms.delete(currentRoom);
-          }
-          console.log(`User left room: ${currentRoom}`);
-        }
-      });
-})
+    onConfigure: data => {
+        console.log('Connection being configured:', data.documentName);
+    },
+    onConnect: data => {
+        console.log('Client connected:', data.documentName);
+    },
+
+    // onConnect(data) {
+    //     const roomId = data.documentName;
+
+    //     if (!rooms.has(roomId)) {
+    //         rooms.set(roomId, new Set());
+    //     }
+    //     const connections = rooms.get(roomId);
+    //     connections.add(data.connection);
+
+    //     console.log('User connected:', data.connection.id);
+    // },
+
+    // onDisconnect(data) {
+    //     const roomId = data.documentName;
+    //     const connections = rooms.get(roomId);
+
+    //     console.log("connections: ", connections);
+    //     if (connections) {
+    //         connections.delete(data.connection);
+    //         console.log('User disconnected:', data.connection.id);
+
+    //         if (connections.size === 1) {
+    //             connections.forEach((conn) => {
+    //                 conn.send(JSON.stringify({ type: 'sessionEnded', message: 'Other user has left, session has ended.' }));
+    //             });
+    //             rooms.delete(roomId);
+    //             console.log(`Room ${roomId} is now empty and closed.`);
+    //         }
+    //     }
+    // },
+
+    // onDestroy(data) {
+    //     rooms.delete(data.documentName);
+    //     console.log(`Room ${data.documentName} destroyed.`);
+    // },
+});
+
+server.listen();
