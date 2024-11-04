@@ -73,7 +73,7 @@ export default function Questions() {
     const matchTimerRef = useRef<NodeJS.Timeout | null>(null);
     const [isMatchFoundDialogOpen, setMatchFoundDialogOpen] = useState(false);
     const [isMatchFailDialogOpen, setMatchFailDialogOpen] = useState(false);
-    const [matchResult, setMatchResult] = useState({ peerId: '', peerUsername: '', sessionId: '', agreedQuestion: 0 });
+    const [matchResult, setMatchResult] = useState({ currentUsername: '', peerId: '', peerUsername: '', sessionId: '', agreedQuestion: 0 });
     const timeout = useRef(false);
     const selectedQuestionList = React.useRef<number[]>([])
     const userInfo = useRef({ id: "", username: ""});
@@ -267,7 +267,7 @@ export default function Questions() {
             switch (message.event) {
                 case 'match-success':
                     console.log(`User ${message.userId} matched with User ${message.peerUserId} (username: ${message.peerUserName}).`);
-                    setMatchResult({ peerId: message.peerUserId, peerUsername: message.peerUserName, sessionId: message.roomName, agreedQuestion: message.agreedQuestion });
+                    setMatchResult({ currentUsername: getUsername()!, peerId: message.peerUserId, peerUsername: message.peerUserName, sessionId: message.roomName, agreedQuestion: message.agreedQuestion });
                     setMatchFoundDialogOpen(true);
                     break;
 

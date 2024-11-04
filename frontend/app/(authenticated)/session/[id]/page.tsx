@@ -1,7 +1,7 @@
 "use client"
 
 import React, { Suspense, useEffect, useState } from 'react';
-import { Clock3, Flag, MessageSquareText, MicIcon, MicOffIcon, OctagonXIcon } from 'lucide-react';
+import { Clock3, Flag, MessageSquareText, MicIcon, MicOffIcon, OctagonXIcon, RotateCwIcon } from 'lucide-react';
 import { Badge, BadgeProps } from '@/components/ui/badge';
 import dynamic from 'next/dynamic';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
@@ -247,36 +247,43 @@ export default function Session() {
                         <ResizablePanelGroup direction="vertical">
                             <ResizablePanel defaultSize={50} minSize={35} maxSize={65}>
                                 <div className="h-[calc(100%-2rem)] overflow-auto text-black bg-white drop-shadow-question-details p-6 mx-8 rounded-xl">
-                                    <h3 className="text-2xl font-serif font-medium tracking-tight">
-                                        {question && question.title}
-                                    </h3>
-                                    <div className="flex items-center gap-10 mt-3">
-                                        <div className="flex items-center gap-2">
-                                            <Flag className="h-4 w-4 text-icon" />
-                                            <Badge
-                                                variant={
-                                                    question && question.complexity!.toLowerCase() as BadgeProps["variant"]
-                                                }
-                                            >
-                                                {question && question.complexity}
-                                            </Badge>
+                                    {question ? (
+                                        <>
+                                            <h3 className="text-2xl font-serif font-medium tracking-tight">
+                                                {question.title}
+                                            </h3>
+                                            <div className="flex items-center gap-10 mt-3">
+                                                <div className="flex items-center gap-2">
+                                                    <Flag className="h-4 w-4 text-icon" />
+                                                    <Badge
+                                                        variant={question.complexity!.toLowerCase() as BadgeProps["variant"]}
+                                                    >
+                                                        {question.complexity}
+                                                    </Badge>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <MessageSquareText className="h-4 w-4 text-icon" />
+                                                    {question.category.map((category) => (
+                                                        <Badge
+                                                            key={category}
+                                                            variant="category"
+                                                            className="uppercase text-category-text bg-category-bg"
+                                                        >
+                                                            {category}
+                                                        </Badge>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            <p className="mt-8 text-sm text-foreground">
+                                                {question.description}
+                                            </p>
+                                        </>
+                                    ) : (
+                                        <div className="flex flex-col items-center gap-10">
+                                            <h3>Error loading question</h3>
+                                            <Button onClick={() => location.reload()}><RotateCwIcon className="size-4 mr-2" />Refresh page</Button>
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            <MessageSquareText className="h-4 w-4 text-icon" />
-                                            {question && question.category.map((category) => (
-                                            <Badge
-                                                key={category}
-                                                variant="category"
-                                                className="uppercase text-category-text bg-category-bg"
-                                            >
-                                                {category}
-                                            </Badge>
-                                            ))}
-                                        </div>
-                                    </div>
-                                    <p className="mt-8 text-sm text-foreground">
-                                        {question && question.description}
-                                    </p>
+                                    )}
                                 </div>
                             </ResizablePanel>
                         <ResizableHandle withHandle />
