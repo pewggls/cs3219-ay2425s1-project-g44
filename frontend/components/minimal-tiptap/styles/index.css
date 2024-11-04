@@ -3,6 +3,7 @@
 @import './partials/lists.css';
 @import './partials/typography.css';
 @import './partials/zoom.css';
+@import './partials/collaboration.css';
 
 :root {
   --mt-black: #000;

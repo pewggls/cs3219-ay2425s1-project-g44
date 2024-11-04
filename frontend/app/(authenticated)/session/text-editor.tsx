@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Content } from '@tiptap/react'
+import { Content, Extension } from '@tiptap/react'
 import { MinimalTiptapEditor } from '@/components/minimal-tiptap/minimal-tiptap'
 import { TooltipProvider } from '@radix-ui/react-tooltip'
-import * as Y from 'yjs';
 import Collaboration from '@tiptap/extension-collaboration'
 import CollaborationCursor from '@tiptap/extension-collaboration-cursor'
 import { getUsername } from '@/app/utils/cookie-manager';
@@ -10,46 +9,31 @@ import { HocuspocusProvider } from '@hocuspocus/provider';
 
 interface TextEditorProps {
     sessionId: string;
+    provider: HocuspocusProvider;
 }
 
-export default function TextEditor({ sessionId }: TextEditorProps) {
+export default function TextEditor({ sessionId, provider }: TextEditorProps) {
     const [value, setValue] = useState<Content>('')
-    const [collaborationExtensions, setCollaborationExtensions] = useState<any[]>([]);
+    const [collaborationExtensions, setCollaborationExtensions] = useState<Extension[]>([]);
 
     useEffect(() => {
-        // Create a new Y.js document
-        const ydoc = new Y.Doc()
-
-        const provider = new HocuspocusProvider({
-            url: process.env.NEXT_PUBLIC_COLLAB_API_URL || 'ws://localhost:3003',
-            name: `text-${sessionId}`,
-            document: ydoc
-        })
-
-        // Set up awareness for cursor information
-        const awareness = provider.awareness!
-        awareness.setLocalStateField('user', {
-            name: getUsername(),
-            color: '#' + Math.floor(Math.random()*16777215).toString(16)
-        })
-
         const collaborationExtensions = [
             Collaboration.configure({
-                document: ydoc,
+                document: provider.document,
+                field: 'content',
             }),
             CollaborationCursor.configure({
                 provider: provider,
-                user: { name: getUsername(), color: '#f783ac' },
+                user: { name: getUsername(), color: '#' + Math.floor(Math.random() * 16777215).toString(16) },
             }),
         ]
 
         setCollaborationExtensions(collaborationExtensions);
+    }, [provider, sessionId])
 
-        return () => {
-            provider.disconnect()
-        }
-    }, [sessionId])
-
+    if (collaborationExtensions.length === 0) {
+        return <div>Loading editor...</div>
+    }
 
     return (
         <TooltipProvider>
@@ -64,7 +48,7 @@ export default function TextEditor({ sessionId }: TextEditorProps) {
                 editable={true}
                 editorClassName="focus:outline-none"
                 immediatelyRender={false}
-                extensions={collaborationExtensions}
+                additionalExtensions={collaborationExtensions}
             />
         </TooltipProvider>
     )

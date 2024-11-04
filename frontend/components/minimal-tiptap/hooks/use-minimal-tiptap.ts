@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type { Editor } from '@tiptap/core'
+import type { Editor, Extension } from '@tiptap/core'
 import type { Content, UseEditorOptions } from '@tiptap/react'
 import { StarterKit } from '@tiptap/starter-kit'
 import { useEditor } from '@tiptap/react'
@@ -27,12 +27,14 @@ export interface UseMinimalTiptapEditorProps extends UseEditorOptions {
   placeholder?: string
   editorClassName?: string
   throttleDelay?: number
+  additionalExtensions?: Extension[]
   onUpdate?: (content: Content) => void
   onBlur?: (content: Content) => void
 }
 
-const createExtensions = (placeholder: string) => [
-  StarterKit.configure({
+const createExtensions = (placeholder: string, additionalExtensions: Extension[] = []) => {
+  return [StarterKit.configure({
+    history: false,
     horizontalRule: false,
     codeBlock: false,
     paragraph: { HTMLAttributes: { class: 'text-node' } },
@@ -96,8 +98,9 @@ const createExtensions = (placeholder: string) => [
   HorizontalRule,
   ResetMarksOnEnter,
   CodeBlockLowlight,
-  Placeholder.configure({ placeholder: () => placeholder })
-]
+  Placeholder.configure({ placeholder: () => placeholder }),
+  ...additionalExtensions]
+}
 
 export const useMinimalTiptapEditor = ({
   value,
@@ -105,6 +108,7 @@ export const useMinimalTiptapEditor = ({
   placeholder = '',
   editorClassName,
   throttleDelay = 0,
+  additionalExtensions = [],
   onUpdate,
   onBlur,
   ...props
@@ -128,7 +132,7 @@ export const useMinimalTiptapEditor = ({
   const handleBlur = React.useCallback((editor: Editor) => onBlur?.(getOutput(editor, output)), [output, onBlur])
 
   const editor = useEditor({
-    extensions: createExtensions(placeholder),
+    extensions: createExtensions(placeholder, additionalExtensions),
     editorProps: {
       attributes: {
         autocomplete: 'off',

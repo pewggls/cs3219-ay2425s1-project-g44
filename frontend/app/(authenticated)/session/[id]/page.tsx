@@ -39,6 +39,7 @@ export default function Session() {
     const [isEndDialogOpen, setIsEndDialogOpen] = useState(false);
 
     const codeProviderRef = useRef<HocuspocusProvider | null>(null);
+    const notesProviderRef = useRef<HocuspocusProvider | null>(null);
 
     useEffect(() => {
         const timerInterval = setInterval(() => {
@@ -107,7 +108,7 @@ export default function Session() {
             document: codeDoc,
             token: 'abc',
             onConnect: () => {
-                console.log('Connected to server');
+                console.log('Connected to code server');
             },
             onClose: ({ event }) => {
                 console.error('Connection closed:', event);
@@ -121,24 +122,19 @@ export default function Session() {
                 }
             },
         });
-
         codeProviderRef.current = codeProvider;
 
-        // const notesDoc = new Y.Doc();
-        // const notesProvider = new HocuspocusProvider({
-        //     url: process.env.NEXT_PUBLIC_COLLAB_API_URL || 'ws://localhost:3003',
-        //     name: `text-${params.id}`,
-        //     document: notesDoc,
-        //     onConnect: () => {
-        //         console.log('Connected to server');
-        //     },
-        //     onClose: ({ event }) => {
-        //         console.error('Connection closed:', event);
-        //     },
-        //     onDisconnect: ({ event }) => {
-        //         console.error('Disconnected from server:', event);
-        //     },
-        // });
+        const notesDoc = new Y.Doc();
+        const notesProvider = new HocuspocusProvider({
+            websocketProvider: socket,
+            name: `text-${params.id}`,
+            document: notesDoc,
+            token: 'abc',
+            onConnect: () => {
+                console.log('Connected to notes server');
+            },
+        });
+        notesProviderRef.current = notesProvider;
 
         if (isSessionEnded) {
             socket.disconnect();
@@ -330,7 +326,7 @@ export default function Session() {
                         <ResizableHandle withHandle />
                         <ResizablePanel defaultSize={50} minSize={35} maxSize={65}>
                             <div className="h-[calc(100%-4rem)] bg-white drop-shadow-question-details rounded-xl m-8">
-                                {/* <DynamicTextEditor sessionId={params.id} /> */}
+                                <DynamicTextEditor sessionId={params.id} provider={notesProviderRef.current!} />
                             </div>
                         </ResizablePanel>
                         </ResizablePanelGroup>
