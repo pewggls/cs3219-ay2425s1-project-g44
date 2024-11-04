@@ -1,6 +1,6 @@
 "use client"
 
-import React, { Suspense, useEffect, useState } from 'react';
+import React, { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { Clock3, Flag, MessageSquareText, MicIcon, MicOffIcon, OctagonXIcon, RotateCwIcon } from 'lucide-react';
 import { Badge, BadgeProps } from '@/components/ui/badge';
 import dynamic from 'next/dynamic';
@@ -13,6 +13,8 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, Di
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import SessionLoading from '../loading';
 import { getCookie } from '@/app/utils/cookie-manager';
+import { HocuspocusProvider, HocuspocusProviderWebsocket } from '@hocuspocus/provider';
+import * as Y from 'yjs';
 
 const DynamicCodeEditor = dynamic(() => import('../code-editor/code-editor'), { ssr: false });
 const DynamicTextEditor = dynamic(() => import('../text-editor'), { ssr: false });
@@ -29,10 +31,14 @@ export default function Session() {
     const router = useRouter();
     const [isClient, setIsClient] = useState(false);
     const [isMicEnabled, setIsMicEnabled] = useState(false);
-    const [isRequestSent, setIsRequestSent] = useState(false); // Flag to track if API call has been made
+    const [isHistoryApiCalled, setIsHistoryApiCalled] = useState(false); // Flag to track if API call has been made
     const [isEndingSession, setIsEndingSession] = useState(false);
     const [controller, setController] = useState<AbortController | null>(null);
     const [timeElapsed, setTimeElapsed] = useState(0);
+    const [isSessionEnded, setIsSessionEnded] = useState(false);
+    const [isEndDialogOpen, setIsEndDialogOpen] = useState(false);
+
+    const codeProviderRef = useRef<HocuspocusProvider | null>(null);
 
     useEffect(() => {
         const timerInterval = setInterval(() => {
@@ -44,7 +50,6 @@ export default function Session() {
 
     const minutes = Math.floor(timeElapsed / 60);
     const seconds = timeElapsed % 60;
-    const [sessionEnded, setSessionEnded] = useState(false);
 
     const [question, setQuestion] = useState<Question | null>(null);
 
@@ -90,33 +95,104 @@ export default function Session() {
         if (questionId) {
             fetchQuestionDetails(questionId);
         }
-    }, [questionId]);
 
-    // const ws = new WebSocket('ws://localhost:3003');
-    // ws.onopen = () => {
-    //     ws.send(JSON.stringify({ type: 'join', roomId: `room-${params.id}` }));
-    // };
-    // ws.onmessage = (event) => {
-    //     const message = JSON.parse(event.data);
-    //     if (message.type === 'sessionEnded') {
-    //         console.log("Session ended");
-    //         setSessionEnded(true);
-    //     }
-    // };
+        const socket = new HocuspocusProviderWebsocket({
+            url: process.env.NEXT_PUBLIC_COLLAB_API_URL || 'ws://localhost:3003'
+        });
 
-    // if (sessionEnded) {
-    //     ws.send(JSON.stringify({ type: 'leave', roomId: `room-${params.id}` }));
-    //     ws.close();
+        const codeDoc = new Y.Doc();
+        const codeProvider = new HocuspocusProvider({
+            websocketProvider: socket,
+            name: `code-${params.id}`,
+            document: codeDoc,
+            token: 'abc',
+            onConnect: () => {
+                console.log('Connected to server');
+            },
+            onClose: ({ event }) => {
+                console.error('Connection closed:', event);
+                setIsSessionEnded(true);
+            },
+            onStateless: ({ payload }) => {
+                console.log('Received message:', payload);
+                if (payload === 'sessionEnded') {
+                    console.log("Session ended");
+                    setIsSessionEnded(true);
+                }
+            },
+        });
 
-    //     toast.info('The session has ended', {
-    //         description: 'Returning you to the question page...',
-    //         duration: Infinity,
-    //     });
+        codeProviderRef.current = codeProvider;
 
-    //     setTimeout(() => {
-    //         router.push('/questions');
-    //     }, 3000);
-    // }
+        // const notesDoc = new Y.Doc();
+        // const notesProvider = new HocuspocusProvider({
+        //     url: process.env.NEXT_PUBLIC_COLLAB_API_URL || 'ws://localhost:3003',
+        //     name: `text-${params.id}`,
+        //     document: notesDoc,
+        //     onConnect: () => {
+        //         console.log('Connected to server');
+        //     },
+        //     onClose: ({ event }) => {
+        //         console.error('Connection closed:', event);
+        //     },
+        //     onDisconnect: ({ event }) => {
+        //         console.error('Disconnected from server:', event);
+        //     },
+        // });
+
+        if (isSessionEnded) {
+            socket.disconnect();
+        }
+
+        return () => {
+            codeProvider.destroy();
+            socket.disconnect();
+        };
+    }, [isSessionEnded, params.id, questionId, router]);
+
+    const callUserHistoryAPI = useCallback(async () => {
+        if (isHistoryApiCalled) return;
+
+        setIsHistoryApiCalled(true);
+    
+        const abortController = new AbortController();
+        setController(abortController);
+        setIsEndingSession(true);
+    
+        try {
+            await fetch(`${process.env.NEXT_PUBLIC_USER_API_HISTORY_URL}/${getCookie('userId')}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${getCookie('token')}`,
+                },
+                body: JSON.stringify({
+                    userId: getCookie('userId'),
+                    questionId: "1",
+                    timeSpent: timeElapsed,
+                }),
+                signal: abortController.signal,
+            });
+        } catch (error) {
+            console.error('Failed to update question history:', error);
+            setIsHistoryApiCalled(false);
+        } finally {
+            setIsEndingSession(false);
+            setController(null);
+        }
+    }, [isHistoryApiCalled, timeElapsed]);
+    
+    useEffect(() => {
+        if (isSessionEnded && !isHistoryApiCalled) {
+            const cleanup = async () => {
+                await callUserHistoryAPI();
+                setTimeout(() => {
+                    router.push('/questions');
+                }, 3000);
+            };
+            cleanup();
+        }
+    }, [isSessionEnded, isHistoryApiCalled, callUserHistoryAPI, router]);
 
     if (!isClient) {
         return SessionLoading();
@@ -138,44 +214,6 @@ export default function Session() {
             });
         }
     };
-
-    // Update user question history before the page being unloaded
-    const callUserHistoryAPI = async () => {
-        if (isRequestSent) return;
-
-        const abortController = new AbortController();
-        setController(abortController);
-        setIsEndingSession(true); 
-
-        try {
-            console.log('In session page: Call api to udate user question history');
-            await fetch(`${process.env.NEXT_PUBLIC_USER_API_HISTORY_URL}/${getCookie('userId')}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${getCookie('token')}`,
-                },
-                body: JSON.stringify({
-                    userId: getCookie('userId'),
-                    questionId: "1", // TODO: one question id that user has attempted
-                    timeSpent: timeElapsed,
-                }),
-                signal: abortController.signal,
-            });
-            setIsRequestSent(true);
-        } catch (error) {
-            console.error('Failed to update question history:', error);
-        } finally {
-            setIsEndingSession(false);
-            setController(null);
-        }
-    };
-
-    async function endSession() {
-        await callUserHistoryAPI().then(() => {
-            router.push('/questions');
-        });
-    }
 
     function handleCancel() {
         if (controller) {
@@ -206,7 +244,7 @@ export default function Session() {
                         </Toggle>
                     </div>
                     <div className="">
-                        <Dialog>
+                        <Dialog open={isEndDialogOpen} onOpenChange={setIsEndDialogOpen}>
                             <DialogTrigger><Button><OctagonXIcon className="size-4 mr-2" />End Session</Button></DialogTrigger>
                             <DialogContent
                                 className="laptop:max-w-[40vw] bg-white text-black font-sans rounded-2xl"
@@ -218,7 +256,7 @@ export default function Session() {
                                 <DialogDescription className="hidden"></DialogDescription>
                                 </DialogHeader>
                                 <div className="flex flex-col w-full gap-1 py-4 justify-start">
-                                    <p>Are you sure you want to end your session?</p>
+                                    <p>This will end the session for both users.</p>
                                 </div>
                                 <DialogFooter className="flex items-end">
                                     <DialogClose asChild>
@@ -232,8 +270,11 @@ export default function Session() {
                                     <Button
                                         type="submit"
                                         className="rounded-lg bg-brand-700 hover:bg-brand-600"
-                                        onClick={endSession}
-                                        disabled={isEndingSession}
+                                        onClick={() => {
+                                            setIsSessionEnded(true)
+                                            setIsEndDialogOpen(false)
+                                        }}
+                                        disabled={isSessionEnded}
                                     >
                                         End session
                                     </Button>
@@ -296,11 +337,28 @@ export default function Session() {
                     </ResizablePanel>
                     <ResizableHandle withHandle />
                     <ResizablePanel defaultSize={50} minSize={35} maxSize={65}>
-                        <DynamicCodeEditor sessionId={params.id} />
+                        <DynamicCodeEditor sessionId={params.id} provider={codeProviderRef.current!} />
                     </ResizablePanel>
                     <Toaster position="top-center" closeButton offset={"16px"} visibleToasts={2} gap={8} />
                 </ResizablePanelGroup>
             </div>
+
+            <Dialog open={isSessionEnded}>
+                <DialogContent
+                    className="laptop:max-w-[40vw] bg-white text-black font-sans rounded-2xl [&>button]:hidden"
+                >
+                    <DialogHeader className="items-start">
+                        <DialogTitle className="font-serif font-normal tracking-tight text-3xl">
+                            Session ended
+                        </DialogTitle>
+                        <DialogDescription className="hidden"></DialogDescription>
+                    </DialogHeader>
+                    <div className="flex flex-col w-full gap-1 py-4 justify-start">
+                        <p>Your session has ended.</p>
+                        <p>Redirecting you back to the question page...</p>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </Suspense>
     );
 }
