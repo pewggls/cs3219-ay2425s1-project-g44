@@ -83,17 +83,17 @@ export default function Home() {
                     username: data.username,
                     email: data.email,
                     password: password,
-                    totalAttempt: stats?.totalQuestionsAvailable,
+                    totalAttempt: stats?.totalAttempts,
                     questionAttempt: stats?.questionsAttempted,
-                    totalQuestion: stats?.totalAttempts,
+                    totalQuestion: stats?.totalQuestionsAvailable,
                 })
                 initialUserData.current = {
                     username: data.username,
                     email: data.email,
                     password: password,
-                    totalAttempt: stats?.totalQuestionsAvailable,
+                    totalAttempt: stats?.totalAttempts,
                     questionAttempt: stats?.questionsAttempted,
-                    totalQuestion: stats?.totalAttempts,
+                    totalQuestion: stats?.totalQuestionsAvailable,
                 };
             } catch (error) {
                 console.error('Error during authentication:', error);
@@ -254,11 +254,12 @@ export default function Home() {
 
         const data = (await response.json()).data;
         
-        setUserData({
+        setUserData(prevData => ({
+            ...prevData,
             username: data.username,
             email: data.email,
             password: data.password,
-        })
+        }));
 
         setFeedback({ message: '', type: '' });
         setIsEditing(!isEditing);

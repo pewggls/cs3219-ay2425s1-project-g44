@@ -7,11 +7,13 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/h
 import { MultiSelect } from "@/components/ui/multi-select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { Check, ChevronsRight, Flag, MessageSquareText, Plus, X } from "lucide-react";
+import { ArrowUpRight, Check, ChevronsRight, Flag, MessageSquareText, Plus, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { getUserId, getUsername } from "@/app/utils/cookie-manager";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import Link from "next/link";
 
 type Question = {
     id: number;
@@ -429,7 +431,7 @@ export default function Questions() {
                                 placeholder="Select categories"
                                 variant="inverted"
                                 animation={2}
-                                maxCount={1}
+                                maxCount={2}
                                 selectIcon={MessageSquareText}
                                 className={"font-sans"}
                                 reset={reset}
@@ -538,7 +540,7 @@ export default function Questions() {
                     </ScrollArea>
                 </div>
             </div>
-            <div className="hidden mt-24 mb-8 h-full laptop:max-w-[30vw] laptop:w-[30vw] laptop:flex laptop:flex-col laptop:gap-8 pt-16 px-4">
+            <div className="hidden mt-24 mb-8 h-full laptop:max-w-[25vw] laptop:w-[25vw] laptop:flex laptop:flex-col laptop:gap-8 pt-16 px-4">
 
                 <Button
                     variant="match"
@@ -576,11 +578,11 @@ export default function Questions() {
                 <div className="flex flex-col h-full gap-2">
                     <div className="font-medium pb-1.5 pl-2.5">Questions added for matching</div>
                     {questionList.filter((question) => question.selected).length == 0 ? (
-                        <div className="flex p-1 h-60 w-full bg-gray-50 rounded-lg text-xs text-muted-foreground items-center justify-center">No questions added for matching</div>
+                        <div className="flex p-1 h-[248px] w-full bg-gray-50 rounded-lg text-xs text-muted-foreground items-center justify-center">No questions added for matching</div>
                     ) : (
                         <div className="w-full p-1 min-h-60 h-full bg-gray-50 rounded-lg">
-                            <ScrollArea type="auto" barOffset={1} className="h-full">
-                                <div className="flex flex-wrap gap-0.5 mr-4">
+                            <ScrollArea type="auto" barOffset={1} className="h-60">
+                                <div className="flex flex-wrap gap-0.5 mr-4 overflow-auto">
                                     {questionList
                                         .filter((question) => question.selected)
                                         .map((question) => (
@@ -611,6 +613,25 @@ export default function Questions() {
                             </ScrollArea>
                         </div>
                     )}
+                </div>
+
+                <div className="flex flex-col h-max gap-2 px-2.5">
+                    <Accordion type="single" collapsible>
+                        <AccordionItem value="item-1">
+                            <AccordionTrigger>Past attempts</AccordionTrigger>
+                            <AccordionContent>
+                                <div className="flex flex-col w-full items-start">
+                                    <div>Your past 5 attempts here</div>
+                                    <Link href="/profile/question-history" className="mt-2 self-end font-medium text-blue-600/90 hover:text-blue-800/90">
+                                        <div className="flex items-center">
+                                            View more
+                                            <ArrowUpRight className="ml-1 size-4" />
+                                        </div>
+                                    </Link>
+                                </div>
+                            </AccordionContent>
+                        </AccordionItem>
+                    </Accordion>
                 </div>
             </div>
 
