@@ -164,9 +164,9 @@ export async function getTotalQuestionsAvailable() {
   return response.data.length;
 }
 
-export async function addOrUpdateQuestionHistory(userId, questionId, timeSpent) {
+export async function addOrUpdateQuestionHistory(userId, questionId, timeSpent, code) {
   try {
-    console.log("Received data in addOrUpdateQuestionHistory:", { userId, questionId, timeSpent });
+    console.log("Received data in addOrUpdateQuestionHistory:", { userId, questionId, timeSpent, code});
 
     // Try to find an existing record
     console.log("Attempting to find existing history with userId and questionId...");
@@ -179,6 +179,7 @@ export async function addOrUpdateQuestionHistory(userId, questionId, timeSpent) 
       existingHistory.attemptCount += 1;
       existingHistory.attemptTime += timeSpent;
       existingHistory.attemptDate = new Date();
+      existingHistory.code = code;
 
       // Try to save the updated document
       await existingHistory.save();
@@ -194,6 +195,7 @@ export async function addOrUpdateQuestionHistory(userId, questionId, timeSpent) 
         attemptDate: new Date(),
         attemptCount: 1,
         attemptTime: timeSpent,
+        code: code,
       });
 
       // Try to save the new document
@@ -205,4 +207,38 @@ export async function addOrUpdateQuestionHistory(userId, questionId, timeSpent) 
     console.error("Error in addOrUpdateQuestionHistory:", error);
     throw new Error("Failed to add or update question history");
   }
+}
+
+export async function findQuestionAttemptDetails(userId, questionId) {
+  // Step 1: Find the question attempt record for the user
+  const attempt = await QuestionHistory.findOne({ userId, question: questionId });
+
+  if (attempt) {
+    let questionDetails = null;
+    try {
+      // Step 2: Fetch question details from question-service
+      const response = await axios.get(`http://question:2000/questions/byObjectId/${questionId}`);
+      questionDetails = response.data;
+    } catch (error) {
+      console.error(`Error fetching question details for questionId ${questionId}:`, error);
+    }
+
+    // Step 3: Construct the response
+    return {
+      attemptDate: attempt.attemptDate,
+      attemptCount: attempt.attemptCount,
+      attemptTime: attempt.attemptTime,
+      code: attempt.code,
+      question: questionDetails ? {
+        id: questionDetails.id,
+        title: questionDetails.title,
+        complexity: questionDetails.complexity,
+        category: questionDetails.category,
+        description: questionDetails.description,
+        link: questionDetails.link,
+      } : null,
+    };
+  }
+
+  return null;
 }
