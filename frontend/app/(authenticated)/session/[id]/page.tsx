@@ -1,6 +1,6 @@
 "use client"
 
-import React, { Suspense, useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useRef, useState } from 'react';
 import { Clock3, Flag, MessageSquareText, MicIcon, MicOffIcon, OctagonXIcon } from 'lucide-react';
 import { Badge, BadgeProps } from '@/components/ui/badge';
 import dynamic from 'next/dynamic';
@@ -33,6 +33,7 @@ export default function Session() {
     const [isEndingSession, setIsEndingSession] = useState(false);
     const [controller, setController] = useState<AbortController | null>(null);
     const [timeElapsed, setTimeElapsed] = useState(0);
+    const codeEditorRef = useRef();
 
     useEffect(() => {
         const timerInterval = setInterval(() => {
@@ -64,7 +65,7 @@ export default function Session() {
         } catch (error) {
             console.error('Failed to parse matchResult:', error);
         }
-    }
+    } 
 
     useEffect(() => {
         setIsClient(true);
@@ -142,11 +143,11 @@ export default function Session() {
     // Update user question history before the page being unloaded
     const callUserHistoryAPI = async () => {
         if (isRequestSent) return;
-
         const abortController = new AbortController();
         setController(abortController);
         setIsEndingSession(true); 
-
+        const code = codeEditorRef.current.getCode() || "";
+        
         try {
             console.log('In session page: Call api to udate user question history');
             await fetch(`${process.env.NEXT_PUBLIC_USER_API_HISTORY_URL}/${getCookie('userId')}`, {
@@ -156,9 +157,9 @@ export default function Session() {
                     'Authorization': `Bearer ${getCookie('token')}`,
                 },
                 body: JSON.stringify({
-                    userId: getCookie('userId'),
-                    questionId: "1", // TODO: one question id that user has attempted
+                    questionId: questionId, 
                     timeSpent: timeElapsed,
+                    code: code
                 }),
                 signal: abortController.signal,
             });
@@ -172,9 +173,8 @@ export default function Session() {
     };
 
     async function endSession() {
-        await callUserHistoryAPI().then(() => {
-            router.push('/questions');
-        });
+        await callUserHistoryAPI();
+        router.push('/questions');
     }
 
     function handleCancel() {
@@ -289,7 +289,7 @@ export default function Session() {
                     </ResizablePanel>
                     <ResizableHandle withHandle />
                     <ResizablePanel defaultSize={50} minSize={35} maxSize={65}>
-                        <DynamicCodeEditor sessionId={params.id} />
+                        <DynamicCodeEditor editorRef={codeEditorRef} sessionId={params.id} />
                     </ResizablePanel>
                     <Toaster position="top-center" closeButton offset={"16px"} visibleToasts={2} gap={8} />
                 </ResizablePanelGroup>

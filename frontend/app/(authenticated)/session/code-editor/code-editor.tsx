@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useImperativeHandle, useRef, forwardRef, useState } from 'react';
 import * as Y from 'yjs';
 import { HocuspocusProvider } from '@hocuspocus/provider';
 import { MonacoBinding } from 'y-monaco';
@@ -17,8 +17,13 @@ interface CodeEditorProps {
     sessionId: string;
 }
 
-export default function CodeEditor({ sessionId }: CodeEditorProps) {
+const CodeEditor = forwardRef(function CodeEditor({ sessionId }: CodeEditorProps, ref) {
+
     const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+    
+    useImperativeHandle(ref, () => ({
+        getCode: () => editorRef.current?.getValue() || ""
+    }));
 
     // window.MonacoEnvironment = {
     //     getWorkerUrl: function (moduleId, label) {
@@ -53,7 +58,6 @@ export default function CodeEditor({ sessionId }: CodeEditorProps) {
 
     const handleEditorDidMount: OnMount = (editor, monacoInstance) => {
         editorRef.current = editor;
-
         const doc = new Y.Doc();
         const provider = new HocuspocusProvider({
             url: process.env.NEXT_PUBLIC_COLLAB_API_URL || 'ws://localhost:3003',
@@ -228,4 +232,8 @@ export default function CodeEditor({ sessionId }: CodeEditorProps) {
             />
         </div>
     );
-}
+});
+
+export default function WrappedEditor({ editorRef, ...props }) {
+    return <CodeEditor {...props} ref={editorRef} />;
+  }
