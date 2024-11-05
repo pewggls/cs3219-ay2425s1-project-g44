@@ -2,12 +2,18 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 const protectedRoutes = ['/questions', '/profile', '/session', '/question-repo']
-// const publicRoutes = ['/auth']
+const publicRoutes = ['/auth']
 
 export default async function middleware(request: NextRequest) {
     const path = request.nextUrl.pathname
     const isProtectedRoute = protectedRoutes.some(route => path.startsWith(route))
+    const isPublicRoute = publicRoutes.some(route => path.startsWith(route))
     const token = request.cookies.get("token")?.value
+
+    // bypass auth for users already logged in
+    if (isPublicRoute && token) {
+        return NextResponse.redirect(new URL('/questions', request.url))
+    }
 
     // we leave API token verification to routes layout.tsx, just check token existence here
     if (isProtectedRoute) {
