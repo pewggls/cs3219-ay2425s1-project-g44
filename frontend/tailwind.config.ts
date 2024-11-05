@@ -110,8 +110,19 @@ const config: Config = {
 			animation: {
 				"caret-blink": "caret-blink 1.25s ease-out infinite",
 			},
+			typography: {
+				DEFAULT: {
+					css: {
+						"code::before": {content: ''},
+						"code::after": {content: ''}
+					}
+				}
+			}
 		},
 	},
-	plugins: [require("tailwindcss-animate")],
+	plugins: [
+		require('@tailwindcss/typography'),
+		require("tailwindcss-animate")
+	],
 };
 export default config;

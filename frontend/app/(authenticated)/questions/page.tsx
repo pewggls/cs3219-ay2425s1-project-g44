@@ -65,7 +65,7 @@ export default function Questions() {
         useState<Question | null>(null);
     const [isSelectAll, setIsSelectAll] = useState(false);
     const [reset, setReset] = useState(false);
-    
+
     const [isMatching, setIsMatching] = useState(false);
     const [isHovering, setIsHovering] = useState(false);
     const [matchTime, setMatchTime] = useState(0);
@@ -76,7 +76,7 @@ export default function Questions() {
     const [matchResult, setMatchResult] = useState({ currentUsername: '', peerId: '', peerUsername: '', sessionId: '', agreedQuestion: 0 });
     const timeout = useRef(false);
     const selectedQuestionList = React.useRef<number[]>([])
-    const userInfo = useRef({ id: "", username: ""});
+    const userInfo = useRef({ id: "", username: "" });
 
     // Fetch questions from backend API
     useEffect(() => {
@@ -229,9 +229,9 @@ export default function Questions() {
                 event: "enqueue",
                 userId: getUserId(),
                 userName: getUsername(),
-                questions: selectedQuestionList.current, 
+                questions: selectedQuestionList.current,
             };
-    
+
             ws.current?.send(JSON.stringify(message));
             console.log("Sent matching request to web socket:", message);
         };
@@ -239,7 +239,7 @@ export default function Questions() {
         ws.current.onmessage = (event) => {
             if (event.data == "Welcome to websocket server") {
                 console.log("receive welcome msg from websocket server")
-                return ;
+                return;
             }
             // // Handle successful match
             // if (message.startsWith("User") && message.includes("matched with User")) {
@@ -291,7 +291,7 @@ export default function Questions() {
             console.log("WebSocket connection closed");
             setIsMatching(false);
         };
-    
+
         ws.current.onerror = (error) => {
             console.error("WebSocket error:", error);
             setIsMatching(false);
@@ -314,14 +314,14 @@ export default function Questions() {
                 event: "dequeue",
                 userId: userInfo.current.id,
             };
-    
+
             ws.current?.send(JSON.stringify(message));
         };
 
         ws1.current.onmessage = (event) => {
             if (event.data == "Welcome to websocket server") {
                 console.log("receive welcome msg from websocket server")
-                return ;
+                return;
             }
             const message = JSON.parse(event.data);
             console.log("message receive from websocket", message);
@@ -351,7 +351,7 @@ export default function Questions() {
             }
             setMatchTime(0);
         }
-    }, [isMatching]);   
+    }, [isMatching]);
 
     useEffect(() => {
         if (isMatchFoundDialogOpen) {
@@ -368,11 +368,11 @@ export default function Questions() {
                     return prevTime - 1;
                 });
             }, 1000);
-    
+
             return () => clearInterval(redirectTimer);
         }
     }, [isMatchFoundDialogOpen, router, matchResult]);
-    
+
     useEffect(() => {
         if (isMatchFailDialogOpen) {
             setRedirectTime(5);
@@ -387,7 +387,7 @@ export default function Questions() {
                     return prevTime - 1;
                 });
             }, 1000);
-    
+
             return () => clearInterval(redirectTimer);
         }
     }, [isMatchFailDialogOpen, router]);
@@ -402,7 +402,7 @@ export default function Questions() {
 
     return (
         <main className="flex min-h-screen flex-row px-4 mx-8 mt-0 pt-0 gap-4 font-sans text-black">
-            <div className="flex-1 overflow-auto laptop:w-[620px] laptop:min-w-[620px] laptop:mx-auto">
+            <div className="flex-1 overflow-auto laptop:w-[620px] laptop:min-w-[620px] laptop:max-w-[100vw] laptop:mx-auto">
                 <div className="relative h-screen">
                     <div
                         id="filters"
@@ -464,8 +464,8 @@ export default function Questions() {
                                 onMouseLeave={handleMouseLeave}
                                 disabled={selectedQuestionList.current.length === 0}
                             >
-                                {isMatching 
-                                    ? (isHovering ? 'Cancel' : 'Matching') 
+                                {isMatching
+                                    ? (isHovering ? 'Cancel' : 'Matching')
                                     : 'Match'}
                                 {isMatching ? (
                                     isHovering ? (
@@ -524,11 +524,11 @@ export default function Questions() {
                                                 onClick={() => handleSelectQuestion(question.id)}
                                                 disabled={isMatching}
                                             >
-                                                    {question.selected ? (
-                                                        <div className="flex justify-center items-center"><Check className="h-4 w-4 mr-2" />Added</div>
-                                                    ) : (
-                                                        <div className="flex justify-center items-center"><Plus className="h-4 w-4 mr-2" />Add</div>
-                                                    )}
+                                                {question.selected ? (
+                                                    <div className="flex justify-center items-center"><Check className="h-4 w-4 mr-2" />Added</div>
+                                                ) : (
+                                                    <div className="flex justify-center items-center"><Plus className="h-4 w-4 mr-2" />Add</div>
+                                                )}
                                             </Button>
                                         </Card>
                                     </div>
@@ -538,161 +538,121 @@ export default function Questions() {
                     </ScrollArea>
                 </div>
             </div>
-            <div className="hidden mt-24 mb-8 laptop:max-w-1/2 laptop:flex laptop:flex-col space-y-4 px-4">
-                <div className="flex gap-4 justify-between items-end">
-                    <div className="flex flex-col w-[70%] items-start text-sm">
-                        <div className="font-medium pb-1.5 pl-2.5">Questions added for matching</div>
-                        {questionList.filter((question) => question.selected).length == 0 ? (
-                            <div className="flex p-1 h-20 w-full bg-gray-50 rounded-xl text-xs text-muted-foreground items-center justify-center">No questions added for matching</div>
-                        ) : (
-                            <div className="w-full p-1 h-20 bg-gray-50 rounded-xl">
-                                <ScrollArea type="auto" barOffset={1} className="h-full">
-                                    <div className="flex flex-wrap gap-0.5 mr-4">
-                                        {questionList
-                                            .filter((question) => question.selected)
-                                            .map((question) => (
-                                                <HoverCard key={question.id} openDelay={300}>
-                                                    <HoverCardTrigger>
-                                                        <Badge variant={question.complexity as BadgeProps["variant"]} className="w-fit">
-                                                            {question.title}
-                                                        </Badge>
-                                                    </HoverCardTrigger>
-                                                    <HoverCardContent className="rounded-xl p-2 w-fit">
-                                                        <div className="flex items-center gap-2">
-                                                            <MessageSquareText className="h-4 w-4 text-icon" />
-                                                            {question.categories.map((category) => (
-                                                                <Badge
-                                                                    key={category}
-                                                                    variant="category"
-                                                                    className="uppercase text-category-text bg-category-bg"
-                                                                >
-                                                                    {category}
-                                                                </Badge>
-                                                            ))}
-                                                        </div>
-                                                    </HoverCardContent>
-                                                </HoverCard>
-                                            ))}
+            <div className="hidden mt-24 mb-8 h-full laptop:max-w-[30vw] laptop:w-[30vw] laptop:flex laptop:flex-col laptop:gap-8 pt-16 px-4">
 
-                                    </div>
-                                </ScrollArea>
-                            </div>
-                        )}
-                    </div>
-                    <div className="">
-                        <Button
-                            variant="match"
-                            className={cn(
-                                "group min-w-[150px] max-w-[150px] font-brand uppercase",
-                                isMatching && !isHovering && "bg-brand-600 hover:bg-brand-600 text-white",
-                                isMatching && isHovering && "text-destructive-foreground hover:bg-destructive/90"
-                            )}
-                            onClick={() => {
-                                if (isMatching) {
-                                    handleCancel();
-                                } else {
-                                    // Perform the initial match action
-                                    handleMatch();
-                                }
-                            }}
-                            onMouseEnter={handleMouseEnter}
-                            onMouseLeave={handleMouseLeave}
-                            disabled={selectedQuestionList.current.length === 0}
-                        >
-                            {isMatching 
-                                ? (isHovering ? 'Cancel' : 'Matching') 
-                                : 'Match'}
-                            {isMatching ? (
-                                isHovering ? (
-                                    <X className="ml-2" />
-                                ) : (
-                                    <span className="ml-3 text-white/60 lowercase font-mono">{Math.min(matchTime, 30)}s</span>
-                                )
-                            ) : (
-                                <ChevronsRight className="ml-2 group-hover:translate-x-2 transition" />
-                            )}
-                        </Button>
-                    </div>
-                </div>
-                <div className="bg-white drop-shadow-question-details rounded-xl p-6 h-full">
-                    {!selectedViewQuestion ? (
-                        <div className="flex items-center justify-center h-full text-muted-foreground">Click on a question to view its details</div>
+                <Button
+                    variant="match"
+                    className={cn(
+                        "group w-full font-brand uppercase",
+                        isMatching && !isHovering && "bg-brand-600 hover:bg-brand-600 text-white",
+                        isMatching && isHovering && "text-destructive-foreground hover:bg-destructive/90"
+                    )}
+                    onClick={() => {
+                        if (isMatching) {
+                            handleCancel();
+                        } else {
+                            // Perform the initial match action
+                            handleMatch();
+                        }
+                    }}
+                    onMouseEnter={handleMouseEnter}
+                    onMouseLeave={handleMouseLeave}
+                    disabled={selectedQuestionList.current.length === 0}
+                >
+                    {isMatching
+                        ? (isHovering ? 'Cancel' : 'Matching')
+                        : 'Match'}
+                    {isMatching ? (
+                        isHovering ? (
+                            <X className="ml-2" />
+                        ) : (
+                            <span className="ml-3 text-white/60 lowercase font-mono">{Math.min(matchTime, 30)}s</span>
+                        )
                     ) : (
-                        <div className="desktop:flex desktop:flex-col">
-                            <h3 className="text-2xl font-serif font-medium tracking-tight">
-                                {selectedViewQuestion.title}
-                            </h3>
-                            <div className="flex items-center gap-10 mt-3">
-                                <div className="flex items-center gap-2">
-                                    <Flag className="h-4 w-4 text-icon" />
-                                    <Badge
-                                        variant={
-                                            selectedViewQuestion.complexity as BadgeProps["variant"]
-                                        }
-                                    >
-                                        {selectedViewQuestion.complexity}
-                                    </Badge>
+                        <ChevronsRight className="ml-2 group-hover:translate-x-2 transition" />
+                    )}
+                </Button>
+
+                <div className="flex flex-col h-full gap-2">
+                    <div className="font-medium pb-1.5 pl-2.5">Questions added for matching</div>
+                    {questionList.filter((question) => question.selected).length == 0 ? (
+                        <div className="flex p-1 h-60 w-full bg-gray-50 rounded-lg text-xs text-muted-foreground items-center justify-center">No questions added for matching</div>
+                    ) : (
+                        <div className="w-full p-1 min-h-60 h-full bg-gray-50 rounded-lg">
+                            <ScrollArea type="auto" barOffset={1} className="h-full">
+                                <div className="flex flex-wrap gap-0.5 mr-4">
+                                    {questionList
+                                        .filter((question) => question.selected)
+                                        .map((question) => (
+                                            <HoverCard key={question.id} openDelay={300}>
+                                                <HoverCardTrigger>
+                                                    <Badge variant={question.complexity as BadgeProps["variant"]} className="w-fit">
+                                                        {question.title}
+                                                    </Badge>
+                                                </HoverCardTrigger>
+                                                <HoverCardContent className="rounded-xl p-2 w-fit">
+                                                    <div className="flex items-center gap-2">
+                                                        <MessageSquareText className="h-4 w-4 text-icon" />
+                                                        {question.categories.map((category) => (
+                                                            <Badge
+                                                                key={category}
+                                                                variant="category"
+                                                                className="uppercase text-category-text bg-category-bg"
+                                                            >
+                                                                {category}
+                                                            </Badge>
+                                                        ))}
+                                                    </div>
+                                                </HoverCardContent>
+                                            </HoverCard>
+                                        ))}
+
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <MessageSquareText className="h-4 w-4 text-icon" />
-                                    {selectedViewQuestion.categories.map((category) => (
-                                        <Badge
-                                            key={category}
-                                            variant="category"
-                                            className="uppercase text-category-text bg-category-bg"
-                                        >
-                                            {category}
-                                        </Badge>
-                                    ))}
-                                </div>
-                            </div>
-                            <p className="mt-8 text-sm text-foreground">
-                                {selectedViewQuestion.description}
-                            </p>
+                            </ScrollArea>
                         </div>
                     )}
                 </div>
+            </div>
 
-                <Dialog open={isMatchFoundDialogOpen}>
-                    <DialogContent
-                        className="laptop:max-w-[40vw] bg-white text-black font-sans rounded-2xl [&>button]:hidden"
-                        onPointerDownOutside={(e) => e.preventDefault()}
-                        onInteractOutside={(e) => e.preventDefault()}
-                        onEscapeKeyDown={(e) => e.preventDefault()}
-                    >
-                        <DialogHeader className="items-start">
+            <Dialog open={isMatchFoundDialogOpen}>
+                <DialogContent
+                    className="laptop:max-w-[40vw] bg-white text-black font-sans rounded-2xl [&>button]:hidden"
+                    onPointerDownOutside={(e) => e.preventDefault()}
+                    onInteractOutside={(e) => e.preventDefault()}
+                    onEscapeKeyDown={(e) => e.preventDefault()}
+                >
+                    <DialogHeader className="items-start">
                         <DialogTitle className="font-serif font-normal tracking-tight text-3xl">
                             Match found
                         </DialogTitle>
                         <DialogDescription className="hidden"></DialogDescription>
-                        </DialogHeader>
-                        <div className="flex flex-col w-full gap-1 py-4 justify-start">
-                            <p>You have been matched with <span className="font-semibold">{matchResult.peerUsername}</span></p>
-                            <p>Redirecting you to your <span className="text-md font-bold font-brand tracking-tight text-brand-700">Prep</span> session...</p>
-                        </div>
-                    </DialogContent>
-                </Dialog>
+                    </DialogHeader>
+                    <div className="flex flex-col w-full gap-1 py-4 justify-start">
+                        <p>You have been matched with <span className="font-semibold">{matchResult.peerUsername}</span></p>
+                        <p>Redirecting you to your <span className="text-md font-bold font-brand tracking-tight text-brand-700">Prep</span> session...</p>
+                    </div>
+                </DialogContent>
+            </Dialog>
 
-                <Dialog open={isMatchFailDialogOpen}>
-                    <DialogContent
-                        className="laptop:max-w-[40vw] bg-white text-black font-sans rounded-2xl [&>button]:hidden"
-                        onPointerDownOutside={(e) => e.preventDefault()}
-                        onInteractOutside={(e) => e.preventDefault()}
-                        onEscapeKeyDown={(e) => e.preventDefault()}
-                    >
-                        <DialogHeader className="items-start">
+            <Dialog open={isMatchFailDialogOpen}>
+                <DialogContent
+                    className="laptop:max-w-[40vw] bg-white text-black font-sans rounded-2xl [&>button]:hidden"
+                    onPointerDownOutside={(e) => e.preventDefault()}
+                    onInteractOutside={(e) => e.preventDefault()}
+                    onEscapeKeyDown={(e) => e.preventDefault()}
+                >
+                    <DialogHeader className="items-start">
                         <DialogTitle className="font-serif font-normal tracking-tight text-3xl">
                             Match not found
                         </DialogTitle>
                         <DialogDescription className="hidden"></DialogDescription>
-                        </DialogHeader>
-                        <div className="flex flex-col w-full gap-1 py-4 justify-start">
-                            <p>Please try again.</p>
-                            <p>Redirecting you back to the question page in {redirectTime} {redirectTime === 1 ? "second" : "seconds"}...</p>
-                        </div>
-                    </DialogContent>
-                </Dialog>
-            </div>
+                    </DialogHeader>
+                    <div className="flex flex-col w-full gap-1 py-4 justify-start">
+                        <p>Please try again.</p>
+                        <p>Redirecting you back to the question page in {redirectTime} {redirectTime === 1 ? "second" : "seconds"}...</p>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </main>
     );
 }

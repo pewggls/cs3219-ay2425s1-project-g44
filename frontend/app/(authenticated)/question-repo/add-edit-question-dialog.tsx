@@ -287,7 +287,7 @@ function AddEditQuestionDialog(
               id="description"
               defaultValue={row?.description ?? ""}
               placeholder="Question description and instructions"
-              className="max-h-[50vh]"
+              className="max-h-[50vh] h-[15vh]"
               onChange={(e) => handleInputChange("description", e.target.value)}
             />
             {errors.description && (
