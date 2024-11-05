@@ -73,7 +73,7 @@ export default function Questions() {
     const matchTimerRef = useRef<NodeJS.Timeout | null>(null);
     const [isMatchFoundDialogOpen, setMatchFoundDialogOpen] = useState(false);
     const [isMatchFailDialogOpen, setMatchFailDialogOpen] = useState(false);
-    const [matchResult, setMatchResult] = useState({ id: '', username: ''})
+    const [matchResult, setMatchResult] = useState({ peerId: '', peerUsername: '', sessionId: '', agreedQuestion: 0 });
     const timeout = useRef(false);
     const selectedQuestionList = React.useRef<number[]>([])
     const userInfo = useRef({ id: "", username: ""});
@@ -267,7 +267,7 @@ export default function Questions() {
             switch (message.event) {
                 case 'match-success':
                     console.log(`User ${message.userId} matched with User ${message.peerUserId} (username: ${message.peerUserName}).`);
-                    setMatchResult({ id: message.peerUserId, username: message.peerUserName });
+                    setMatchResult({ peerId: message.peerUserId, peerUsername: message.peerUserName, sessionId: message.roomName, agreedQuestion: message.agreedQuestion });
                     setMatchFoundDialogOpen(true);
                     break;
 
@@ -355,13 +355,12 @@ export default function Questions() {
 
     useEffect(() => {
         if (isMatchFoundDialogOpen) {
-            setRedirectTime(5);
+            setRedirectTime(3);
             const redirectTimer = setInterval(() => {
                 setRedirectTime((prevTime) => {
                     if (prevTime <= 1) {
                         clearInterval(redirectTimer);
-                        const sessionId = 1
-                        router.push(`/session/${sessionId}`);  // Redirect to question page
+                        router.push(`/session/${matchResult.sessionId}?matchResult=${encodeURIComponent(JSON.stringify(matchResult))}`);  // Redirect to question page
                         // setMatchFoundDialogOpen(false);
                         setIsMatching(false);
                         return 0;
@@ -372,7 +371,7 @@ export default function Questions() {
     
             return () => clearInterval(redirectTimer);
         }
-    }, [isMatchFoundDialogOpen, router]);
+    }, [isMatchFoundDialogOpen, router, matchResult]);
     
     useEffect(() => {
         if (isMatchFailDialogOpen) {
@@ -668,8 +667,8 @@ export default function Questions() {
                         <DialogDescription className="hidden"></DialogDescription>
                         </DialogHeader>
                         <div className="flex flex-col w-full gap-1 py-4 justify-start">
-                            <p>You have been matched with <span className="font-semibold">{matchResult.username}</span></p>
-                            <p>Redirecting you in {redirectTime} {redirectTime === 1 ? "second" : "seconds"}...</p>
+                            <p>You have been matched with <span className="font-semibold">{matchResult.peerUsername}</span></p>
+                            <p>Redirecting you to your <span className="text-md font-bold font-brand tracking-tight text-brand-700">Prep</span> session...</p>
                         </div>
                     </DialogContent>
                 </Dialog>

@@ -33,6 +33,7 @@ interface DataTableProps<TData, TValue> {
   data: TData[]
   setData?: React.Dispatch<React.SetStateAction<TData[]>>;
   loading: boolean
+  isVisible?: boolean
 }
 
 export function DataTable<TData, TValue>({
@@ -40,6 +41,7 @@ export function DataTable<TData, TValue>({
   data,
   setData,
   loading,
+  isVisible = true,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = useState({})
   const [sorting, setSorting] = useState<SortingState>([])
@@ -106,7 +108,7 @@ export function DataTable<TData, TValue>({
   return (
     <div className="w-full font-sans text-black flex flex-col h-fit">
       <div className="pb-4">
-        <DataTableToolbar table={table} data={data} setData={setData} />
+        <DataTableToolbar table={table} data={data} setData={setData} isVisible={isVisible}/>
       </div>
 
       <div className="rounded-md border flex-grow overflow-hidden flex flex-col">

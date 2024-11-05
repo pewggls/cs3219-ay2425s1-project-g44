@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import * as Y from 'yjs';
-import { WebsocketProvider } from 'y-websocket';
+import { HocuspocusProvider } from '@hocuspocus/provider';
 import { MonacoBinding } from 'y-monaco';
 import * as monaco from 'monaco-editor';
 import Editor, { BeforeMount, OnMount } from '@monaco-editor/react';
@@ -11,9 +11,32 @@ import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, Command
 import { ChevronsUpDown, Check, Palette, Code } from 'lucide-react';
 import { loadThemes, themes } from './themes/theme-loader';
 import { langs } from './lang-loader';
+import { getUsername } from '@/app/utils/cookie-manager';
 
-export default function CodeEditor() {
+interface CodeEditorProps {
+    sessionId: string;
+}
+
+export default function CodeEditor({ sessionId }: CodeEditorProps) {
     const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+
+    // window.MonacoEnvironment = {
+    //     getWorkerUrl: function (moduleId, label) {
+    //         if (label === "json") {
+    //             return "/monaco/dist/json.worker.bundle.js";
+    //         }
+    //         if (label === "css") {
+    //             return "/monaco/dist/css.worker.bundle.js";
+    //         }
+    //         if (label === "html") {
+    //             return "/monaco/dist/html.worker.bundle.js";
+    //         }
+    //         if (label === "typescript" || label === "javascript") {
+    //             return "/monaco/dist/ts.worker.bundle.js";
+    //         }
+    //         return "/monaco/dist/editor.worker.bundle.js";
+    //     },
+    // };
 
     const handleEditorWillMount: BeforeMount = async (monacoInstance) => {
         monacoInstance.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
@@ -32,9 +55,28 @@ export default function CodeEditor() {
         editorRef.current = editor;
 
         const doc = new Y.Doc();
-        const provider = new WebsocketProvider('ws://collab-service/code-collab', 'id', doc);
+        const provider = new HocuspocusProvider({
+            url: process.env.NEXT_PUBLIC_COLLAB_API_URL || 'ws://localhost:3003',
+            name: `code-${sessionId}`,
+            document: doc,
+            onConnect: () => {
+                console.log('Connected to server');
+            },
+            onClose: ({ event }) => {
+                console.error('Connection closed:', event);
+            },
+            onDisconnect: ({ event }) => {
+                console.error('Disconnected from server:', event);
+            },
+        });
+
         const type = doc.getText('monaco');
-        type.insert(0, "// Start coding here");
+
+        const awareness = provider.awareness!;
+        // awareness.setLocalStateField('user', {
+        //     name: getUsername(),
+        //     color: '#' + Math.floor(Math.random() * 16777215).toString(16)
+        // });
 
         const binding = new MonacoBinding(type, editor.getModel()!, new Set([editor]), provider.awareness);
 
@@ -76,7 +118,7 @@ export default function CodeEditor() {
                                         setTheme(currentValue);
                                         monaco.editor.setTheme(currentValue);
                                         setThemeOpen(false);
-                                    }}                                    
+                                    }}
                                 >
                                     <Check
                                         className={cn(
@@ -125,7 +167,7 @@ export default function CodeEditor() {
                                         monaco.editor.setModelLanguage(editorRef.current!.getModel()!, currentValue);
                                         setLang(currentValue);
                                         setLangOpen(false);
-                                    }}                                    
+                                    }}
                                 >
                                     <Check
                                         className={cn(
@@ -147,7 +189,7 @@ export default function CodeEditor() {
             <div className="flex justify-end mr-8 gap-8">
                 <div className="flex items-center gap-2">
                     <Code className="size-4 text-muted-foreground" />
-                    {langCombobox()} 
+                    {langCombobox()}
                 </div>
                 <div className="flex items-center gap-2">
                     <Palette className="size-4 text-muted-foreground" />
@@ -182,7 +224,6 @@ export default function CodeEditor() {
                         horizontalScrollbarSize: 17,
                         alwaysConsumeMouseWheel: false,
                     },
-                    // model: monaco.editor.createModel(ytext.toString(), language),
                 }}
             />
         </div>

@@ -20,9 +20,9 @@ router.get("/", verifyAccessToken, verifyIsAdmin, getAllUsers);
 
 router.get("/check", checkUserExistByEmailorId);
 
-router.get("/history/:userId", verifyAccessToken, getUserHistory);
-
 router.get("/history/:userId/stats", verifyAccessToken, getUserStats);
+
+router.get("/history/:userId", verifyAccessToken, getUserHistory);
 
 router.patch("/:id/privilege", verifyAccessToken, verifyIsAdmin, updateUserPrivilege);
 

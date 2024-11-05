@@ -2,7 +2,7 @@
 
 import React, { Suspense, useEffect, useState } from 'react';
 import { Clock3, Flag, MessageSquareText, MicIcon, MicOffIcon, OctagonXIcon } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Badge, BadgeProps } from '@/components/ui/badge';
 import dynamic from 'next/dynamic';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import { Button } from '@/components/ui/button';
@@ -10,20 +10,113 @@ import { Toggle } from '@/components/ui/toggle';
 import { toast } from 'sonner';
 import { Toaster } from '@/components/ui/sonner';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import SessionLoading from '../loading';
+import { getCookie } from '@/app/utils/cookie-manager';
 
 const DynamicCodeEditor = dynamic(() => import('../code-editor/code-editor'), { ssr: false });
 const DynamicTextEditor = dynamic(() => import('../text-editor'), { ssr: false });
 
-export default function Session({ params }: { params: { id: string } }) {
+type Question = {
+    id: number;
+    title: string;
+    complexity: string | undefined;
+    category: (string | undefined)[];
+    description: string;
+};
+
+export default function Session() {
     const router = useRouter();
     const [isClient, setIsClient] = useState(false);
     const [isMicEnabled, setIsMicEnabled] = useState(false);
+    const [isRequestSent, setIsRequestSent] = useState(false); // Flag to track if API call has been made
+    const [isEndingSession, setIsEndingSession] = useState(false);
+    const [controller, setController] = useState<AbortController | null>(null);
+    const [timeElapsed, setTimeElapsed] = useState(0);
+
+    useEffect(() => {
+        const timerInterval = setInterval(() => {
+            setTimeElapsed((prevTime) => prevTime + 1);
+        }, 1000);
+
+        return () => clearInterval(timerInterval);
+    }, []);
+
+    const minutes = Math.floor(timeElapsed / 60);
+    const seconds = timeElapsed % 60;
+    const [sessionEnded, setSessionEnded] = useState(false);
+
+    const [question, setQuestion] = useState<Question | null>(null);
+
+    const params = useParams<{ id: string }>()
+    const searchParams = useSearchParams()
+    const matchResultParam = searchParams.get('matchResult')
+    
+    let matchResult = null;
+    let questionId = null;
+    let peerUsername = null;
+
+    if (matchResultParam) {
+        try {
+            matchResult = JSON.parse(decodeURIComponent(matchResultParam));
+            questionId = matchResult.agreedQuestion;
+            peerUsername = matchResult.peerUsername;
+        } catch (error) {
+            console.error('Failed to parse matchResult:', error);
+        }
+    }
 
     useEffect(() => {
         setIsClient(true);
-    }, []);
+
+        const fetchQuestionDetails = async (id: string) => {
+            try {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_QUESTION_API_BASE_URL}/byId/${questionId}`, {
+                    cache: "no-store",
+                });
+    
+                if (!response.ok) {
+                    throw new Error('Failed to fetch question details');
+                }
+    
+                const data = await response.json();
+                setQuestion(data);
+            } catch (error) {
+                console.error(error);
+                toast.error('Failed to load question details');
+            }
+        };
+
+        if (questionId) {
+            fetchQuestionDetails(questionId);
+        }
+    }, [questionId]);
+
+    // const ws = new WebSocket('ws://localhost:3003');
+    // ws.onopen = () => {
+    //     ws.send(JSON.stringify({ type: 'join', roomId: `room-${params.id}` }));
+    // };
+    // ws.onmessage = (event) => {
+    //     const message = JSON.parse(event.data);
+    //     if (message.type === 'sessionEnded') {
+    //         console.log("Session ended");
+    //         setSessionEnded(true);
+    //     }
+    // };
+
+    // if (sessionEnded) {
+    //     ws.send(JSON.stringify({ type: 'leave', roomId: `room-${params.id}` }));
+    //     ws.close();
+
+    //     toast.info('The session has ended', {
+    //         description: 'Returning you to the question page...',
+    //         duration: Infinity,
+    //     });
+
+    //     setTimeout(() => {
+    //         router.push('/questions');
+    //     }, 3000);
+    // }
 
     if (!isClient) {
         return SessionLoading();
@@ -46,8 +139,49 @@ export default function Session({ params }: { params: { id: string } }) {
         }
     };
 
+    // Update user question history before the page being unloaded
+    const callUserHistoryAPI = async () => {
+        if (isRequestSent) return;
+
+        const abortController = new AbortController();
+        setController(abortController);
+        setIsEndingSession(true); 
+
+        try {
+            console.log('In session page: Call api to udate user question history');
+            await fetch(`${process.env.NEXT_PUBLIC_USER_API_HISTORY_URL}/${getCookie('userId')}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${getCookie('token')}`,
+                },
+                body: JSON.stringify({
+                    userId: getCookie('userId'),
+                    questionId: "1", // TODO: one question id that user has attempted
+                    timeSpent: timeElapsed,
+                }),
+                signal: abortController.signal,
+            });
+            setIsRequestSent(true);
+        } catch (error) {
+            console.error('Failed to update question history:', error);
+        } finally {
+            setIsEndingSession(false);
+            setController(null);
+        }
+    };
+
     async function endSession() {
-        router.push('/questions');
+        await callUserHistoryAPI().then(() => {
+            router.push('/questions');
+        });
+    }
+
+    function handleCancel() {
+        if (controller) {
+            controller.abort(); // Cancel the API call
+            setIsEndingSession(false);
+        }
     }
 
     return (
@@ -55,10 +189,10 @@ export default function Session({ params }: { params: { id: string } }) {
             <div className="flex flex-col gap-8 min-h-screen">
                 <div className="flex justify-between text-black bg-white drop-shadow mt-20 mx-8 p-4 rounded-xl relative">
                     <div className="flex items-center gap-2 text-sm">
-                        <span>Session {params.id}</span>
-                        <div className="flex items-center bg-brand-200 text-brand-800 py-2 px-3 font-semibold rounded-lg"><Clock3 className="h-4 w-4 mr-2" />3:35</div>
+                        <span>Session</span>
+                        <div className="flex justify-center items-center bg-brand-200 text-brand-800 py-2 px-3 font-semibold rounded-lg"><Clock3 className="h-4 w-4 mr-2" /><div className="flex justify-center w-[40px]">{minutes}:{seconds < 10 ? `0${seconds}` : seconds}</div></div>
                         <span>with</span>
-                        <span className="font-semibold">username</span>
+                        <span className="font-semibold">{peerUsername}</span>
                     </div>
                     <div className="mr-[52px]">
                         <Toggle 
@@ -91,7 +225,6 @@ export default function Session({ params }: { params: { id: string } }) {
                                         <Button
                                             variant="ghost"
                                             className="rounded-lg"
-                                            onClick={endSession}
                                         >
                                             Cancel
                                         </Button>
@@ -100,6 +233,7 @@ export default function Session({ params }: { params: { id: string } }) {
                                         type="submit"
                                         className="rounded-lg bg-brand-700 hover:bg-brand-600"
                                         onClick={endSession}
+                                        disabled={isEndingSession}
                                     >
                                         End session
                                     </Button>
@@ -114,53 +248,48 @@ export default function Session({ params }: { params: { id: string } }) {
                             <ResizablePanel defaultSize={50} minSize={35} maxSize={65}>
                                 <div className="h-[calc(100%-2rem)] overflow-auto text-black bg-white drop-shadow-question-details p-6 mx-8 rounded-xl">
                                     <h3 className="text-2xl font-serif font-medium tracking-tight">
-                                        {/* {selectedViewQuestion.title} */}
-                                        Question title
+                                        {question && question.title}
                                     </h3>
                                     <div className="flex items-center gap-10 mt-3">
                                         <div className="flex items-center gap-2">
                                             <Flag className="h-4 w-4 text-icon" />
                                             <Badge
                                                 variant={
-                                                    // selectedViewQuestion.complexity as BadgeProps["variant"]
-                                                    'easy'
+                                                    question && question.complexity!.toLowerCase() as BadgeProps["variant"]
                                                 }
                                             >
-                                                {/* {selectedViewQuestion.complexity} */}
-                                                Easy
+                                                {question && question.complexity}
                                             </Badge>
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <MessageSquareText className="h-4 w-4 text-icon" />
-                                            {/* {selectedViewQuestion.categories.map((category) => ( */}
+                                            {question && question.category.map((category) => (
                                             <Badge
-                                                // key={category}
+                                                key={category}
                                                 variant="category"
                                                 className="uppercase text-category-text bg-category-bg"
                                             >
-                                                {/* {category} */}
-                                                Algorithms
+                                                {category}
                                             </Badge>
-                                            {/* ))} */}
+                                            ))}
                                         </div>
                                     </div>
                                     <p className="mt-8 text-sm text-foreground">
-                                        {/* {selectedViewQuestion.description} */}
-                                        Question description
+                                        {question && question.description}
                                     </p>
                                 </div>
                             </ResizablePanel>
                         <ResizableHandle withHandle />
                         <ResizablePanel defaultSize={50} minSize={35} maxSize={65}>
                             <div className="h-[calc(100%-4rem)] bg-white drop-shadow-question-details rounded-xl m-8">
-                                <DynamicTextEditor />
+                                {/* <DynamicTextEditor sessionId={params.id} /> */}
                             </div>
                         </ResizablePanel>
                         </ResizablePanelGroup>
                     </ResizablePanel>
                     <ResizableHandle withHandle />
                     <ResizablePanel defaultSize={50} minSize={35} maxSize={65}>
-                        <DynamicCodeEditor />
+                        <DynamicCodeEditor sessionId={params.id} />
                     </ResizablePanel>
                     <Toaster position="top-center" closeButton offset={"16px"} visibleToasts={2} gap={8} />
                 </ResizablePanelGroup>
@@ -168,3 +297,7 @@ export default function Session({ params }: { params: { id: string } }) {
         </Suspense>
     );
 }
+function callUserHistoryAPI() {
+    throw new Error('Function not implemented.');
+}
+
