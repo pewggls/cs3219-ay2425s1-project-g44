@@ -475,7 +475,8 @@ Records a question attempt for a user, either creating a new record or updating 
   ```json
   {
     "questionId": "18",
-    "timeSpent": 120
+    "timeSpent": 120, // Time spent on the question in seconds
+    "code": "function solve() { ... }" // User's code submission for the attempt
   }
 - **Response Format** (JSON):
 - **Code**: 200
@@ -500,3 +501,39 @@ Fetches the statistics for a user, including the number of questions attempted, 
       "totalAttempts": 4
     }
     ```
+
+#### 4. Retrieve question attempt details for a User
+
+Retrieve all details for a particular question attempt made by a user.
+
+- **Endpoint**: `GET /users/history/:userId/question/:questionId`
+- **Request Parameters**:
+  - `userId` (string): The unique identifier of the user whose statistics are being fetched.
+  - `questionId` (number): The id (not _id) of the question.
+- **Response Format** (JSON):
+  - **Code**: 200
+  - **Body**:
+    ```json
+      {
+      "attemptDate": "2024-11-05T22:27:38.534Z",
+      "attemptCount": 3,
+      "attemptTime": 30,
+      "code": "function add(x, y){\r\n    return x + y;\r\n}\r\n\r\nfunction substract(x, y) {\r\n    return x - y;\r\n}\r\n\r\nconst addition = add(1, 2);\r\n",
+      "question": {
+          "id": 19,
+          "title": "Chalkboard XOR Game",
+          "complexity": "Hard",
+          "category": [
+              "Brainteaser"
+          ],
+          "description": "You are given an array of integers `nums` represents the numbers written on a chalkboard.\n\nAlice and Bob take turns erasing exactly one number from the chalkboard, with Alice starting first. If erasing a number causes the bitwise XOR of all the elements of the chalkboard to become `0`, then that player loses. The bitwise XOR of one element is that element itself, and the bitwise XOR of no elements is `0`.\n\nAlso, if any player starts their turn with the bitwise XOR of all the elements of the chalkboard equal to `0`, then that player wins.\n\nReturn `true` *if and only if Alice wins the game, assuming both players play optimally*.",
+          "link": "https://leetcode.com/problems/chalkboard-xor-game/"
+      }
+    }
+    ```
+  - **Code**: 404
+  - **Body**:
+    ```json
+    {
+      "message": "No details found for this question attempt."
+    } 

@@ -24,6 +24,10 @@ const QuestionHistorySchema = new mongoose.Schema({
     type: Number, // time in seconds
     required: true,
   },
+  code: {
+    type: String,
+    required: true,
+  }
 });
 
 export default mongoose.model("QuestionHistory", QuestionHistorySchema);

@@ -16,6 +16,7 @@ import {
   getTotalQuestionsAvailable as _getTotalQuestionsAvailable,
   updateUserById as _updateUserById,
   updateUserPrivilegeById as _updateUserPrivilegeById,
+  findQuestionAttemptDetails as _findQuestionAttemptDetails,
 } from "../model/repository.js";
 
 export async function createUser(req, res) {
@@ -247,7 +248,7 @@ export async function getUserHistory(req, res) {
 export async function addQuestionAttempt(req, res) {
   try {
     const userId = req.params.userId;
-    const { questionId, timeSpent } = req.body;
+    const { questionId, timeSpent, code} = req.body;
 
     const parsedId = Number(questionId);
     console.log(parsedId);
@@ -272,7 +273,7 @@ export async function addQuestionAttempt(req, res) {
 
     console.log("Found question:", question);
     // Add or update the question attempt in the user's question history
-    const updated = await _addOrUpdateQuestionHistory(userId, question._id, timeSpent);
+    const updated = await _addOrUpdateQuestionHistory(userId, question._id, timeSpent, code);
 
     if (updated) {
       return res.status(200).json({ message: "Question history updated successfully." });
@@ -312,6 +313,40 @@ export async function getUserStats(req, res) {
     return res.status(500).json({ message: "Unknown error when fetching user statistics!" });
   }
 }
+
+export async function getQuestionAttemptDetails(req, res) {
+  const userId = req.params.userId;
+  const questionId = req.params.questionId;
+  const parsedId = Number(questionId);
+  console.log(parsedId);
+
+  if (typeof parsedId !== 'number') {
+    return res.status(400).json({ message: "Invalid question ID" });
+  }
+
+  const questionServiceUrl = `http://question:2000/questions/byId/${parsedId}`;
+
+    
+  // Fetch question data from question-service
+  const response = await axios.get(questionServiceUrl);
+  const question = response.data;
+
+  console.log("Found question:", question);
+
+  try {
+    const attemptDetails = await _findQuestionAttemptDetails(userId, question._id);
+
+    if (attemptDetails) {
+      return res.status(200).json(attemptDetails);
+    } else {
+      return res.status(404).json({ message: "No details found for this question attempt." });
+    }
+  } catch (err) {
+    console.error("Error fetching question attempt details:", err);
+    return res.status(500).json({ message: "Unknown error when fetching question attempt details!" });
+  }
+}
+
 
 export function formatUserResponse(user) {
   return {
