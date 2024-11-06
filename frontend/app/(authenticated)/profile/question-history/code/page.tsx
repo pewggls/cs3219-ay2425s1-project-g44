@@ -10,6 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from '@/components/ui/badge';
 import Editor from "@monaco-editor/react";
 import { toast } from "sonner"
+import Markdown from 'react-markdown'
 
 type Question = {
     id: number;
@@ -52,6 +53,7 @@ export default function CodeViewer() {
       "link": ""
   });
   const [code, setCode] = useState("");
+  const [language, setLanguage] = useState("javascript")
   const userId = useRef<string | null>(null);
 
   useEffect(() => {
@@ -98,7 +100,8 @@ export default function CodeViewer() {
             link: data.question.link,
         })
         setAttemptDate(new Date(data.attemptDate));
-        setCode(JSON.parse(`"${data.code}"`))
+        setCode(JSON.parse(data.code))
+        setLanguage(data.language)
       } catch (err) {
         console.error(err.message);
         toast.dismiss();
@@ -170,6 +173,9 @@ export default function CodeViewer() {
             <p className="mt-8 text-l text-foreground">
                 {questionDetails?.description || ""}
             </p>
+            <Markdown className="mt-8 prose prose-zinc prose-code:bg-zinc-200 prose-code:px-1 prose-code:rounded prose-code:prose-pre:bg-inherit text-sm text-foreground proportional-nums">
+                {questionDetails?.description || ""}
+            </Markdown>
         </ScrollArea>
 
         {/* Right Panel: Code Display */}
@@ -187,7 +193,7 @@ export default function CodeViewer() {
             <div className="flex-grow">
                 <Editor
                     height="100%"
-                    defaultLanguage="javascript"
+                    language={language}
                     value={code}
                     options={{
                         readOnly: true,
@@ -197,7 +203,7 @@ export default function CodeViewer() {
                         padding: { top: 10, bottom: 10 },
                         scrollBeyondLastLine: false,
                         scrollbar: {
-                            vertical: "hidden",
+                            vertical: "auto",
                             horizontal: "auto",
                         },
                     }}

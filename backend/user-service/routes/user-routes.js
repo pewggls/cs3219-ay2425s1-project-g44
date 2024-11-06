@@ -7,7 +7,8 @@ import {
   checkUserExistByEmailorId,
   getUser,
   getUserHistory,
-  getUserStats,
+  getQuestionAttemptDetails,
+  getUserStats,   
   addQuestionAttempt,
   updateUser,
   updateUserPrivilege,
@@ -23,6 +24,8 @@ router.get("/check", checkUserExistByEmailorId);
 router.get("/history/:userId/stats", verifyAccessToken, getUserStats);
 
 router.get("/history/:userId", verifyAccessToken, getUserHistory);
+
+router.get("/history/:userId/question/:questionId", verifyAccessToken, getQuestionAttemptDetails);
 
 router.patch("/:id/privilege", verifyAccessToken, verifyIsAdmin, updateUserPrivilege);
 

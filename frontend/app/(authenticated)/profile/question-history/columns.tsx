@@ -153,7 +153,7 @@ export const columns : ColumnDef<QuestionHistory>[]= [
         )
       },
       accessorKey: "attemptTime",
-      cell: ({ row }) => <div className="flex items-center justify-center h-full">{ Math.floor(row.getValue("attemptTime")/60)}</div>,
+      cell: ({ row }) => <div className="flex items-center justify-center h-full">{ Math.ceil(row.getValue("attemptTime")/60)}</div>,
     //   Cell: ({ value }) => Math.floor(value / 60), // Convert time spent in seconds to minutes
     },
     {
@@ -169,7 +169,18 @@ export const columns : ColumnDef<QuestionHistory>[]= [
         )
       },
       accessorKey: "attemptDate",
-      cell: ({ row }) => row.getValue("attemptDate").toLocaleString(),
+      cell: ({ row }) => {
+        const attemptDate = row.getValue("attemptDate");
+        return new Date(attemptDate).toLocaleString("en-GB", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+        });
+      },
     },
     {
       id: "actions",
@@ -187,7 +198,9 @@ export const columns : ColumnDef<QuestionHistory>[]= [
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem>
-                <Link href={`/profile/question-history/code?questionId=${row.getValue("id")}`} passHref><span className="">View Code</span></Link>
+                <Link href={`/profile/question-history/code?questionId=${row.getValue("id")}`} passHref>
+                  View Code
+                </Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

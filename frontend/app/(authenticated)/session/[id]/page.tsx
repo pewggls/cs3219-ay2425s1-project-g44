@@ -1,7 +1,7 @@
 "use client"
 
-import React, { Suspense, useEffect, useRef, useState } from 'react';
-import { Clock3, Flag, MessageSquareText, MicIcon, MicOffIcon, OctagonXIcon } from 'lucide-react';
+import React, { Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { Clock3, Flag, LoaderCircle, MessageSquareText, MicIcon, MicOffIcon, OctagonXIcon, RotateCwIcon } from 'lucide-react';
 import { Badge, BadgeProps } from '@/components/ui/badge';
 import dynamic from 'next/dynamic';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
@@ -13,9 +13,20 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, Di
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import SessionLoading from '../loading';
 import { getCookie } from '@/app/utils/cookie-manager';
+import { HocuspocusProvider, HocuspocusProviderWebsocket } from '@hocuspocus/provider';
+import * as Y from 'yjs';
+import Markdown from 'react-markdown'
 
 const DynamicCodeEditor = dynamic(() => import('../code-editor/code-editor'), { ssr: false });
-const DynamicTextEditor = dynamic(() => import('../text-editor'), { ssr: false });
+const DynamicTextEditor = dynamic(
+    () => import('@/app/(authenticated)/session/text-editor'),
+    {
+        ssr: false,
+        loading: () => <div className="h-full flex items-center justify-center">
+            <LoaderCircle className="animate-spin size-10 text-brand-600" />
+        </div>
+    }
+);
 
 type Question = {
     id: number;
@@ -29,11 +40,17 @@ export default function Session() {
     const router = useRouter();
     const [isClient, setIsClient] = useState(false);
     const [isMicEnabled, setIsMicEnabled] = useState(false);
-    const [isRequestSent, setIsRequestSent] = useState(false); // Flag to track if API call has been made
+    const [isHistoryApiCalled, setIsHistoryApiCalled] = useState(false); // Flag to track if API call has been made
     const [isEndingSession, setIsEndingSession] = useState(false);
     const [controller, setController] = useState<AbortController | null>(null);
     const [timeElapsed, setTimeElapsed] = useState(0);
-    const codeEditorRef = useRef();
+    const [isSessionEnded, setIsSessionEnded] = useState(false);
+    const [isEndDialogOpen, setIsEndDialogOpen] = useState(false);
+    const [language, setLanguage] = useState("javascript");
+
+    const codeDocRef = useRef();
+    const codeProviderRef = useRef<HocuspocusProvider | null>(null);
+    const notesProviderRef = useRef<HocuspocusProvider | null>(null);
 
     useEffect(() => {
         const timerInterval = setInterval(() => {
@@ -45,14 +62,13 @@ export default function Session() {
 
     const minutes = Math.floor(timeElapsed / 60);
     const seconds = timeElapsed % 60;
-    const [sessionEnded, setSessionEnded] = useState(false);
 
     const [question, setQuestion] = useState<Question | null>(null);
 
     const params = useParams<{ id: string }>()
     const searchParams = useSearchParams()
     const matchResultParam = searchParams.get('matchResult')
-    
+
     let matchResult = null;
     let questionId = null;
     let peerUsername = null;
@@ -67,6 +83,55 @@ export default function Session() {
         }
     } 
 
+    const callUserHistoryAPI = useCallback(async () => {
+        if (isHistoryApiCalled) return;
+
+        setIsHistoryApiCalled(true);
+
+        const abortController = new AbortController();
+        setController(abortController);
+        setIsEndingSession(true);
+
+        const codeText = codeDocRef.current.getText(`monaco`);
+        const code = codeText.toString();
+        console.log("languge: ", language)
+        try {
+            await fetch(`${process.env.NEXT_PUBLIC_USER_API_HISTORY_URL}/${getCookie('userId')}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${getCookie('token')}`,
+                },
+                body: JSON.stringify({
+                    userId: getCookie('userId'),
+                    questionId: questionId,
+                    timeSpent: timeElapsed,
+                    code: JSON.stringify(code),
+                    language: language,
+                }),
+                signal: abortController.signal,
+            });
+        } catch (error) {
+            console.error('Failed to update question history:', error);
+            setIsHistoryApiCalled(false);
+        } finally {
+            setIsEndingSession(false);
+            setController(null);
+        }
+    }, [isHistoryApiCalled, timeElapsed]);
+
+    useEffect(() => {
+        if (isSessionEnded && !isHistoryApiCalled) {
+            const cleanup = async () => {
+                await callUserHistoryAPI();
+                setTimeout(() => {
+                    router.push('/questions');
+                }, 3000);
+            };
+            cleanup();
+        }
+    }, [isSessionEnded, isHistoryApiCalled, callUserHistoryAPI, router]);
+
     useEffect(() => {
         setIsClient(true);
 
@@ -75,11 +140,11 @@ export default function Session() {
                 const response = await fetch(`${process.env.NEXT_PUBLIC_QUESTION_API_BASE_URL}/byId/${questionId}`, {
                     cache: "no-store",
                 });
-    
+
                 if (!response.ok) {
                     throw new Error('Failed to fetch question details');
                 }
-    
+
                 const data = await response.json();
                 setQuestion(data);
             } catch (error) {
@@ -91,33 +156,56 @@ export default function Session() {
         if (questionId) {
             fetchQuestionDetails(questionId);
         }
-    }, [questionId]);
 
-    // const ws = new WebSocket('ws://localhost:3003');
-    // ws.onopen = () => {
-    //     ws.send(JSON.stringify({ type: 'join', roomId: `room-${params.id}` }));
-    // };
-    // ws.onmessage = (event) => {
-    //     const message = JSON.parse(event.data);
-    //     if (message.type === 'sessionEnded') {
-    //         console.log("Session ended");
-    //         setSessionEnded(true);
-    //     }
-    // };
+        const socket = new HocuspocusProviderWebsocket({
+            url: process.env.NEXT_PUBLIC_COLLAB_API_URL || 'ws://localhost:3003'
+        });
 
-    // if (sessionEnded) {
-    //     ws.send(JSON.stringify({ type: 'leave', roomId: `room-${params.id}` }));
-    //     ws.close();
+        codeDocRef.current = new Y.Doc();
+        const codeProvider = new HocuspocusProvider({
+            websocketProvider: socket,
+            name: `code-${params.id}`,
+            document: codeDocRef.current,
+            token: 'abc',
+            onConnect: () => {
+                console.log('Connected to code server');
+            },
+            onClose: ({ event }) => {
+                console.error('Connection closed:', event);
+                setIsSessionEnded(true);
+            },
+            onStateless: ({ payload }) => {
+                console.log('Received message:', payload);
+                if (payload === 'sessionEnded') {
+                    console.log("Session ended");
+                    setIsSessionEnded(true);
+                }
+            },
+        });
+        codeProviderRef.current = codeProvider;
 
-    //     toast.info('The session has ended', {
-    //         description: 'Returning you to the question page...',
-    //         duration: Infinity,
-    //     });
+        const notesDoc = new Y.Doc();
+        const notesProvider = new HocuspocusProvider({
+            websocketProvider: socket,
+            name: `text-${params.id}`,
+            document: notesDoc,
+            token: 'abc',
+            onConnect: () => {
+                console.log('Connected to notes server');
+            },
+        });
+        notesProviderRef.current = notesProvider;
 
-    //     setTimeout(() => {
-    //         router.push('/questions');
-    //     }, 3000);
-    // }
+        if (isSessionEnded) {
+            socket.disconnect();
+        }
+
+        return () => {
+            codeProvider.destroy();
+            socket.disconnect();
+        };
+    }, [isSessionEnded, params.id, questionId, router]);
+
 
     if (!isClient) {
         return SessionLoading();
@@ -140,43 +228,6 @@ export default function Session() {
         }
     };
 
-    // Update user question history before the page being unloaded
-    const callUserHistoryAPI = async () => {
-        if (isRequestSent) return;
-        const abortController = new AbortController();
-        setController(abortController);
-        setIsEndingSession(true); 
-        const code = codeEditorRef.current.getCode() || "";
-
-        try {
-            console.log('In session page: Call api to udate user question history');
-            await fetch(`${process.env.NEXT_PUBLIC_USER_API_HISTORY_URL}/${getCookie('userId')}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${getCookie('token')}`,
-                },
-                body: JSON.stringify({
-                    questionId: questionId, 
-                    timeSpent: timeElapsed,
-                    code: JSON.stringify(code)
-                }),
-                signal: abortController.signal,
-            });
-            setIsRequestSent(true);
-        } catch (error) {
-            console.error('Failed to update question history:', error);
-        } finally {
-            setIsEndingSession(false);
-            setController(null);
-        }
-    };
-
-    async function endSession() {
-        await callUserHistoryAPI();
-        router.push('/questions');
-    }
-
     function handleCancel() {
         if (controller) {
             controller.abort(); // Cancel the API call
@@ -184,20 +235,23 @@ export default function Session() {
         }
     }
 
+    const updateLanguage = (newLang: string) => {
+        setLanguage(newLang);
+    };
+
     return (
         <Suspense fallback={SessionLoading()}>
             <div className="flex flex-col gap-8 min-h-screen">
                 <div className="flex justify-between text-black bg-white drop-shadow mt-20 mx-8 p-4 rounded-xl relative">
                     <div className="flex items-center gap-2 text-sm">
-                        <span>Session</span>
                         <div className="flex justify-center items-center bg-brand-200 text-brand-800 py-2 px-3 font-semibold rounded-lg"><Clock3 className="h-4 w-4 mr-2" /><div className="flex justify-center w-[40px]">{minutes}:{seconds < 10 ? `0${seconds}` : seconds}</div></div>
                         <span>with</span>
                         <span className="font-semibold">{peerUsername}</span>
                     </div>
                     <div className="mr-[52px]">
-                        <Toggle 
+                        <Toggle
                             onPressedChange={handleMicToggle}
-                            >
+                        >
                             {isMicEnabled ? (
                                 <MicIcon className="size-5 text-green-500" />
                             ) : (
@@ -206,19 +260,19 @@ export default function Session() {
                         </Toggle>
                     </div>
                     <div className="">
-                        <Dialog>
+                        <Dialog open={isEndDialogOpen} onOpenChange={setIsEndDialogOpen}>
                             <DialogTrigger><Button><OctagonXIcon className="size-4 mr-2" />End Session</Button></DialogTrigger>
                             <DialogContent
                                 className="laptop:max-w-[40vw] bg-white text-black font-sans rounded-2xl"
                             >
                                 <DialogHeader className="items-start">
-                                <DialogTitle className="font-serif font-normal tracking-tight text-3xl">
-                                    End your session?
-                                </DialogTitle>
-                                <DialogDescription className="hidden"></DialogDescription>
+                                    <DialogTitle className="font-serif font-normal tracking-tight text-3xl">
+                                        End your session?
+                                    </DialogTitle>
+                                    <DialogDescription className="hidden"></DialogDescription>
                                 </DialogHeader>
                                 <div className="flex flex-col w-full gap-1 py-4 justify-start">
-                                    <p>Are you sure you want to end your session?</p>
+                                    <p>This will end the session for both users.</p>
                                 </div>
                                 <DialogFooter className="flex items-end">
                                     <DialogClose asChild>
@@ -232,8 +286,11 @@ export default function Session() {
                                     <Button
                                         type="submit"
                                         className="rounded-lg bg-brand-700 hover:bg-brand-600"
-                                        onClick={endSession}
-                                        disabled={isEndingSession}
+                                        onClick={() => {
+                                            setIsSessionEnded(true)
+                                            setIsEndDialogOpen(false)
+                                        }}
+                                        disabled={isSessionEnded}
                                     >
                                         End session
                                     </Button>
@@ -247,53 +304,77 @@ export default function Session() {
                         <ResizablePanelGroup direction="vertical">
                             <ResizablePanel defaultSize={50} minSize={35} maxSize={65}>
                                 <div className="h-[calc(100%-2rem)] overflow-auto text-black bg-white drop-shadow-question-details p-6 mx-8 rounded-xl">
-                                    <h3 className="text-2xl font-serif font-medium tracking-tight">
-                                        {question && question.title}
-                                    </h3>
-                                    <div className="flex items-center gap-10 mt-3">
-                                        <div className="flex items-center gap-2">
-                                            <Flag className="h-4 w-4 text-icon" />
-                                            <Badge
-                                                variant={
-                                                    question && question.complexity!.toLowerCase() as BadgeProps["variant"]
-                                                }
-                                            >
-                                                {question && question.complexity}
-                                            </Badge>
+                                    {question ? (
+                                        <>
+                                            <h3 className="text-2xl font-serif font-medium tracking-tight">
+                                                {question.title}
+                                            </h3>
+                                            <div className="flex items-center gap-10 mt-3">
+                                                <div className="flex items-center gap-2">
+                                                    <Flag className="h-4 w-4 text-icon" />
+                                                    <Badge
+                                                        variant={question.complexity!.toLowerCase() as BadgeProps["variant"]}
+                                                    >
+                                                        {question.complexity}
+                                                    </Badge>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <MessageSquareText className="h-4 w-4 text-icon" />
+                                                    {question.category.map((category) => (
+                                                        <Badge
+                                                            key={category}
+                                                            variant="category"
+                                                            className="uppercase text-category-text bg-category-bg"
+                                                        >
+                                                            {category}
+                                                        </Badge>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            <Markdown className="mt-8 prose prose-zinc prose-code:bg-zinc-200 prose-code:px-1 prose-code:rounded prose-code:prose-pre:bg-inherit text-sm text-foreground proportional-nums">
+                                                {question.description}
+                                            </Markdown>
+                                        </>
+                                    ) : (
+                                        <div className="flex flex-col items-center gap-10">
+                                            <h3>Error loading question</h3>
+                                            <Button onClick={() => location.reload()}><RotateCwIcon className="size-4 mr-2" />Refresh page</Button>
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            <MessageSquareText className="h-4 w-4 text-icon" />
-                                            {question && question.category.map((category) => (
-                                            <Badge
-                                                key={category}
-                                                variant="category"
-                                                className="uppercase text-category-text bg-category-bg"
-                                            >
-                                                {category}
-                                            </Badge>
-                                            ))}
-                                        </div>
-                                    </div>
-                                    <p className="mt-8 text-sm text-foreground">
-                                        {question && question.description}
-                                    </p>
+                                    )}
                                 </div>
                             </ResizablePanel>
-                        <ResizableHandle withHandle />
-                        <ResizablePanel defaultSize={50} minSize={35} maxSize={65}>
-                            <div className="h-[calc(100%-4rem)] bg-white drop-shadow-question-details rounded-xl m-8">
-                                {/* <DynamicTextEditor sessionId={params.id} /> */}
-                            </div>
-                        </ResizablePanel>
+                            <ResizableHandle withHandle />
+                            <ResizablePanel defaultSize={50} minSize={35} maxSize={65}>
+                                <div className="h-[calc(100%-4rem)] bg-white drop-shadow-question-details rounded-xl m-8">
+                                    <DynamicTextEditor sessionId={params.id} provider={notesProviderRef.current!} />
+                                </div>
+                            </ResizablePanel>
                         </ResizablePanelGroup>
                     </ResizablePanel>
                     <ResizableHandle withHandle />
                     <ResizablePanel defaultSize={50} minSize={35} maxSize={65}>
-                        <DynamicCodeEditor editorRef={codeEditorRef} sessionId={params.id} />
+                        <DynamicCodeEditor sessionId={params.id} provider={codeProviderRef.current!} setLanguage={updateLanguage}/>
                     </ResizablePanel>
                     <Toaster position="top-center" closeButton offset={"16px"} visibleToasts={2} gap={8} />
                 </ResizablePanelGroup>
             </div>
+
+            <Dialog open={isSessionEnded}>
+                <DialogContent
+                    className="laptop:max-w-[40vw] bg-white text-black font-sans rounded-2xl [&>button]:hidden"
+                >
+                    <DialogHeader className="items-start">
+                        <DialogTitle className="font-serif font-normal tracking-tight text-3xl">
+                            Session ended
+                        </DialogTitle>
+                        <DialogDescription className="hidden"></DialogDescription>
+                    </DialogHeader>
+                    <div className="flex flex-col w-full gap-1 py-4 justify-start">
+                        <p>Your session has ended.</p>
+                        <p>Redirecting you back to the question page...</p>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </Suspense>
     );
 }

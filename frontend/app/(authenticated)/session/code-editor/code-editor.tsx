@@ -1,9 +1,8 @@
-import { useImperativeHandle, useRef, forwardRef, useState } from 'react';
-import * as Y from 'yjs';
+import { useRef, useState } from 'react';
 import { HocuspocusProvider } from '@hocuspocus/provider';
 import { MonacoBinding } from 'y-monaco';
 import * as monaco from 'monaco-editor';
-import Editor, { BeforeMount, OnMount } from '@monaco-editor/react';
+import Editor, { BeforeMount, OnMount, useMonaco } from '@monaco-editor/react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -11,19 +10,17 @@ import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, Command
 import { ChevronsUpDown, Check, Palette, Code } from 'lucide-react';
 import { loadThemes, themes } from './themes/theme-loader';
 import { langs } from './lang-loader';
-import { getUsername } from '@/app/utils/cookie-manager';
 
 interface CodeEditorProps {
     sessionId: string;
+    provider: HocuspocusProvider;
+    setLanguage: (language: string) => void;
 }
 
-const CodeEditor = forwardRef(function CodeEditor({ sessionId }: CodeEditorProps, ref) {
-
+export default function CodeEditor({ sessionId, provider, setLanguage }: CodeEditorProps) {
     const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
-    
-    useImperativeHandle(ref, () => ({
-        getCode: () => editorRef.current?.getValue() || ""
-    }));
+    const bindingRef = useRef<MonacoBinding>();
+    const monaco = useMonaco();
 
     // window.MonacoEnvironment = {
     //     getWorkerUrl: function (moduleId, label) {
@@ -58,23 +55,24 @@ const CodeEditor = forwardRef(function CodeEditor({ sessionId }: CodeEditorProps
 
     const handleEditorDidMount: OnMount = (editor, monacoInstance) => {
         editorRef.current = editor;
-        const doc = new Y.Doc();
-        const provider = new HocuspocusProvider({
-            url: process.env.NEXT_PUBLIC_COLLAB_API_URL || 'ws://localhost:3003',
-            name: `code-${sessionId}`,
-            document: doc,
-            onConnect: () => {
-                console.log('Connected to server');
-            },
-            onClose: ({ event }) => {
-                console.error('Connection closed:', event);
-            },
-            onDisconnect: ({ event }) => {
-                console.error('Disconnected from server:', event);
-            },
-        });
 
-        const type = doc.getText('monaco');
+        // const doc = new Y.Doc();
+        // const provider = new HocuspocusProvider({
+        //     url: process.env.NEXT_PUBLIC_COLLAB_API_URL || 'ws://localhost:3003',
+        //     name: `code-${sessionId}`,
+        //     document: doc,
+        //     onConnect: () => {
+        //         console.log('Connected to server');
+        //     },
+        //     onClose: ({ event }) => {
+        //         console.error('Connection closed:', event);
+        //     },
+        //     onDisconnect: ({ event }) => {
+        //         console.error('Disconnected from server:', event);
+        //     },
+        // });
+
+        const type = provider.document.getText('monaco');
 
         const awareness = provider.awareness!;
         // awareness.setLocalStateField('user', {
@@ -84,10 +82,7 @@ const CodeEditor = forwardRef(function CodeEditor({ sessionId }: CodeEditorProps
 
         const binding = new MonacoBinding(type, editor.getModel()!, new Set([editor]), provider.awareness);
 
-        return () => {
-            provider.disconnect();
-            binding.destroy();
-        };
+        bindingRef.current = binding;
     };
 
     const [themeOpen, setThemeOpen] = useState(false)
@@ -120,7 +115,7 @@ const CodeEditor = forwardRef(function CodeEditor({ sessionId }: CodeEditorProps
                                     value={th.value}
                                     onSelect={(currentValue) => {
                                         setTheme(currentValue);
-                                        monaco.editor.setTheme(currentValue);
+                                        monaco?.editor.setTheme(currentValue);
                                         setThemeOpen(false);
                                     }}
                                 >
@@ -168,8 +163,9 @@ const CodeEditor = forwardRef(function CodeEditor({ sessionId }: CodeEditorProps
                                     key={l.value}
                                     value={l.value}
                                     onSelect={(currentValue) => {
-                                        monaco.editor.setModelLanguage(editorRef.current!.getModel()!, currentValue);
+                                        monaco?.editor.setModelLanguage(editorRef.current!.getModel()!, currentValue);
                                         setLang(currentValue);
+                                        setLanguage(currentValue);
                                         setLangOpen(false);
                                     }}
                                 >
@@ -232,8 +228,4 @@ const CodeEditor = forwardRef(function CodeEditor({ sessionId }: CodeEditorProps
             />
         </div>
     );
-});
-
-export default function WrappedEditor({ editorRef, ...props }) {
-    return <CodeEditor {...props} ref={editorRef} />;
-  }
+}

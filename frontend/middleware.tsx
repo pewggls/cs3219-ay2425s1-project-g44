@@ -2,13 +2,18 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 const protectedRoutes = ['/questions', '/profile', '/session', '/question-repo']
-// const publicRoutes = ['/auth']
+const publicRoutes = ['/auth']
 
 export default async function middleware(request: NextRequest) {
     const path = request.nextUrl.pathname
-    const isProtectedRoute = protectedRoutes.includes(path)
-    // const isPublicRoute = publicRoutes.includes(path)
+    const isProtectedRoute = protectedRoutes.some(route => path.startsWith(route))
+    const isPublicRoute = publicRoutes.some(route => path.startsWith(route))
     const token = request.cookies.get("token")?.value
+
+    // bypass auth for users already logged in
+    if (isPublicRoute && token) {
+        return NextResponse.redirect(new URL('/questions', request.url))
+    }
 
     // we leave API token verification to routes layout.tsx, just check token existence here
     if (isProtectedRoute) {
@@ -25,23 +30,36 @@ export default async function middleware(request: NextRequest) {
         // session validation
         if (path.startsWith('/session')) {
             // ignore session validation in dev
-            if (process.env.NODE_ENV === 'development') {
-                return NextResponse.next()
+            // if (process.env.NODE_ENV === 'development') {
+            //     return NextResponse.next()
+            // }
+
+            const currentUsername = request.cookies.get("username")?.value
+            if (!currentUsername) {
+                return NextResponse.redirect(new URL('/auth/login', request.url))
             }
 
-            // const sessionId = pathname.split('/')[2]
-            // const response = await fetch(`${process.env.NEXT_PUBLIC_COLLAB_API_URL}/validate-session`, {
-            //     method: 'POST',
-            //     headers: {
-            //         'Authorization': `Bearer ${token}`,
-            //         'Content-Type': 'application/json'
-            //     },
-            //     body: JSON.stringify({ sessionId })
-            // })
+            try {
+                // get matched usernames from URL params
+                const searchParams = request.nextUrl.searchParams
+                const matchResult = searchParams.get('matchResult')
+                
+                if (!matchResult) {
+                    return NextResponse.redirect(new URL('/questions', request.url))
+                }
+    
+                const parsedMatchResult = JSON.parse(decodeURIComponent(matchResult))
+                const currentParsedUsername = parsedMatchResult.currentUsername
+                const peerParsedUsername = parsedMatchResult.peerUsername
 
-            // if (!response.ok) {
-            //     return NextResponse.redirect(new URL('/questions', request.url))
-            // }
+                // check if current user is one of matched users
+                if (currentUsername !== currentParsedUsername && currentUsername !== peerParsedUsername) {
+                    return NextResponse.redirect(new URL('/questions', request.url))
+                }
+            } catch (error) {
+                console.error('Failed to parse match result:', error)
+                return NextResponse.redirect(new URL('/questions', request.url))
+            }
         }
     }
     
