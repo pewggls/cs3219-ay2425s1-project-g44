@@ -147,7 +147,7 @@ export default function Session() {
         setController(abortController);
         setIsEndingSession(true); 
         const code = codeEditorRef.current.getCode() || "";
-        
+
         try {
             console.log('In session page: Call api to udate user question history');
             await fetch(`${process.env.NEXT_PUBLIC_USER_API_HISTORY_URL}/${getCookie('userId')}`, {
@@ -159,7 +159,7 @@ export default function Session() {
                 body: JSON.stringify({
                     questionId: questionId, 
                     timeSpent: timeElapsed,
-                    code: code
+                    code: JSON.stringify(code)
                 }),
                 signal: abortController.signal,
             });
