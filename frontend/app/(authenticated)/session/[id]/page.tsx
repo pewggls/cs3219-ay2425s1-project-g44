@@ -48,7 +48,7 @@ export default function Session() {
     const [isEndDialogOpen, setIsEndDialogOpen] = useState(false);
     const [language, setLanguage] = useState("javascript");
 
-    const codeDocRef = useRef();
+    const codeDocRef = useRef<Y.Doc>();
     const codeProviderRef = useRef<HocuspocusProvider | null>(null);
     const notesProviderRef = useRef<HocuspocusProvider | null>(null);
 
@@ -92,8 +92,8 @@ export default function Session() {
         setController(abortController);
         setIsEndingSession(true);
 
-        const codeText = codeDocRef.current.getText(`monaco`);
-        const code = codeText.toString();
+        const codeText = codeDocRef.current?.getText(`monaco`);
+        const code = codeText?.toString();
         console.log("languge: ", language)
         try {
             await fetch(`${process.env.NEXT_PUBLIC_USER_API_HISTORY_URL}/${getCookie('userId')}`, {
@@ -118,7 +118,7 @@ export default function Session() {
             setIsEndingSession(false);
             setController(null);
         }
-    }, [isHistoryApiCalled, timeElapsed]);
+    }, [isHistoryApiCalled, language, questionId, timeElapsed]);
 
     useEffect(() => {
         if (isSessionEnded && !isHistoryApiCalled) {
@@ -331,7 +331,7 @@ export default function Session() {
                                                     ))}
                                                 </div>
                                             </div>
-                                            <Markdown className="mt-8 prose prose-zinc prose-code:bg-zinc-200 prose-code:px-1 prose-code:rounded prose-code:prose-pre:bg-inherit text-sm text-foreground proportional-nums">
+                                            <Markdown className="mt-8 prose prose-zinc prose-code:bg-zinc-200 prose-code:px-1 prose-code:rounded prose-code:prose-pre:bg-inherit text-base text-foreground proportional-nums">
                                                 {question.description}
                                             </Markdown>
                                         </>
@@ -371,7 +371,7 @@ export default function Session() {
                     </DialogHeader>
                     <div className="flex flex-col w-full gap-1 py-4 justify-start">
                         <p>Your session has ended.</p>
-                        <p>Redirecting you back to the question page...</p>
+                        <p>Redirecting you to the Questions page...</p>
                     </div>
                 </DialogContent>
             </Dialog>

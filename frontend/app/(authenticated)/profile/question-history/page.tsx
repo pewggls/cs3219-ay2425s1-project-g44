@@ -24,7 +24,7 @@ export default function UserQuestionHistory() {
   const router = useRouter();
   const [history, setHistory] = useState<QuestionHistory[]>([]);
   const [loading, setLoading] = useState(true);
-  const userId = useRef(null);
+  const userId = useRef<string | null>(null);
 
   // Fetch questions history from backend API
   useEffect(() => {

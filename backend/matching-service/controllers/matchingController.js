@@ -143,19 +143,7 @@ const batchProcess = () => {
     let questionDict = new Map();
     let unmatchedUsers = new Map();
 
-    // Remove duplicate users, keeping only the most recent instance
-    let uniqueUsers = new Map();
-    for (const user of batch) {
-        if (uniqueUsers.has(user.userId)) {
-            if (user.enqueueTime > uniqueUsers.get(user.userId).enqueueTime) {
-                uniqueUsers.set(user.userId, user);
-            }
-        } else {
-            uniqueUsers.set(user.userId, user);
-        }
-    }
-    
-    batch = Array.from(uniqueUsers.values());
+
 
     batch.forEach((user) => {
         if (!dequeued.has(user.userId)) {

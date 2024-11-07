@@ -202,7 +202,7 @@ export default function CodeEditor({ sessionId, provider, setLanguage }: CodeEdi
                 onMount={handleEditorDidMount}
                 theme={theme}
                 options={{
-                    fontSize: 13,
+                    fontSize: 14,
                     fontFamily: 'monospace',
                     bracketPairColorization: {
                         enabled: true
