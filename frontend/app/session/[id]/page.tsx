@@ -19,7 +19,7 @@ import Markdown from 'react-markdown'
 
 const DynamicCodeEditor = dynamic(() => import('../code-editor/code-editor'), { ssr: false });
 const DynamicTextEditor = dynamic(
-    () => import('@/app/(authenticated)/session/text-editor'),
+    () => import('@/app/session/text-editor'),
     {
         ssr: false,
         loading: () => <div className="h-full flex items-center justify-center">
@@ -48,7 +48,7 @@ export default function Session() {
     const [isEndDialogOpen, setIsEndDialogOpen] = useState(false);
     const [language, setLanguage] = useState("javascript");
 
-    const codeDocRef = useRef();
+    const codeDocRef = useRef<Y.Doc>();
     const codeProviderRef = useRef<HocuspocusProvider | null>(null);
     const notesProviderRef = useRef<HocuspocusProvider | null>(null);
 
@@ -57,7 +57,9 @@ export default function Session() {
             setTimeElapsed((prevTime) => prevTime + 1);
         }, 1000);
 
-        return () => clearInterval(timerInterval);
+        return () => {
+            clearInterval(timerInterval);
+        };
     }, []);
 
     const minutes = Math.floor(timeElapsed / 60);
@@ -92,8 +94,8 @@ export default function Session() {
         setController(abortController);
         setIsEndingSession(true);
 
-        const codeText = codeDocRef.current.getText(`monaco`);
-        const code = codeText.toString();
+        const codeText = codeDocRef.current?.getText(`monaco`);
+        const code = codeText?.toString();
         console.log("languge: ", language)
         try {
             await fetch(`${process.env.NEXT_PUBLIC_USER_API_HISTORY_URL}/${getCookie('userId')}`, {
@@ -118,7 +120,7 @@ export default function Session() {
             setIsEndingSession(false);
             setController(null);
         }
-    }, [isHistoryApiCalled, timeElapsed]);
+    }, [isHistoryApiCalled, language, questionId, timeElapsed]);
 
     useEffect(() => {
         if (isSessionEnded && !isHistoryApiCalled) {
@@ -242,7 +244,7 @@ export default function Session() {
     return (
         <Suspense fallback={SessionLoading()}>
             <div className="flex flex-col gap-8 min-h-screen">
-                <div className="flex justify-between text-black bg-white drop-shadow mt-20 mx-8 p-4 rounded-xl relative">
+                <div className="flex justify-between text-black bg-white drop-shadow mt-8 mx-8 p-4 rounded-xl relative">
                     <div className="flex items-center gap-2 text-sm">
                         <div className="flex justify-center items-center bg-brand-200 text-brand-800 py-2 px-3 font-semibold rounded-lg"><Clock3 className="h-4 w-4 mr-2" /><div className="flex justify-center w-[40px]">{minutes}:{seconds < 10 ? `0${seconds}` : seconds}</div></div>
                         <span>with</span>
@@ -331,7 +333,7 @@ export default function Session() {
                                                     ))}
                                                 </div>
                                             </div>
-                                            <Markdown className="mt-8 prose prose-zinc prose-code:bg-zinc-200 prose-code:px-1 prose-code:rounded prose-code:prose-pre:bg-inherit text-sm text-foreground proportional-nums">
+                                            <Markdown className="mt-8 prose prose-zinc prose-code:bg-zinc-200 prose-code:px-1 prose-code:rounded prose-code:prose-pre:bg-inherit text-base text-foreground proportional-nums">
                                                 {question.description}
                                             </Markdown>
                                         </>
@@ -371,7 +373,7 @@ export default function Session() {
                     </DialogHeader>
                     <div className="flex flex-col w-full gap-1 py-4 justify-start">
                         <p>Your session has ended.</p>
-                        <p>Redirecting you back to the question page...</p>
+                        <p>Redirecting you to the Questions page...</p>
                     </div>
                 </DialogContent>
             </Dialog>
