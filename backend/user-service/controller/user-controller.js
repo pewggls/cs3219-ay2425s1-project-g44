@@ -248,8 +248,8 @@ export async function getUserHistory(req, res) {
 export async function addQuestionAttempt(req, res) {
   try {
     const userId = req.params.userId;
-    const { questionId, timeSpent, code} = req.body;
-
+    const { questionId, timeSpent, code, language} = req.body;
+    console.log("language received: ", language)
     const parsedId = Number(questionId);
     console.log(parsedId);
 
@@ -273,7 +273,7 @@ export async function addQuestionAttempt(req, res) {
 
     console.log("Found question:", question);
     // Add or update the question attempt in the user's question history
-    const updated = await _addOrUpdateQuestionHistory(userId, question._id, timeSpent, code);
+    const updated = await _addOrUpdateQuestionHistory(userId, question._id, timeSpent, code, language);
 
     if (updated) {
       return res.status(200).json({ message: "Question history updated successfully." });

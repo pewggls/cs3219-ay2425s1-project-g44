@@ -164,9 +164,9 @@ export async function getTotalQuestionsAvailable() {
   return response.data.length;
 }
 
-export async function addOrUpdateQuestionHistory(userId, questionId, timeSpent, code) {
+export async function addOrUpdateQuestionHistory(userId, questionId, timeSpent, code, language) {
   try {
-    console.log("Received data in addOrUpdateQuestionHistory:", { userId, questionId, timeSpent, code});
+    console.log("Received data in addOrUpdateQuestionHistory:", { userId, questionId, timeSpent, code, language});
 
     // Try to find an existing record
     console.log("Attempting to find existing history with userId and questionId...");
@@ -180,6 +180,7 @@ export async function addOrUpdateQuestionHistory(userId, questionId, timeSpent, 
       existingHistory.attemptTime += timeSpent;
       existingHistory.attemptDate = new Date();
       existingHistory.code = code;
+      existingHistory.language = language;
 
       // Try to save the updated document
       await existingHistory.save();
@@ -196,6 +197,7 @@ export async function addOrUpdateQuestionHistory(userId, questionId, timeSpent, 
         attemptCount: 1,
         attemptTime: timeSpent,
         code: code,
+        language: language
       });
 
       // Try to save the new document
@@ -229,6 +231,7 @@ export async function findQuestionAttemptDetails(userId, questionId) {
       attemptCount: attempt.attemptCount,
       attemptTime: attempt.attemptTime,
       code: attempt.code,
+      language: attempt.language,
       question: questionDetails ? {
         id: questionDetails.id,
         title: questionDetails.title,

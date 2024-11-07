@@ -46,7 +46,9 @@ export default function Session() {
     const [timeElapsed, setTimeElapsed] = useState(0);
     const [isSessionEnded, setIsSessionEnded] = useState(false);
     const [isEndDialogOpen, setIsEndDialogOpen] = useState(false);
+    const [language, setLanguage] = useState("javascript");
 
+    const codeDocRef = useRef();
     const codeProviderRef = useRef<HocuspocusProvider | null>(null);
     const notesProviderRef = useRef<HocuspocusProvider | null>(null);
 
@@ -79,7 +81,56 @@ export default function Session() {
         } catch (error) {
             console.error('Failed to parse matchResult:', error);
         }
-    }
+    } 
+
+    const callUserHistoryAPI = useCallback(async () => {
+        if (isHistoryApiCalled) return;
+
+        setIsHistoryApiCalled(true);
+
+        const abortController = new AbortController();
+        setController(abortController);
+        setIsEndingSession(true);
+
+        const codeText = codeDocRef.current.getText(`monaco`);
+        const code = codeText.toString();
+        console.log("languge: ", language)
+        try {
+            await fetch(`${process.env.NEXT_PUBLIC_USER_API_HISTORY_URL}/${getCookie('userId')}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${getCookie('token')}`,
+                },
+                body: JSON.stringify({
+                    userId: getCookie('userId'),
+                    questionId: questionId,
+                    timeSpent: timeElapsed,
+                    code: JSON.stringify(code),
+                    language: language,
+                }),
+                signal: abortController.signal,
+            });
+        } catch (error) {
+            console.error('Failed to update question history:', error);
+            setIsHistoryApiCalled(false);
+        } finally {
+            setIsEndingSession(false);
+            setController(null);
+        }
+    }, [isHistoryApiCalled, timeElapsed]);
+
+    useEffect(() => {
+        if (isSessionEnded && !isHistoryApiCalled) {
+            const cleanup = async () => {
+                await callUserHistoryAPI();
+                setTimeout(() => {
+                    router.push('/questions');
+                }, 3000);
+            };
+            cleanup();
+        }
+    }, [isSessionEnded, isHistoryApiCalled, callUserHistoryAPI, router]);
 
     useEffect(() => {
         setIsClient(true);
@@ -110,11 +161,11 @@ export default function Session() {
             url: process.env.NEXT_PUBLIC_COLLAB_API_URL || 'ws://localhost:3003'
         });
 
-        const codeDoc = new Y.Doc();
+        codeDocRef.current = new Y.Doc();
         const codeProvider = new HocuspocusProvider({
             websocketProvider: socket,
             name: `code-${params.id}`,
-            document: codeDoc,
+            document: codeDocRef.current,
             token: 'abc',
             onConnect: () => {
                 console.log('Connected to code server');
@@ -155,49 +206,6 @@ export default function Session() {
         };
     }, [isSessionEnded, params.id, questionId, router]);
 
-    const callUserHistoryAPI = useCallback(async () => {
-        if (isHistoryApiCalled) return;
-
-        setIsHistoryApiCalled(true);
-
-        const abortController = new AbortController();
-        setController(abortController);
-        setIsEndingSession(true);
-
-        try {
-            await fetch(`${process.env.NEXT_PUBLIC_USER_API_HISTORY_URL}/${getCookie('userId')}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${getCookie('token')}`,
-                },
-                body: JSON.stringify({
-                    userId: getCookie('userId'),
-                    questionId: "1",
-                    timeSpent: timeElapsed,
-                }),
-                signal: abortController.signal,
-            });
-        } catch (error) {
-            console.error('Failed to update question history:', error);
-            setIsHistoryApiCalled(false);
-        } finally {
-            setIsEndingSession(false);
-            setController(null);
-        }
-    }, [isHistoryApiCalled, timeElapsed]);
-
-    useEffect(() => {
-        if (isSessionEnded && !isHistoryApiCalled) {
-            const cleanup = async () => {
-                await callUserHistoryAPI();
-                setTimeout(() => {
-                    router.push('/questions');
-                }, 3000);
-            };
-            cleanup();
-        }
-    }, [isSessionEnded, isHistoryApiCalled, callUserHistoryAPI, router]);
 
     if (!isClient) {
         return SessionLoading();
@@ -226,6 +234,10 @@ export default function Session() {
             setIsEndingSession(false);
         }
     }
+
+    const updateLanguage = (newLang: string) => {
+        setLanguage(newLang);
+    };
 
     return (
         <Suspense fallback={SessionLoading()}>
@@ -341,7 +353,7 @@ export default function Session() {
                     </ResizablePanel>
                     <ResizableHandle withHandle />
                     <ResizablePanel defaultSize={50} minSize={35} maxSize={65}>
-                        <DynamicCodeEditor sessionId={params.id} provider={codeProviderRef.current!} />
+                        <DynamicCodeEditor sessionId={params.id} provider={codeProviderRef.current!} setLanguage={updateLanguage}/>
                     </ResizablePanel>
                     <Toaster position="top-center" closeButton offset={"16px"} visibleToasts={2} gap={8} />
                 </ResizablePanelGroup>

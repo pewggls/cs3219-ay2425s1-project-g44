@@ -477,6 +477,7 @@ Records a question attempt for a user, either creating a new record or updating 
     "questionId": "18",
     "timeSpent": 120, // Time spent on the question in seconds
     "code": "function solve() { ... }" // User's code submission for the attempt
+    "language": "javascript"
   }
 - **Response Format** (JSON):
 - **Code**: 200
@@ -519,6 +520,7 @@ Retrieve all details for a particular question attempt made by a user.
       "attemptCount": 3,
       "attemptTime": 30,
       "code": "function add(x, y){\r\n    return x + y;\r\n}\r\n\r\nfunction substract(x, y) {\r\n    return x - y;\r\n}\r\n\r\nconst addition = add(1, 2);\r\n",
+      "language": "javascript"
       "question": {
           "id": 19,
           "title": "Chalkboard XOR Game",

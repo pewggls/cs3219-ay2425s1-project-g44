@@ -27,6 +27,10 @@ const QuestionHistorySchema = new mongoose.Schema({
   code: {
     type: String,
     required: true,
+  },
+  language: {
+    type: String,
+    required: true,
   }
 });
 

@@ -4,7 +4,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { ColumnDef } from "@tanstack/react-table"
-import { AlignLeft, ArrowUpDown } from "lucide-react"
+import { AlignLeft, ArrowUpDown, MoreHorizontal  } from "lucide-react"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import Link from "next/link"
 
 export type QuestionHistory = {
     id: number;
@@ -151,7 +153,7 @@ export const columns : ColumnDef<QuestionHistory>[]= [
         )
       },
       accessorKey: "attemptTime",
-      cell: ({ row }) => <div className="flex items-center justify-center h-full">{ Math.floor(row.getValue("attemptTime")/60)}</div>,
+      cell: ({ row }) => <div className="flex items-center justify-center h-full">{ Math.ceil(row.getValue("attemptTime")/60)}</div>,
     //   Cell: ({ value }) => Math.floor(value / 60), // Convert time spent in seconds to minutes
     },
     {
@@ -167,6 +169,43 @@ export const columns : ColumnDef<QuestionHistory>[]= [
         )
       },
       accessorKey: "attemptDate",
-      cell: ({ row }) => row.getValue("attemptDate").toLocaleString(),
+      cell: ({ row }) => {
+        const attemptDate = row.getValue("attemptDate");
+        return new Date(attemptDate).toLocaleString("en-GB", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+        });
+      },
     },
+    {
+      id: "actions",
+      cell: ({ row }) => {
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                    variant="ghost"
+                    className="flex h-8 w-8 p-0 data-[state=open]:bg-muted"
+                >
+                    <MoreHorizontal className="h-4 w-4" />
+                    <span className="sr-only">Open menu</span>
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem>
+                <Link href={`/profile/question-history/code?questionId=${row.getValue("id")}`} passHref>
+                  View Code
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )
+      },
+      enableResizing: false,
+  }
   ];

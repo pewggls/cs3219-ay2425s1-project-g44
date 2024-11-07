@@ -14,9 +14,10 @@ import { langs } from './lang-loader';
 interface CodeEditorProps {
     sessionId: string;
     provider: HocuspocusProvider;
+    setLanguage: (language: string) => void;
 }
 
-export default function CodeEditor({ sessionId, provider }: CodeEditorProps) {
+export default function CodeEditor({ sessionId, provider, setLanguage }: CodeEditorProps) {
     const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
     const bindingRef = useRef<MonacoBinding>();
     const monaco = useMonaco();
@@ -164,6 +165,7 @@ export default function CodeEditor({ sessionId, provider }: CodeEditorProps) {
                                     onSelect={(currentValue) => {
                                         monaco?.editor.setModelLanguage(editorRef.current!.getModel()!, currentValue);
                                         setLang(currentValue);
+                                        setLanguage(currentValue);
                                         setLangOpen(false);
                                     }}
                                 >
