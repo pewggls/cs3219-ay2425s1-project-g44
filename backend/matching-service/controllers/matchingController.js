@@ -4,7 +4,7 @@ const EventEmitter = require('events');
 const uuid = require("uuid");
 
 const QUEUE_TIME = 30000;
-const BATCH_INTERVAL = 10000;
+const BATCH_INTERVAL = 3000;
 
 // Kafka setup
 const kafka = new Kafka({
@@ -92,6 +92,8 @@ const matchmakeUser = async (userId, userName, questions) => {
 }
 
 const dequeueUser = async (userId) => {
+    userQueueMap.delete(userId);
+    dequeued.set(userId, true);
     eventEmitter.emit(`dequeue-${userId}`);
 }
 
