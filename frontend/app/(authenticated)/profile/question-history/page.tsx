@@ -104,7 +104,7 @@ export default function UserQuestionHistory() {
           })
         );
 
-        setHistory(mappedQuestions);
+        setHistory(mappedQuestions.reverse());
       } catch (err) {
         console.log("Error fetching questions from server:", err)
       } finally {
