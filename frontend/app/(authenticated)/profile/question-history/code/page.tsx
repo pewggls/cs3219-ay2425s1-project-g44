@@ -11,7 +11,7 @@ import { Badge, BadgeProps } from '@/components/ui/badge';
 import Editor from "@monaco-editor/react";
 import { toast } from "sonner"
 import Markdown from 'react-markdown'
-import SessionLoading from '@/app/(authenticated)/session/loading';
+import SessionLoading from '@/app/session/loading';
 
 type Question = {
     id: number;

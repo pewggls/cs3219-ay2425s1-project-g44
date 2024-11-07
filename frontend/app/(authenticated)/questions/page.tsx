@@ -611,7 +611,7 @@ export default function Questions() {
                     )}
                 </div>
 
-                <div className="flex flex-col h-max gap-2 px-2.5">
+                {/* <div className="flex flex-col h-max gap-2 px-2.5">
                     <Accordion type="single" collapsible>
                         <AccordionItem value="item-1">
                             <AccordionTrigger>Past attempts</AccordionTrigger>
@@ -628,7 +628,7 @@ export default function Questions() {
                             </AccordionContent>
                         </AccordionItem>
                     </Accordion>
-                </div>
+                </div> */}
             </div>
 
             <Dialog open={isMatchFoundDialogOpen}>

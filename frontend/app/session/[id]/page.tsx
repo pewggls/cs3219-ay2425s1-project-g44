@@ -19,7 +19,7 @@ import Markdown from 'react-markdown'
 
 const DynamicCodeEditor = dynamic(() => import('../code-editor/code-editor'), { ssr: false });
 const DynamicTextEditor = dynamic(
-    () => import('@/app/(authenticated)/session/text-editor'),
+    () => import('@/app/session/text-editor'),
     {
         ssr: false,
         loading: () => <div className="h-full flex items-center justify-center">
@@ -57,7 +57,9 @@ export default function Session() {
             setTimeElapsed((prevTime) => prevTime + 1);
         }, 1000);
 
-        return () => clearInterval(timerInterval);
+        return () => {
+            clearInterval(timerInterval);
+        };
     }, []);
 
     const minutes = Math.floor(timeElapsed / 60);
@@ -242,7 +244,7 @@ export default function Session() {
     return (
         <Suspense fallback={SessionLoading()}>
             <div className="flex flex-col gap-8 min-h-screen">
-                <div className="flex justify-between text-black bg-white drop-shadow mt-20 mx-8 p-4 rounded-xl relative">
+                <div className="flex justify-between text-black bg-white drop-shadow mt-8 mx-8 p-4 rounded-xl relative">
                     <div className="flex items-center gap-2 text-sm">
                         <div className="flex justify-center items-center bg-brand-200 text-brand-800 py-2 px-3 font-semibold rounded-lg"><Clock3 className="h-4 w-4 mr-2" /><div className="flex justify-center w-[40px]">{minutes}:{seconds < 10 ? `0${seconds}` : seconds}</div></div>
                         <span>with</span>
