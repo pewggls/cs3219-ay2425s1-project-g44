@@ -353,7 +353,8 @@ export default function Questions() {
 
     useEffect(() => {
         if (isMatchFoundDialogOpen) {
-            setRedirectTime(3);
+            router.prefetch('/session/[id]');
+            setRedirectTime(2);
             const redirectTimer = setInterval(() => {
                 setRedirectTime((prevTime) => {
                     if (prevTime <= 1) {

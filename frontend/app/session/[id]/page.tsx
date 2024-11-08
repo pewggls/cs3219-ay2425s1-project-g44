@@ -45,6 +45,8 @@ export default function Session() {
     const [controller, setController] = useState<AbortController | null>(null);
     const [timeElapsed, setTimeElapsed] = useState(0);
     const [isSessionEnded, setIsSessionEnded] = useState(false);
+    const [isSessionEndedPeer, setIsSessionEndedPeer] = useState(false);
+    const [isSessionEndedDisconnect, setIsSessionEndedDisconnect] = useState(false);
     const [isEndDialogOpen, setIsEndDialogOpen] = useState(false);
     const [language, setLanguage] = useState("javascript");
 
@@ -123,7 +125,7 @@ export default function Session() {
     }, [isHistoryApiCalled, language, questionId, timeElapsed]);
 
     useEffect(() => {
-        if (isSessionEnded && !isHistoryApiCalled) {
+        if ((isSessionEnded || isSessionEndedPeer || isSessionEndedDisconnect) && !isHistoryApiCalled) {
             const cleanup = async () => {
                 await callUserHistoryAPI();
                 setTimeout(() => {
@@ -132,7 +134,7 @@ export default function Session() {
             };
             cleanup();
         }
-    }, [isSessionEnded, isHistoryApiCalled, callUserHistoryAPI, router]);
+    }, [isSessionEnded, isHistoryApiCalled, callUserHistoryAPI, router, isSessionEndedPeer, isSessionEndedDisconnect]);
 
     useEffect(() => {
         setIsClient(true);
@@ -179,8 +181,11 @@ export default function Session() {
             onStateless: ({ payload }) => {
                 console.log('Received message:', payload);
                 if (payload === 'sessionEnded') {
-                    console.log("Session ended");
-                    setIsSessionEnded(true);
+                    console.log("Session explicitly ended");
+                    setIsSessionEndedPeer(true);
+                } else if (payload === 'sessionEndedNetwork') {
+                    console.log("Session ended due to network disconnect by peer");
+                    setIsSessionEndedDisconnect(true);
                 }
             },
         });
@@ -199,13 +204,8 @@ export default function Session() {
         notesProviderRef.current = notesProvider;
 
         if (isSessionEnded) {
-            socket.disconnect();
+            codeProvider.sendStateless("endSession");
         }
-
-        return () => {
-            codeProvider.destroy();
-            socket.disconnect();
-        };
     }, [isSessionEnded, params.id, questionId, router]);
 
 
@@ -292,7 +292,7 @@ export default function Session() {
                                             setIsSessionEnded(true)
                                             setIsEndDialogOpen(false)
                                         }}
-                                        disabled={isSessionEnded}
+                                        disabled={isSessionEnded || isSessionEndedPeer || isSessionEndedDisconnect}
                                     >
                                         End session
                                     </Button>
@@ -361,7 +361,7 @@ export default function Session() {
                 </ResizablePanelGroup>
             </div>
 
-            <Dialog open={isSessionEnded}>
+            <Dialog open={isSessionEnded || isSessionEndedPeer || isSessionEndedDisconnect}>
                 <DialogContent
                     className="laptop:max-w-[40vw] bg-white text-black font-sans rounded-2xl [&>button]:hidden"
                 >
@@ -372,7 +372,13 @@ export default function Session() {
                         <DialogDescription className="hidden"></DialogDescription>
                     </DialogHeader>
                     <div className="flex flex-col w-full gap-1 py-4 justify-start">
-                        <p>Your session has ended.</p>
+                        {isSessionEnded ? (
+                            <p>Your session has ended.</p>
+                        ) : isSessionEndedPeer ? (
+                            <p><span className="font-semibold">{peerUsername}</span> has ended the session.</p>
+                        ) : isSessionEndedDisconnect ? (
+                            <p><span className="font-semibold">{peerUsername}</span> disconnected.</p>
+                        ) : null}
                         <p>Redirecting you to the Questions page...</p>
                     </div>
                 </DialogContent>
