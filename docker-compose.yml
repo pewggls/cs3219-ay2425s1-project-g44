@@ -86,9 +86,9 @@ services:
       kafka:
         condition: service_healthy
 
-  signaling-service:
+  collab-service:
     build:
-      context: ./backend/signaling-service
+      context: ./backend/collab-service
       dockerfile: Dockerfile.dev
     ports:
       - "${COLLAB_API_PORT}:3003"
