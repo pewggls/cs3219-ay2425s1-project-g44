@@ -14,6 +14,7 @@ wss.on("connection", (ws) => {
         msg = JSON.parse(msg)
         let res;
         if (msg.event == "enqueue") {
+            ws.userId = msg.userId;
 
             try {
                 res = await matchmakeUser(msg.userId, msg.userName, msg.questions)
@@ -29,6 +30,10 @@ wss.on("connection", (ws) => {
     });
 
     ws.on("close", () => {
-        console.log("Client has disconnected")
+        console.log("Client has disconnected");
+        if (ws.userId) {
+            dequeueUser(ws.userId);
+            console.log(`User ${ws.userId} dequeued due to disconnection`);
+        }
     });
 })
