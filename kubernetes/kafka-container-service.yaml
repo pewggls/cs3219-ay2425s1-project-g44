@@ -3,6 +3,7 @@ kind: Service
 metadata:
   name: kafka-container
 spec:
+  type: ClusterIP
   ports:
     - name: "9092"
       port: 9092

@@ -3,6 +3,7 @@ kind: Service
 metadata:
   name: zookeeper
 spec:
+  type: ClusterIP
   ports:
     - name: "2181"
       port: 2181

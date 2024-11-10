@@ -50,7 +50,7 @@ jobs:
       - name: Build and push Docker images
         run: |
           docker compose build
-          services=("frontend" "matching-service" "question" "signaling-service" "user")
+          services=("frontend" "matching-service" "question" "collab-service" "user")
           for service in "${services[@]}"; do
             image="asia-southeast1-docker.pkg.dev/tokyo-crossbar-440806-u9/peerprep/$service:latest"
             docker tag "cs3219-ay2425s1-project-g44-$service" "$image"

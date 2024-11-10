@@ -35,7 +35,7 @@ spec:
             failureThreshold: 10
             periodSeconds: 10
             timeoutSeconds: 5
-          name: kafka-containter
+          name: kafka-container
           ports:
             - containerPort: 9092
               protocol: TCP

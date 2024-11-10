@@ -1,11 +1,12 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: signaling-service
+  name: collab-service
 spec:
+  type: ClusterIP
   ports:
     - name: "3003"
       port: 3003
       targetPort: 3003
   selector:
-    app: signaling-service
+    app: collab-service

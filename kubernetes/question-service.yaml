@@ -3,6 +3,7 @@ kind: Service
 metadata:
   name: question
 spec:
+  type: ClusterIP
   ports:
     - name: "2000"
       port: 2000
