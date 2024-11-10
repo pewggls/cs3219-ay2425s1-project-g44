@@ -4,6 +4,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { deleteAllCookies, getCookie } from "../utils/cookie-manager";
 import { isTokenExpired } from "../utils/token-utils";
+import { ClientConfig } from "agora-rtc-react";
+import AgoraRTCProvider from "./AgoraRTCProvider";
 
 export default function SessionLayout({
     children,
@@ -27,9 +29,13 @@ export default function SessionLayout({
         authenticateUser();
     }, [pathname, router]);
 
+    const client:ClientConfig = { mode: "rtc", codec: "vp8" };
+
     return (
         <div className="min-h-screen bg-white">
-            {children}
+            <AgoraRTCProvider clientConfig={client}>
+                {children}
+            </AgoraRTCProvider>
         </div>
     );
 }

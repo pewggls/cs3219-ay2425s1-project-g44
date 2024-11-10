@@ -16,6 +16,7 @@ import { getCookie } from '@/app/utils/cookie-manager';
 import { HocuspocusProvider, HocuspocusProviderWebsocket } from '@hocuspocus/provider';
 import * as Y from 'yjs';
 import Markdown from 'react-markdown'
+import { LocalUser, RemoteUser, useJoin, useLocalMicrophoneTrack, usePublish, useRemoteUsers } from "agora-rtc-react";
 
 const DynamicCodeEditor = dynamic(() => import('../code-editor/code-editor'), { ssr: false });
 const DynamicTextEditor = dynamic(
@@ -49,6 +50,8 @@ export default function Session() {
     const [isSessionEndedDisconnect, setIsSessionEndedDisconnect] = useState(false);
     const [isEndDialogOpen, setIsEndDialogOpen] = useState(false);
     const [language, setLanguage] = useState("javascript");
+
+    const [calling, setCalling] = useState(false); // Is calling
 
     const codeDocRef = useRef<Y.Doc>();
     const codeProviderRef = useRef<HocuspocusProvider | null>(null);
@@ -206,29 +209,35 @@ export default function Session() {
         if (isSessionEnded) {
             codeProvider.sendStateless("endSession");
         }
+
+        setCalling(true);
     }, [isSessionEnded, params.id, questionId, router]);
 
+    useJoin({appid: "9da9d118c6a646d1a010b4b227ca1345", channel: `voice-${params.id}`, token: null}, calling);
+
+    const { localMicrophoneTrack } = useLocalMicrophoneTrack(isMicEnabled);
+    usePublish([localMicrophoneTrack]);
+
+    const remoteUsers = useRemoteUsers();
+
+    const handleMicToggle = useCallback(() => {
+        const newMicState = !isMicEnabled;
+        setIsMicEnabled(newMicState);
+        
+        localMicrophoneTrack?.setMuted(!newMicState);
+
+        toast(newMicState ? 'Your mic is now unmuted' : 'Your mic is now muted', {
+            className: "justify-center font-sans text-sm",
+            duration: 1500,
+            icon: newMicState ? 
+                <MicIcon className="h-4 w-4 mr-2 text-green-500" /> :
+                <MicOffIcon className="h-4 w-4 mr-2 text-red-500" />
+        });
+    }, [isMicEnabled, localMicrophoneTrack]);
 
     if (!isClient) {
         return SessionLoading();
     }
-
-    const handleMicToggle = () => {
-        setIsMicEnabled(!isMicEnabled);
-        if (!isMicEnabled) {
-            toast('Your mic is now unmuted', {
-                className: "justify-center font-sans text-sm",
-                duration: 1500,
-                icon: <MicIcon className="h-4 w-4 mr-2 text-green-500" />,
-            });
-        } else {
-            toast('Your mic is now muted', {
-                className: "justify-center font-sans text-sm",
-                duration: 1500,
-                icon: <MicOffIcon className="h-4 w-4 mr-2 text-red-500" />,
-            });
-        }
-    };
 
     function handleCancel() {
         if (controller) {
@@ -251,8 +260,13 @@ export default function Session() {
                         <span className="font-semibold">{peerUsername}</span>
                     </div>
                     <div className="mr-[52px]">
+                        <LocalUser
+                            micOn={isMicEnabled}
+                            className="hidden"
+                        ></LocalUser>
                         <Toggle
                             onPressedChange={handleMicToggle}
+                            pressed={isMicEnabled}
                         >
                             {isMicEnabled ? (
                                 <MicIcon className="size-5 text-green-500" />
@@ -260,6 +274,12 @@ export default function Session() {
                                 <MicOffIcon className="size-5 text-red-500" />
                             )}
                         </Toggle>
+                        {remoteUsers.map((user) => (
+                            <div className="user hidden" key={user.uid}>
+                                <RemoteUser user={user}>
+                                </RemoteUser>
+                            </div>
+                        ))}
                     </div>
                     <div className="">
                         <Dialog open={isEndDialogOpen} onOpenChange={setIsEndDialogOpen}>
