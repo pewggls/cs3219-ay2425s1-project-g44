@@ -8,6 +8,7 @@ import { DataTableRowActions } from "./data-table-row-actions"
 import { Dispatch, SetStateAction } from "react"
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
 import { AlignLeft } from "lucide-react"
+import Markdown from "react-markdown"
 
 
 export type Question = {
@@ -67,14 +68,16 @@ export const columns: (param: Dispatch<SetStateAction<Question[]>>) => ColumnDef
                             </span>
                         </div>
                     </HoverCardTrigger>
-                    <HoverCardContent className="rounded-xl">
+                    <HoverCardContent className="rounded-xl w-max">
                         <div className="flex flex-col">
                             <div className="flex items-center font-semibold mb-2">
                                 <AlignLeft className="h-4 w-4 mr-2" />
                                 <span>Description</span>
                             </div>
                             <div>
-                                <p>{row.original.description}</p>
+                                <Markdown className="text-sm text-primary prose prose-zinc prose-code:bg-zinc-200 prose-code:px-1 prose-code:rounded prose-code:prose-pre:bg-inherit">
+                                    {row.original.description}
+                                </Markdown>
                             </div>
                         </div>
                     </HoverCardContent>
