@@ -118,8 +118,19 @@ export default function UserQuestionHistory() {
   // Success state: Render the list of attempted questions
   return (
     <main className="flex flex-col min-h-screen px-20 pt-24 pb-10">
-        <div className="mb-10"><span className="font-serif font-light text-4xl text-primary tracking-tight">My Question History</span></div>
-        <DataTable columns={columns} data={history} isVisible={false} loading={loading}/>
+        <div className="mb-10"><span className="font-serif font-light text-4xl text-primary tracking-tight">Question History</span></div>
+        <DataTable
+          columns={columns}
+          data={history}
+          isVisible={false}
+          loading={loading}
+          initialSorting={[
+            {
+              id: "attemptDate",
+              desc: true
+            }
+          ]}
+        />
     </main>
   );
 };
