@@ -72,7 +72,7 @@ export default function AuthenticatedLayout({
 
     function logout() {
         deleteAllCookies();
-        router.push('/');
+        window.location.href = '/';
     }
 
     return (
