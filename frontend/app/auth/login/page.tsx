@@ -94,9 +94,9 @@ export default function Login() {
                 setCookie('isAdmin', isAdmin.toString(), { 'max-age': '86400', 'path': '/', 'SameSite': 'Strict' });
             };
 
-            await setCookiesAsync().then(() => {
-                router.push('/questions');
-            });
+            await setCookiesAsync();
+
+            window.location.href = '/questions';
         } catch (error) {
             if (!isErrorSet) {
                 setError("Something went wrong. Please retry shortly.");

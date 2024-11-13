@@ -1,8 +1,20 @@
+"use client"
+
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from 'next/image';
+import { getToken } from "./utils/cookie-manager";
+import { ArrowRight } from "lucide-react";
+import { useState, useEffect } from "react";
 
 export default function Landing() {
+    const [hasToken, setHasToken] = useState(false);
+
+    useEffect(() => {
+        const token = getToken();
+        setHasToken(!!token);
+    }, []);
+
     return (
         <div className="flex flex-col min-h-screen w-screen items-center justify-center bg-white font-sans">
             <div className="flex items-start laptop:w-3/5 gap-10 laptop:justify-between pb-20">
@@ -15,13 +27,21 @@ export default function Landing() {
                         <p>Prep for your next interview with your Peers</p>
                     </div>
                     <div className="flex gap-4 pt-10 items-center text-sm text-muted-foreground">
-                        <Button asChild variant="outline" size="lg" className="rounded-full px-6 border-brand-300 hover:border-brand-100 text-brand-600">
-                            <Link href="/auth/login" className="">Login</Link>
-                        </Button>
-                        or
-                        <Button asChild size="lg" className="rounded-full px-6 bg-brand-600 hover:bg-brand-600/90">
-                            <Link href="/auth/sign-up" className="text-white">Sign Up</Link>
-                        </Button>
+                        {hasToken ? (
+                            <Button asChild size="lg" className="rounded-full px-6 bg-brand-600 hover:bg-brand-600/90">
+                                <Link href="/questions" className="text-white">Continue<ArrowRight className="size-4 ml-2" /></Link>
+                            </Button>
+                        ) : (
+                            <>
+                                <Button asChild variant="outline" size="lg" className="rounded-full px-6 border-brand-300 hover:border-brand-100 text-brand-600">
+                                    <Link href="/auth/login" className="">Login</Link>
+                                </Button>
+                                or
+                                <Button asChild size="lg" className="rounded-full px-6 bg-brand-600 hover:bg-brand-600/90">
+                                    <Link href="/auth/sign-up" className="text-white">Sign Up</Link>
+                                </Button>
+                            </>
+                        )}
                     </div>
                 </div>
                 <div className="hidden laptop:block laptop:w-[440px] bg-brand-50 p-10 rounded-full">

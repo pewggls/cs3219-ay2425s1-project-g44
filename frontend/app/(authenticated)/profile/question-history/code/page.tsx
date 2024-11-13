@@ -145,7 +145,7 @@ function CodeViewerContent() {
     <div className="flex gap-4 min-h-screen px-10 pt-24 pb-5 text-primary">
         {/* Left Panel: Question Details */}
         <ScrollArea className="w-1/2 p-6 border rounded-lg shadow bg-white">
-            <h3 className="text-2xl font-serif font-large tracking-tight">
+            <h3 className="text-2xl font-serif font-medium tracking-tight">
                 {questionDetails?.title || ""}
             </h3>
             <div className="flex items-center gap-10 mt-3">

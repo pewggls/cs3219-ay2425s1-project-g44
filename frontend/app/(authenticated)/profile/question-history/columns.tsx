@@ -1,12 +1,12 @@
 "use client"
- 
+
 import { Badge, BadgeProps } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { ColumnDef } from "@tanstack/react-table"
-import { AlignLeft, ArrowUpDown, MoreHorizontal  } from "lucide-react"
+import { MoreHorizontal  } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import Link from "next/link"
+import { DataTableColumnHeader } from "../../question-repo/data-table-column-header";
 
 export type QuestionHistory = {
     id: number;
@@ -24,13 +24,7 @@ export const columns : ColumnDef<QuestionHistory>[]= [
       accessorKey: "id",
       header: ({ column }) => {
         return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            ID
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
+          <DataTableColumnHeader column={column} title="ID" className="max-w-[30px]" />
         )
       },
     },
@@ -38,50 +32,14 @@ export const columns : ColumnDef<QuestionHistory>[]= [
       accessorKey: "title",
       header: ({ column }) => {
         return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Title
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
+          <DataTableColumnHeader column={column} title="Title" className="min-w-[10vw] w-[15vw]" />
         )
       },
-      cell: ({ row }) => {
-        return (
-            <HoverCard>
-                <HoverCardTrigger>
-                    <div className="flex space-x-2">
-                        <span className="font-medium cursor-help">
-                        {row.getValue("title")}
-                        </span>
-                    </div>
-                </HoverCardTrigger>
-                <HoverCardContent className="rounded-xl">
-                    <div className="flex flex-col">
-                        <div className="flex items-center font-semibold mb-2">
-                            <AlignLeft className="h-4 w-4 mr-2" />
-                            <span>Description</span>
-                        </div>
-                        <div>
-                            <p>{row.original.description}</p>
-                        </div>
-                    </div>
-                </HoverCardContent>
-            </HoverCard>
-        )
-    },
     },
     {
       header: ({ column }) => {
         return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Categories
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
+          <DataTableColumnHeader column={column} title="Categories" />
         )
       },
       accessorKey: "categories",
@@ -96,21 +54,13 @@ export const columns : ColumnDef<QuestionHistory>[]= [
       ),
       filterFn: (row, id, selectedCategories) => {
         const rowCategories = row.getValue(id);
-        console.log(selectedCategories);
-        console.log(rowCategories);
         return selectedCategories.every((category: string) => (rowCategories as string[]).includes(category));
     },
     },
     {
       header: ({ column }) => {
         return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Complexity
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
+          <DataTableColumnHeader column={column} title="Complexity" />
         )
       },
       accessorKey: "complexity",
@@ -128,13 +78,7 @@ export const columns : ColumnDef<QuestionHistory>[]= [
     {
       header: ({ column }) => {
         return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Number of Attempts
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
+          <DataTableColumnHeader column={column} title="No. of Attempts" />
         )
       },
       accessorKey: "attemptCount",
@@ -143,13 +87,7 @@ export const columns : ColumnDef<QuestionHistory>[]= [
     {
       header: ({ column }) => {
         return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Total Time Spent (mins)
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
+          <DataTableColumnHeader column={column} title="Total Time Spent (mins)" />
         )
       },
       accessorKey: "attemptTime",
@@ -159,28 +97,23 @@ export const columns : ColumnDef<QuestionHistory>[]= [
     {
       header: ({ column }) => {
         return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            Last Attempted
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
+          <DataTableColumnHeader column={column} title="Last Attempted" />
         )
       },
       accessorKey: "attemptDate",
       cell: ({ row }) => {
         const attemptDate = row.original.attemptDate;
         return new Date(attemptDate).toLocaleString("en-GB", {
-          day: "2-digit",
-          month: "2-digit",
+          day: "numeric",
+          month: "short",
           year: "numeric",
-          hour: "2-digit",
+          hour: "numeric",
           minute: "2-digit",
-          second: "2-digit",
-          hour12: false,
+          hour12: true,
         });
       },
+      sortingFn: "datetime",
+      sortDescFirst: true,
     },
     {
       id: "actions",

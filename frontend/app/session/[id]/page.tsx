@@ -57,16 +57,6 @@ export default function Session() {
     const codeProviderRef = useRef<HocuspocusProvider | null>(null);
     const notesProviderRef = useRef<HocuspocusProvider | null>(null);
 
-    useEffect(() => {
-        const timerInterval = setInterval(() => {
-            setTimeElapsed((prevTime) => prevTime + 1);
-        }, 1000);
-
-        return () => {
-            clearInterval(timerInterval);
-        };
-    }, []);
-
     const minutes = Math.floor(timeElapsed / 60);
     const seconds = timeElapsed % 60;
 
@@ -213,6 +203,37 @@ export default function Session() {
         setCalling(true);
     }, [isSessionEnded, params.id, questionId, router]);
 
+    // Synced timer
+    const sharedState = codeDocRef.current?.getMap('sharedState');
+    useEffect(() => {
+        // Set initial start time if not set
+        const startTime = sharedState?.get('startTime') || Date.now();
+        if (!sharedState?.get('startTime')) {
+            sharedState?.set('startTime', startTime);
+        }
+
+        // Observe changes to startTime
+        const observer = () => {
+            const currentStartTime = sharedState?.get('startTime');
+            if (currentStartTime) {
+                const elapsed = Math.floor((Date.now() - Number(currentStartTime)) / 1000);
+                setTimeElapsed(elapsed);
+            }
+        };
+
+        // Update timer every second
+        const timer = setInterval(observer, 1000);
+        
+        // Subscribe to changes in shared state
+        sharedState?.observe(observer);
+
+        return () => {
+            clearInterval(timer);
+            sharedState?.unobserve(observer);
+        };
+    }, [sharedState]);
+
+    // Voice chat
     useJoin({appid: "9da9d118c6a646d1a010b4b227ca1345", channel: `voice-${params.id}`, token: null}, calling);
 
     const { localMicrophoneTrack } = useLocalMicrophoneTrack(isMicEnabled);
