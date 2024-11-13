@@ -1,10 +1,11 @@
+# docker-compose for dev
 version: '3.8'
 
 services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile.prod
+      dockerfile: Dockerfile.dev
       args:
         PUBLIC_URL: ${PUBLIC_URL}
         WS_PUBLIC_URL: ${WS_PUBLIC_URL}
@@ -15,11 +16,11 @@ services:
         COLLAB_API_PORT: ${COLLAB_API_PORT}
     ports:
       - "${FRONTEND_PORT}:${FRONTEND_PORT}"
-    depends_on:
-      - question
-      - user
-      - matching-service
-      - collab-service
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend
+          target: /app
 
   question:
     build:
@@ -91,4 +92,3 @@ services:
       dockerfile: Dockerfile.dev
     ports:
       - "${COLLAB_API_PORT}:3003"
-

@@ -29,7 +29,7 @@ and access PeerPrep at [localhost:3000](http://localhost:3000), or the IP addres
 #### Developing
 If you are developing PeerPrep, you can use [Compose Watch](https://docs.docker.com/compose/how-tos/file-watch/) to automatically update and preview code changes:
 ```sh
-docker compose up --watch --build
+docker compose -f docker-compose.dev.yml up --watch --build
 ```
 
 ### API Endpoints
